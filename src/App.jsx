@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────
-// Landmark database (63 곳)
+// Landmark database (93 곳)
 // ─────────────────────────────────────────────────────────
 const LANDMARKS = [
   { id: 'colosseum',       name: '콜로세움',                    nameLocal: 'Colosseo',                            city: '로마',      region: 'Lazio',          lat: 41.8902, lng: 12.4922, emoji: '🏛️' },
@@ -28,6 +28,17 @@ const LANDMARKS = [
   { id: 'borghese',        name: '보르게세 미술관',                nameLocal: 'Galleria Borghese',                   city: '로마',      region: 'Lazio',          lat: 41.9142, lng: 12.4922, emoji: '🖼️' },
   { id: 'catacombs',       name: '산 칼리스토 카타콤베',          nameLocal: 'Catacombe di San Callisto',           city: '로마',      region: 'Lazio',          lat: 41.8584, lng: 12.5104, emoji: '⚰️' },
   { id: 'piazzapopolo',    name: '포폴로 광장',                   nameLocal: 'Piazza del Popolo',                   city: '로마',      region: 'Lazio',          lat: 41.9108, lng: 12.4767, emoji: '⛲' },
+  // v0.8: 로마 추가 10곳
+  { id: 'capitoline',      name: '카피톨리노 박물관',              nameLocal: 'Musei Capitolini',                    city: '로마',      region: 'Lazio',          lat: 41.8932, lng: 12.4827, emoji: '🏛️' },
+  { id: 'trastevere',      name: '트라스테베레',                  nameLocal: 'Trastevere',                          city: '로마',      region: 'Lazio',          lat: 41.8895, lng: 12.4694, emoji: '🏘️' },
+  { id: 'boccaverita',     name: '진실의 입',                    nameLocal: 'Bocca della Verità',                  city: '로마',      region: 'Lazio',          lat: 41.8881, lng: 12.4815, emoji: '👹' },
+  { id: 'smariamaggiore',  name: '산타 마리아 마조레 대성당',       nameLocal: 'Basilica di Santa Maria Maggiore',    city: '로마',      region: 'Lazio',          lat: 41.8976, lng: 12.4986, emoji: '⛪' },
+  { id: 'sgiovannilat',    name: '산 조반니 인 라테라노',          nameLocal: 'San Giovanni in Laterano',            city: '로마',      region: 'Lazio',          lat: 41.8859, lng: 12.5057, emoji: '⛪' },
+  { id: 'campofiori',      name: '캄포 데 피오리',                nameLocal: "Campo de' Fiori",                     city: '로마',      region: 'Lazio',          lat: 41.8954, lng: 12.4720, emoji: '🍅' },
+  { id: 'quirinale',       name: '퀴리날레 궁전',                 nameLocal: 'Palazzo del Quirinale',               city: '로마',      region: 'Lazio',          lat: 41.9003, lng: 12.4870, emoji: '🏛️' },
+  { id: 'caracalla',       name: '카라칼라 욕장',                 nameLocal: 'Terme di Caracalla',                  city: '로마',      region: 'Lazio',          lat: 41.8789, lng: 12.4928, emoji: '🏺' },
+  { id: 'doriapamphilj',   name: '도리아 팜필리 미술관',           nameLocal: 'Galleria Doria Pamphilj',             city: '로마',      region: 'Lazio',          lat: 41.8979, lng: 12.4810, emoji: '🖼️' },
+  { id: 'ghettoebraico',   name: '유대인 게토',                  nameLocal: 'Ghetto Ebraico',                       city: '로마',      region: 'Lazio',          lat: 41.8923, lng: 12.4779, emoji: '🕍' },
   { id: 'uffizi',          name: '우피치 미술관',                  nameLocal: 'Galleria degli Uffizi',               city: '피렌체',    region: 'Toscana',        lat: 43.7677, lng: 11.2553, emoji: '🖼️' },
   { id: 'duomofi',         name: '피렌체 두오모',                  nameLocal: 'Cattedrale di Santa Maria del Fiore', city: '피렌체',    region: 'Toscana',        lat: 43.7731, lng: 11.2560, emoji: '⛪' },
   { id: 'pontevecchio',    name: '베키오 다리',                    nameLocal: 'Ponte Vecchio',                       city: '피렌체',    region: 'Toscana',        lat: 43.7679, lng: 11.2531, emoji: '🌉' },
@@ -35,6 +46,17 @@ const LANDMARKS = [
   { id: 'palazzovecchio',  name: '베키오 궁전',                    nameLocal: 'Palazzo Vecchio',                     city: '피렌체',    region: 'Toscana',        lat: 43.7696, lng: 11.2558, emoji: '🏛️' },
   { id: 'pittipalace',     name: '피티 궁전',                      nameLocal: 'Palazzo Pitti',                       city: '피렌체',    region: 'Toscana',        lat: 43.7651, lng: 11.2500, emoji: '🏰' },
   { id: 'piazzaleMA',      name: '미켈란젤로 광장',                 nameLocal: 'Piazzale Michelangelo',               city: '피렌체',    region: 'Toscana',        lat: 43.7629, lng: 11.2649, emoji: '🌆' },
+  // v0.8: 피렌체 추가 10곳
+  { id: 'santacroce',      name: '산타 크로체 성당',                nameLocal: 'Basilica di Santa Croce',             city: '피렌체',    region: 'Toscana',        lat: 43.7686, lng: 11.2622, emoji: '⛪' },
+  { id: 'bargello',        name: '바르젤로 국립박물관',              nameLocal: 'Museo Nazionale del Bargello',        city: '피렌체',    region: 'Toscana',        lat: 43.7706, lng: 11.2581, emoji: '🗿' },
+  { id: 'smarianovella',   name: '산타 마리아 노벨라',              nameLocal: 'Santa Maria Novella',                 city: '피렌체',    region: 'Toscana',        lat: 43.7745, lng: 11.2493, emoji: '⛪' },
+  { id: 'medicichapels',   name: '메디치 예배당',                  nameLocal: 'Cappelle Medicee',                    city: '피렌체',    region: 'Toscana',        lat: 43.7755, lng: 11.2538, emoji: '🏛️' },
+  { id: 'boboli',          name: '보볼리 정원',                    nameLocal: 'Giardino di Boboli',                  city: '피렌체',    region: 'Toscana',        lat: 43.7625, lng: 11.2487, emoji: '🌳' },
+  { id: 'mercatocentrale', name: '메르카토 첸트랄레 (중앙 시장)',     nameLocal: 'Mercato Centrale',                    city: '피렌체',    region: 'Toscana',        lat: 43.7765, lng: 11.2530, emoji: '🥖' },
+  { id: 'sanlorenzofi',    name: '산 로렌초 성당',                 nameLocal: 'Basilica di San Lorenzo',             city: '피렌체',    region: 'Toscana',        lat: 43.7754, lng: 11.2538, emoji: '⛪' },
+  { id: 'orsanmichele',    name: '오르산미켈레',                   nameLocal: 'Orsanmichele',                        city: '피렌체',    region: 'Toscana',        lat: 43.7704, lng: 11.2552, emoji: '⛪' },
+  { id: 'sanminiato',      name: '산 미니아토 알 몬테',             nameLocal: 'San Miniato al Monte',                city: '피렌체',    region: 'Toscana',        lat: 43.7591, lng: 11.2654, emoji: '⛪' },
+  { id: 'bardinigarden',   name: '바르디니 정원',                  nameLocal: 'Giardino Bardini',                    city: '피렌체',    region: 'Toscana',        lat: 43.7637, lng: 11.2543, emoji: '🌷' },
   { id: 'piazzacampo',     name: '캄포 광장',                     nameLocal: 'Piazza del Campo',                    city: '시에나',    region: 'Toscana',        lat: 43.3186, lng: 11.3320, emoji: '🏟️' },
   { id: 'duomosi',         name: '시에나 대성당',                  nameLocal: 'Duomo di Siena',                      city: '시에나',    region: 'Toscana',        lat: 43.3175, lng: 11.3289, emoji: '⛪' },
   { id: 'leaningtower',    name: '피사의 사탑',                    nameLocal: 'Torre di Pisa',                       city: '피사',      region: 'Toscana',        lat: 43.7230, lng: 10.3966, emoji: '🗼' },
@@ -53,6 +75,17 @@ const LANDMARKS = [
   { id: 'sforza',          name: '스포르체스코 성',                nameLocal: 'Castello Sforzesco',                  city: '밀라노',    region: 'Lombardia',      lat: 45.4708, lng:  9.1796, emoji: '🏰' },
   { id: 'lastsupper',      name: '최후의 만찬',                   nameLocal: 'Cenacolo Vinciano',                   city: '밀라노',    region: 'Lombardia',      lat: 45.4659, lng:  9.1709, emoji: '🎨' },
   { id: 'brera',           name: '브레라 미술관',                  nameLocal: 'Pinacoteca di Brera',                 city: '밀라노',    region: 'Lombardia',      lat: 45.4720, lng:  9.1881, emoji: '🖼️' },
+  // v0.8: 밀라노 추가 10곳
+  { id: 'ambrosiana',      name: '암브로시아나 미술관',             nameLocal: 'Pinacoteca Ambrosiana',               city: '밀라노',    region: 'Lombardia',      lat: 45.4633, lng:  9.1854, emoji: '🖼️' },
+  { id: 'parcosempione',   name: '셈피오네 공원',                  nameLocal: 'Parco Sempione',                      city: '밀라노',    region: 'Lombardia',      lat: 45.4729, lng:  9.1769, emoji: '🌳' },
+  { id: 'sanmaurizio',     name: '산 마우리치오 (밀라노의 시스티나)', nameLocal: 'San Maurizio al Monastero Maggiore',  city: '밀라노',    region: 'Lombardia',      lat: 45.4661, lng:  9.1820, emoji: '⛪' },
+  { id: 'sambrogio',       name: '산 암브로조 대성당',              nameLocal: "Basilica di Sant'Ambrogio",           city: '밀라노',    region: 'Lombardia',      lat: 45.4623, lng:  9.1745, emoji: '⛪' },
+  { id: 'cimitero',        name: '모뉴멘탈레 묘지',                 nameLocal: 'Cimitero Monumentale',                city: '밀라노',    region: 'Lombardia',      lat: 45.4858, lng:  9.1799, emoji: '⚰️' },
+  { id: 'navigli',         name: '나빌리 운하',                    nameLocal: 'Navigli',                             city: '밀라노',    region: 'Lombardia',      lat: 45.4500, lng:  9.1786, emoji: '🌉' },
+  { id: 'boscoverticale',  name: '보스코 베르티칼레',              nameLocal: 'Bosco Verticale',                     city: '밀라노',    region: 'Lombardia',      lat: 45.4856, lng:  9.1894, emoji: '🌲' },
+  { id: 'fondazione',      name: '폰다치오네 프라다',              nameLocal: 'Fondazione Prada',                    city: '밀라노',    region: 'Lombardia',      lat: 45.4451, lng:  9.2031, emoji: '🖼️' },
+  { id: 'quadrilatero',    name: '몬테나폴레오네 (패션 사각형)',     nameLocal: 'Quadrilatero della Moda',             city: '밀라노',    region: 'Lombardia',      lat: 45.4689, lng:  9.1949, emoji: '👜' },
+  { id: 'arcopace',        name: '평화의 문',                     nameLocal: 'Arco della Pace',                     city: '밀라노',    region: 'Lombardia',      lat: 45.4738, lng:  9.1734, emoji: '🏛️' },
   { id: 'bellagio',        name: '벨라조',                       nameLocal: 'Bellagio',                            city: '코모 호수', region: 'Lombardia',      lat: 45.9858, lng:  9.2618, emoji: '🏞️' },
   { id: 'comolake',        name: '코모 시내',                    nameLocal: 'Como',                                city: '코모',     region: 'Lombardia',      lat: 45.8081, lng:  9.0852, emoji: '🌊' },
   { id: 'palazzomantova',  name: '만토바 두칼레 궁전',             nameLocal: 'Palazzo Ducale di Mantova',           city: '만토바',    region: 'Lombardia',      lat: 45.1620, lng: 10.8019, emoji: '🏰' },
