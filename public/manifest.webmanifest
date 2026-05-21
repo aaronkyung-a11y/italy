@@ -1,0 +1,115 @@
+{
+  "name": "Bel Viaggio · 이탈리아 동행 도슨트",
+  "short_name": "Bel Viaggio",
+  "description": "당신의 이탈리아 동행 도슨트 — 명소·메뉴·영수증·번역·코스",
+  "lang": "ko-KR",
+  "dir": "ltr",
+  "start_url": "/?source=pwa",
+  "id": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#F5EBDC",
+  "theme_color": "#B8553A",
+  "categories": ["travel", "lifestyle", "education", "food"],
+  "iarc_rating_id": "",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-monochrome.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "monochrome"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-narrow-1.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "주변 명소 자동 안내"
+    },
+    {
+      "src": "/screenshot-narrow-2.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "영수증 €→₩ 자동 환산"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "명소 분석",
+      "short_name": "명소",
+      "description": "카메라로 명소·작품 식별",
+      "url": "/?action=photo",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "영수증 분석",
+      "short_name": "영수증",
+      "description": "영수증 € → ₩ 환산",
+      "url": "/?action=receipt",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "메뉴 분석",
+      "short_name": "메뉴",
+      "description": "메뉴판 사진 분석",
+      "url": "/?action=menu",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "음성 번역",
+      "short_name": "번역",
+      "description": "음성으로 번역",
+      "url": "/?action=translate",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "share_target": {
+    "action": "/share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "shared_image",
+          "accept": ["image/jpeg", "image/png", "image/webp"]
+        }
+      ]
+    }
+  },
+  "edge_side_panel": {
+    "preferred_width": 480
+  }
+}

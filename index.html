@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ko-KR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+
+  <title>Bel Viaggio · 이탈리아 동행 도슨트</title>
+  <meta name="description" content="당신의 이탈리아 동행 도슨트 — 명소·메뉴·영수증·번역·코스 짜기" />
+
+  <!-- PWA / Theme -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#B8553A" />
+  <meta name="color-scheme" content="light" />
+
+  <!-- Android Chrome -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="application-name" content="Bel Viaggio" />
+
+  <!-- Apple (fallback when iPhone user opens the same URL) -->
+  <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png" />
+  <link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Bel Viaggio" />
+
+  <!-- Standard icons -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+
+  <!-- Performance: preconnect -->
+  <link rel="preconnect" href="https://api.anthropic.com" crossorigin />
+  <link rel="preconnect" href="https://api.frankfurter.app" />
+  <link rel="preconnect" href="https://it.wikipedia.org" />
+  <link rel="preconnect" href="https://en.wikipedia.org" />
+  <link rel="preconnect" href="https://upload.wikimedia.org" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Bel Viaggio" />
+  <meta property="og:description" content="당신의 이탈리아 동행 도슨트" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ko_KR" />
+
+  <style>
+    html, body, #root { margin: 0; padding: 0; height: 100%; }
+    body {
+      background: #F5EBDC;
+      font-family: 'DM Sans', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior-y: none;
+      touch-action: manipulation;
+    }
+
+    /* Splash before React mounts */
+    #splash {
+      position: fixed; inset: 0;
+      display: grid; place-items: center;
+      background: #F5EBDC;
+      transition: opacity 0.3s;
+      z-index: 9999;
+    }
+    #splash.hidden { opacity: 0; pointer-events: none; }
+    #splash .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 48px; color: #5C1E2A;
+      letter-spacing: -0.02em;
+    }
+    #splash .tag {
+      font-size: 11px; color: #9A7A3A;
+      letter-spacing: 0.32em; text-transform: uppercase;
+      margin-top: 8px;
+    }
+    #splash .flag {
+      display: flex; gap: 0; height: 4px; width: 120px;
+      margin: 12px auto 0;
+    }
+    #splash .flag span { flex: 1; }
+    #splash .flag span:nth-child(1) { background: #009246; }
+    #splash .flag span:nth-child(2) { background: #F4ECDB; }
+    #splash .flag span:nth-child(3) { background: #CE2B37; }
+
+    /* Android safe area */
+    @supports (padding: max(0px)) {
+      body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+    }
+  </style>
+</head>
+<body>
+  <div id="splash">
+    <div style="text-align: center;">
+      <div class="logo">Bel Viaggio</div>
+      <div class="tag">◆ Compagno di Viaggio ◆</div>
+      <div class="flag"><span></span><span></span><span></span></div>
+    </div>
+  </div>
+
+  <div id="root"></div>
+
+  <script type="module" src="/src/main.jsx"></script>
+
+  <script>
+    // Hide splash on React mount
+    const observer = new MutationObserver(() => {
+      const root = document.getElementById('root');
+      if (root && root.children.length > 0) {
+        document.getElementById('splash')?.classList.add('hidden');
+        setTimeout(() => document.getElementById('splash')?.remove(), 400);
+        observer.disconnect();
+      }
+    });
+    observer.observe(document.getElementById('root'), { childList: true });
+
+    // Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+          .then((reg) => {
+            console.log('[BV] SW registered:', reg.scope);
+            // Update check every hour while open
+            setInterval(() => reg.update(), 60 * 60 * 1000);
+
+            // Listen for waiting update
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              newWorker?.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('[BV] Update available — refresh to apply');
+                }
+              });
+            });
+          })
+          .catch((err) => console.warn('[BV] SW failed:', err));
+      });
+
+      // Listen for SW messages (e.g. shared image arrived)
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data?.type === 'SHARED_IMAGE') {
+          // App can pick this up via window.__BV_SHARED_IMAGE__
+          window.__BV_SHARED_IMAGE__ = event.data.blob;
+          window.dispatchEvent(new CustomEvent('bv:shared-image', { detail: event.data.blob }));
+        }
+      });
+    }
+
+    // URL parameter handling
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('action')) {
+      window.__BV_INITIAL_ACTION__ = params.get('action');
+    }
+    if (params.has('shared')) {
+      // Ask SW for the pending shared image
+      if (navigator.serviceWorker?.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'GET_SHARED_IMAGE' });
+      }
+    }
+    if (params.has('action') || params.has('shared') || params.has('source')) {
+      history.replaceState(null, '', '/');
+    }
+
+    // Track install eligibility (Android Chrome)
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // React component will pick this up via its own listener
+      window.__BV_INSTALL_PROMPT__ = e;
+    });
+
+    // Track successful install
+    window.addEventListener('appinstalled', () => {
+      console.log('[BV] App installed');
+      window.__BV_INSTALL_PROMPT__ = null;
+    });
+  </script>
+</body>
+</html>
