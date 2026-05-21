@@ -123,6 +123,36 @@ const DEMO_LOCATIONS = [
   { label: '🌋  시칠리아 — 에트나',       lat: 37.7510, lng: 14.9934 },
 ];
 
+// v1.1: 즐겨찾기 없이도 시작 가능한 필수 코스 (검증된 셋).
+// 각 ids는 LANDMARKS 데이터의 id와 정확히 일치해야 함.
+const PRESET_COURSES = [
+  // 로마
+  { id: 'roma-1day',  emoji: '🏛️', title: '로마 핵심 1일',  city: '로마',  days: 1,
+    desc: '처음 가는 사람을 위한 베스트 6곳',
+    ids: ['colosseum', 'romanforum', 'pantheon', 'trevi', 'piazzanavona', 'spanishsteps'] },
+  { id: 'roma-3day',  emoji: '🏛️', title: '로마 + 바티칸 3일', city: '로마',  days: 3,
+    desc: '고대 + 바로크 + 바티칸 종합',
+    ids: ['colosseum', 'romanforum', 'pantheon', 'trevi', 'piazzanavona', 'spanishsteps',
+          'vatican', 'stpeters', 'sistine', 'castelsantangelo', 'borghese', 'trastevere',
+          'campofiori', 'capitoline', 'boccaverita'] },
+  // 피렌체
+  { id: 'firenze-1day', emoji: '🎨', title: '피렌체 핵심 1일', city: '피렌체', days: 1,
+    desc: '르네상스 베스트 6곳',
+    ids: ['duomofi', 'uffizi', 'pontevecchio', 'palazzovecchio', 'accademia', 'piazzaleMA'] },
+  { id: 'firenze-2day', emoji: '🎨', title: '피렌체 종합 2일', city: '피렌체', days: 2,
+    desc: '르네상스 + 메디치 가문',
+    ids: ['duomofi', 'uffizi', 'pontevecchio', 'palazzovecchio', 'accademia', 'piazzaleMA',
+          'pittipalace', 'boboli', 'santacroce', 'bargello', 'medicichapels', 'sanlorenzofi'] },
+  // 밀라노
+  { id: 'milano-1day', emoji: '⛪', title: '밀라노 핵심 1일', city: '밀라노', days: 1,
+    desc: '두오모 + 다 빈치의 도시',
+    ids: ['duomomi', 'galleria', 'lascala', 'lastsupper', 'sforza', 'brera'] },
+  { id: 'milano-2day', emoji: '⛪', title: '밀라노 클래식+현대 2일', city: '밀라노', days: 2,
+    desc: '두오모 + 나빌리 + 현대 건축',
+    ids: ['duomomi', 'galleria', 'lascala', 'lastsupper', 'sforza', 'brera',
+          'navigli', 'boscoverticale', 'quadrilatero', 'sambrogio', 'parcosempione', 'fondazione'] },
+];
+
 // v0.9: 도시별 사전 캐싱 + 음성 검색용 — LANDMARKS에서 자동 계산.
 // 각 도시의 중심 좌표는 그 도시 명소들의 평균.
 const KNOWN_CITIES = (() => {
@@ -1217,10 +1247,28 @@ export default function BelViaggio() {
   // ─── v0.5: AI-recommended itinerary ─────────────────────
   // v1.0: + startDate parameter for date-aware planning (월요일 박물관 휴무 등)
   // v1.0: + 식사 슬롯에 specific restaurant 배정 (Bayesian top picks)
+  // v1.1: + preset courses (필수 코스 — 즐겨찾기 없이 바로 시작)
   async function generateItinerary(cityFilter, startDate = null) {
     const places = cityFilter
       ? favoriteLandmarks.filter((l) => l.city === cityFilter)
       : favoriteLandmarks;
+    return runItineraryGeneration(places, startDate, null);
+  }
+
+  // v1.1: 필수 코스 프리셋 (LANDMARKS에서 id로 lookup)
+  async function generateItineraryFromPreset(preset, startDate = null) {
+    const places = preset.ids
+      .map((id) => LANDMARKS.find((l) => l.id === id))
+      .filter(Boolean);
+    if (places.length === 0) {
+      setItineraryError('프리셋 명소를 찾을 수 없어요.');
+      return;
+    }
+    return runItineraryGeneration(places, startDate, preset.title);
+  }
+
+  // 공통 itinerary 생성 로직 (favorites OR preset 모두 사용)
+  async function runItineraryGeneration(places, startDate = null, presetTitle = null) {
     if (places.length === 0) return;
 
     setView('ai-itinerary');
@@ -1350,6 +1398,9 @@ JSON 형식만 출력 (코드블록 금지):
         });
         await Promise.all(dayPromises);
       }
+
+      // v1.1: preset title override (사용자가 고른 프리셋 제목 유지)
+      if (presetTitle && parsed) parsed.title = presetTitle;
 
       setItinerary(parsed);
     } catch (err) {
@@ -1634,6 +1685,7 @@ JSON 형식만 출력 (코드블록 금지):
             onRestaurantsClick={openRestaurants}
             onHotelsClick={openHotels}
             onFxClick={() => setView('currency-calc')}
+            onPresetCourse={(preset) => generateItineraryFromPreset(preset)}
             preCacheStatus={preCacheStatus}
             onPreCacheCity={preCacheCity}
             collectionCount={collection.length}
@@ -1952,6 +2004,7 @@ function HomeView({
   nearby, proximityAlert, dismissAlert, onOpenDetail,
   onPhotoClick, onMenuClick, onReceiptClick, onTranslateClick,
   onCollectionClick, onFavoritesClick, onRestaurantsClick, onHotelsClick, onFxClick,
+  onPresetCourse,
   preCacheStatus, onPreCacheCity,
   collectionCount, favoritesCount,
   favorites, toggleFavorite, fx, fxLoading, refreshFx,
@@ -2070,6 +2123,30 @@ function HomeView({
           <FolderHeart size={14} /><span>컬렉션</span>
           <span className="cnt">{collectionCount}</span>
         </button>
+      </div>
+
+      {/* v1.1: 필수 코스 — 즐겨찾기 없이 바로 시작 */}
+      <div className="bv-preset-section">
+        <div className="bv-preset-head">
+          <div className="title bv-display"><Sparkles size={11} /> 필수 코스</div>
+          <div className="sub">즐겨찾기 없이 바로 시작 · 검증된 명소 셋을 AI가 동선으로 짜드림</div>
+        </div>
+        <div className="bv-preset-row">
+          {PRESET_COURSES.map((c) => (
+            <button key={c.id} className="bv-preset-card" onClick={() => onPresetCourse(c)}>
+              <div className="emoji">{c.emoji}</div>
+              <div className="info">
+                <div className="ttl bv-display">{c.title}</div>
+                <div className="desc">{c.desc}</div>
+                <div className="meta">
+                  <span><MapPin size={9} /> {c.ids.length}곳</span>
+                  <span><CalendarDays size={9} /> {c.days}일</span>
+                </div>
+              </div>
+              <ChevronRight size={12} style={{ color: 'var(--ink-soft)', flexShrink: 0 }} />
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="bv-fx-row tappable" onClick={onFxClick} role="button" tabIndex={0}>
@@ -4654,6 +4731,70 @@ function BelViaggioStyles() {
         background: rgba(92,30,42,0.1); color: var(--burgundy);
         padding: 1px 5px; border-radius: 999px;
         font-size: 9px; font-weight: 600;
+      }
+
+      /* v1.1: 필수 코스 (Preset courses) */
+      .bv-preset-section {
+        margin: 0 18px 14px;
+      }
+      .bv-preset-head {
+        margin-bottom: 8px;
+      }
+      .bv-preset-head .title {
+        font-size: 14px; color: var(--burgundy);
+        font-weight: 500;
+        display: inline-flex; align-items: center; gap: 5px;
+      }
+      .bv-preset-head .sub {
+        font-size: 10px; color: var(--ink-soft);
+        margin-top: 2px; font-family: 'DM Sans', sans-serif;
+      }
+      .bv-preset-row {
+        display: flex; gap: 10px; overflow-x: auto;
+        padding: 4px 2px 8px;
+        scrollbar-width: none;
+        scroll-snap-type: x mandatory;
+      }
+      .bv-preset-row::-webkit-scrollbar { display: none; }
+      .bv-preset-card {
+        flex-shrink: 0; width: 220px;
+        scroll-snap-align: start;
+        display: flex; gap: 10px; align-items: center;
+        padding: 10px 12px;
+        background: rgba(255, 252, 245, 0.85);
+        border: 1px solid rgba(201,169,97,0.3);
+        border-radius: 12px;
+        cursor: pointer; text-align: left;
+        font-family: 'DM Sans', sans-serif;
+      }
+      .bv-preset-card:hover {
+        background: rgba(255, 252, 245, 1);
+        border-color: var(--gold-deep);
+      }
+      .bv-preset-card .emoji {
+        font-size: 24px; flex-shrink: 0;
+        width: 38px; height: 38px;
+        display: grid; place-items: center;
+        background: rgba(201,169,97,0.1); border-radius: 10px;
+      }
+      .bv-preset-card .info { flex: 1; min-width: 0; }
+      .bv-preset-card .ttl {
+        font-size: 13px; font-weight: 500;
+        color: var(--burgundy); line-height: 1.15;
+      }
+      .bv-preset-card .desc {
+        font-size: 10px; color: var(--ink-soft);
+        margin-top: 2px; line-height: 1.3;
+        overflow: hidden; text-overflow: ellipsis;
+        display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+      }
+      .bv-preset-card .meta {
+        display: flex; gap: 8px; margin-top: 4px;
+        font-size: 9px; color: var(--gold-deep);
+      }
+      .bv-preset-card .meta span {
+        display: inline-flex; align-items: center; gap: 2px;
+        font-weight: 500;
       }
 
       /* v1.0: Restaurants + Hotels duo CTA */
