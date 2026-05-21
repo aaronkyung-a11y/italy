@@ -122,6 +122,50 @@ const DEMO_LOCATIONS = [
   { label: '🌋  시칠리아 — 에트나',       lat: 37.7510, lng: 14.9934 },
 ];
 
+// v0.9: 도시별 사전 캐싱 + 음성 검색용 — LANDMARKS에서 자동 계산.
+// 각 도시의 중심 좌표는 그 도시 명소들의 평균.
+const KNOWN_CITIES = (() => {
+  const map = {};
+  LANDMARKS.forEach((l) => {
+    if (!map[l.city]) map[l.city] = { name: l.city, lats: [], lngs: [], count: 0 };
+    map[l.city].lats.push(l.lat);
+    map[l.city].lngs.push(l.lng);
+    map[l.city].count++;
+  });
+  return Object.values(map).map((c) => ({
+    name: c.name,
+    lat: c.lats.reduce((s, x) => s + x, 0) / c.lats.length,
+    lng: c.lngs.reduce((s, x) => s + x, 0) / c.lngs.length,
+    landmarkCount: c.count,
+  })).sort((a, b) => b.landmarkCount - a.landmarkCount);
+})();
+
+// 사용자 위치에서 가장 가까운 알려진 도시 (30km 이내).
+function findNearestCity(lat, lng) {
+  if (lat == null || lng == null) return null;
+  let nearest = null;
+  let nearestDist = Infinity;
+  KNOWN_CITIES.forEach((c) => {
+    const d = haversineDistance(lat, lng, c.lat, c.lng);
+    if (d < nearestDist) { nearest = c; nearestDist = d; }
+  });
+  return nearestDist < 30000 ? { ...nearest, distance: nearestDist } : null;
+}
+
+// 음성 입력 → 카테고리 매핑. 한국어 키워드 기반 (오프라인 가능).
+function mapSpeechToCuisine(text) {
+  const t = (text || '').toLowerCase().replace(/\s/g, '');
+  if (t.match(/파스타|파스다|스파게티|까르보나라|라자냐|라쟈냐/)) return 'pasta';
+  if (t.match(/피자|핏자|핏짜|마르게리타/)) return 'pizza';
+  if (t.match(/해산물|생선|회|새우|문어|봉골레/)) return 'seafood';
+  if (t.match(/스테이크|비스테카|고기|소고기|티본/)) return 'steak';
+  if (t.match(/젤라토|아이스크림|샤벳|소르베/)) return 'gelato';
+  if (t.match(/카페|커피|에스프레소|카푸치노|디저트/)) return 'cafe';
+  if (t.match(/와인|에노테카|술집|바|아페리티보/)) return 'wine';
+  if (t.match(/이탈리안|이탈리아|트라토리아|트라또리아|오스테리아/)) return 'italian';
+  return 'all';
+}
+
 // ─────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────
@@ -529,6 +573,12 @@ export default function BelViaggio() {
   const [restaurantCuisine, setRestaurantCuisine] = useState('all');
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [restaurantSearchOrigin, setRestaurantSearchOrigin] = useState(null); // {lat, lng}
+
+  // v0.9: pre-cache per city + voice search + currency calculator
+  const [preCacheStatus, setPreCacheStatus] = useState({}); // { cityName: 'loading' | { count, fetchedAt } | { error } }
+  const [voiceListening, setVoiceListening] = useState(false);
+  const [voiceTranscript, setVoiceTranscript] = useState('');
+  const voiceRecognitionRef = useRef(null);
 
   // Photo cache (in-memory only — re-fetched on session start)
   const [photoCache, setPhotoCache] = useState({}); // id -> {url, credit, extract}
@@ -1260,20 +1310,23 @@ JSON 형식만 출력 (코드블록 금지):
     const origin = { lat: effectiveLocation.lat, lng: effectiveLocation.lng };
     setRestaurantSearchOrigin(origin);
 
-    // 1km 격자로 캐시 키 (위치가 미세하게 달라도 같은 결과 재사용)
-    const cacheKey = `places_${origin.lat.toFixed(2)}_${origin.lng.toFixed(2)}_${cuisine}`;
+    // v0.9: 두 단계 캐시 — 정확한 위치(1km 격자) → 도시 사전 캐싱(precache) → API
+    const exactKey = `places_${origin.lat.toFixed(2)}_${origin.lng.toFixed(2)}_${cuisine}`;
+    const nearestCity = findNearestCity(origin.lat, origin.lng);
 
     try {
+      // 1) 정확한 위치 캐시 (24h TTL)
       if (!forceRefresh) {
-        const cached = await dbGet('restaurants', cacheKey);
+        const cached = await dbGet('restaurants', exactKey);
         if (cached && Date.now() - cached.fetchedAt < 24 * 60 * 60 * 1000) {
           setRestaurants(cached.results || []);
-          setRestaurantsMeta({ ...cached.meta, fromCache: true });
+          setRestaurantsMeta({ ...cached.meta, fromCache: true, source: 'exact' });
           setRestaurantsLoading(false);
           return;
         }
       }
 
+      // 2) 온라인 API 호출
       const res = await fetch('/api/places', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1281,26 +1334,108 @@ JSON 형식만 출력 (코드블록 금지):
       });
 
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || `Places API error ${res.status}`);
-      }
+      if (!res.ok) throw new Error(data.error || `Places API error ${res.status}`);
 
       setRestaurants(data.results || []);
-      setRestaurantsMeta({ ...data.meta, fromCache: false });
+      setRestaurantsMeta({ ...data.meta, fromCache: false, source: 'api' });
 
       // 캐시 저장
       await dbPut('restaurants', {
-        id: cacheKey,
-        results: data.results,
-        meta: data.meta,
-        fetchedAt: Date.now(),
+        id: exactKey, results: data.results, meta: data.meta, fetchedAt: Date.now(),
       });
     } catch (err) {
+      // 3) 사전 캐싱 fallback — 인터넷 안 되거나 API 실패 시
+      if (nearestCity) {
+        const precache = await dbGet('restaurants', `precache_${nearestCity.name}`);
+        if (precache?.results?.length > 0) {
+          // 거리/카테고리 필터링 (cuisine별 types 매칭)
+          let filtered = precache.results.map((r) => ({
+            ...r,
+            distance: haversineDistance(origin.lat, origin.lng, r.location.latitude, r.location.longitude),
+          }));
+          if (cuisine !== 'all') {
+            filtered = filtered.filter((r) => matchesCuisine(r, cuisine));
+          }
+          // 거리 2km 내, Bayesian 가중 점수 정렬
+          filtered = filtered
+            .filter((r) => r.distance < 2000)
+            .sort((a, b) => b.weightedScore - a.weightedScore);
+
+          setRestaurants(filtered);
+          setRestaurantsMeta({
+            count: filtered.length, fromCache: true, source: 'precache',
+            cityName: nearestCity.name, originalError: err.message,
+          });
+          setRestaurantsLoading(false);
+          return;
+        }
+      }
       setRestaurantsError(`맛집 검색 실패: ${err.message}`);
     } finally {
       setRestaurantsLoading(false);
     }
   }
+
+  // v0.9: cuisine 키워드 → Google Places types 매칭 (오프라인 필터링용)
+  function matchesCuisine(restaurant, cuisine) {
+    const types = restaurant.types || [];
+    const name = (restaurant.name || '').toLowerCase();
+    if (cuisine === 'pizza') return types.includes('pizza_restaurant') || name.includes('pizza');
+    if (cuisine === 'pasta') return types.includes('italian_restaurant') || name.match(/pasta|spaghett|trattori/);
+    if (cuisine === 'seafood') return types.includes('seafood_restaurant');
+    if (cuisine === 'steak') return types.includes('steak_house') || name.match(/steak|bistecca/);
+    if (cuisine === 'gelato') return types.includes('ice_cream_shop') || name.includes('gelat');
+    if (cuisine === 'cafe') return types.includes('cafe') || types.includes('coffee_shop');
+    if (cuisine === 'wine') return types.includes('wine_bar') || name.includes('enoteca');
+    if (cuisine === 'italian') return types.includes('italian_restaurant');
+    return true;
+  }
+
+  // v0.9: 도시별 사전 캐싱 — 한 번 호출로 그 도시의 베스트 20곳 저장 (만료 없음).
+  // 오프라인 fallback + 빠른 화면 표시.
+  async function preCacheCity(cityName) {
+    const city = KNOWN_CITIES.find((c) => c.name === cityName);
+    if (!city) return { ok: false, error: '알 수 없는 도시' };
+
+    setPreCacheStatus((s) => ({ ...s, [cityName]: 'loading' }));
+
+    try {
+      const res = await fetch('/api/places', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lat: city.lat, lng: city.lng, cuisine: 'all', radius: 3000 }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `API error ${res.status}`);
+
+      await dbPut('restaurants', {
+        id: `precache_${cityName}`,
+        results: data.results,
+        meta: data.meta,
+        fetchedAt: Date.now(),
+        isPreCached: true,
+      });
+
+      setPreCacheStatus((s) => ({ ...s, [cityName]: { count: data.results?.length || 0, fetchedAt: Date.now() } }));
+      return { ok: true, count: data.results?.length || 0 };
+    } catch (err) {
+      setPreCacheStatus((s) => ({ ...s, [cityName]: { error: err.message } }));
+      return { ok: false, error: err.message };
+    }
+  }
+
+  // 사전 캐싱 상태 페이지 로드 시 IDB에서 확인
+  useEffect(() => {
+    if (!storageReady) return;
+    (async () => {
+      const status = {};
+      for (const c of KNOWN_CITIES.slice(0, 6)) {
+        const cached = await dbGet('restaurants', `precache_${c.name}`);
+        if (cached) status[c.name] = { count: cached.results?.length || 0, fetchedAt: cached.fetchedAt };
+      }
+      setPreCacheStatus(status);
+    })();
+  }, [storageReady]);
 
   function openRestaurants() {
     setView('restaurants');
@@ -1313,6 +1448,52 @@ JSON 형식만 출력 (코드블록 금지):
   function selectRestaurant(restaurant) {
     setSelectedRestaurant(restaurant);
     setView('restaurant-detail');
+  }
+
+  // v0.9: 음성 검색 — 한국어 음성을 Web Speech Recognition으로 받아서
+  // 로컬 키워드 매칭으로 카테고리 자동 선택 + 검색 실행. (API 호출 없음, 오프라인 가능)
+  function startVoiceSearch() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      setRestaurantsError('이 브라우저는 음성 인식을 지원하지 않아요. Chrome으로 열어주세요.');
+      return;
+    }
+    // 이전 세션 정리
+    if (voiceRecognitionRef.current) {
+      try { voiceRecognitionRef.current.stop(); } catch { /* ignore */ }
+    }
+
+    const recognition = new SR();
+    recognition.lang = 'ko-KR';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => { setVoiceListening(true); setVoiceTranscript(''); };
+    recognition.onend = () => setVoiceListening(false);
+    recognition.onerror = (e) => {
+      setVoiceListening(false);
+      if (e.error !== 'no-speech' && e.error !== 'aborted') {
+        setRestaurantsError(`음성 인식 오류: ${e.error}`);
+      }
+    };
+    recognition.onresult = (event) => {
+      const text = event.results[0]?.[0]?.transcript || '';
+      setVoiceTranscript(text);
+      const matchedCuisine = mapSpeechToCuisine(text);
+      setRestaurantCuisine(matchedCuisine);
+      fetchNearbyRestaurants(matchedCuisine);
+    };
+
+    voiceRecognitionRef.current = recognition;
+    try { recognition.start(); }
+    catch (err) { setRestaurantsError(`음성 인식 시작 실패: ${err.message}`); }
+  }
+
+  function stopVoiceSearch() {
+    if (voiceRecognitionRef.current) {
+      try { voiceRecognitionRef.current.stop(); } catch { /* ignore */ }
+    }
   }
 
   return (
@@ -1334,6 +1515,9 @@ JSON 형식만 출력 (코드블록 금지):
             onCollectionClick={() => setView('collection')}
             onFavoritesClick={() => setView('favorites')}
             onRestaurantsClick={openRestaurants}
+            onFxClick={() => setView('currency-calc')}
+            preCacheStatus={preCacheStatus}
+            onPreCacheCity={preCacheCity}
             collectionCount={collection.length}
             favoritesCount={favorites.size}
             favorites={favorites} toggleFavorite={toggleFavorite}
@@ -1446,6 +1630,19 @@ JSON 형식만 출력 (코드블록 금지):
             onBack={goBack}
             onSelect={selectRestaurant}
             onRefresh={() => fetchNearbyRestaurants(restaurantCuisine, true)}
+            voiceListening={voiceListening}
+            voiceTranscript={voiceTranscript}
+            onVoiceStart={startVoiceSearch}
+            onVoiceStop={stopVoiceSearch}
+          />
+        )}
+
+        {view === 'currency-calc' && (
+          <CurrencyCalcView
+            fx={fx}
+            fxLoading={fxLoading}
+            onBack={goBack}
+            onRefresh={refreshFx}
           />
         )}
 
@@ -1612,7 +1809,9 @@ function HomeView({
   location, locationStatus, demoMode, demoCoord, setDemoMode, setDemoCoord,
   nearby, proximityAlert, dismissAlert, onOpenDetail,
   onPhotoClick, onMenuClick, onReceiptClick, onTranslateClick,
-  onCollectionClick, onFavoritesClick, onRestaurantsClick, collectionCount, favoritesCount,
+  onCollectionClick, onFavoritesClick, onRestaurantsClick, onFxClick,
+  preCacheStatus, onPreCacheCity,
+  collectionCount, favoritesCount,
   favorites, toggleFavorite, fx, fxLoading, refreshFx,
   swStatus, notifPermission, requestNotificationPermission,
   installPrompt, triggerInstall, isStandalone, storageReady,
@@ -1723,7 +1922,7 @@ function HomeView({
         </button>
       </div>
 
-      <div className="bv-fx-row">
+      <div className="bv-fx-row tappable" onClick={onFxClick} role="button" tabIndex={0}>
         <div className="lbl">€ → ₩ 환율</div>
         {fxLoading ? (
           <div className="val muted"><Loader2 size={11} className="spin" /> 가져오는 중…</div>
@@ -1735,8 +1934,16 @@ function HomeView({
         ) : (
           <div className="val muted">불러올 수 없음</div>
         )}
-        <button className="refresh" onClick={refreshFx} disabled={fxLoading}><RefreshCw size={11} /></button>
+        <button className="refresh" onClick={(e) => { e.stopPropagation(); refreshFx(); }} disabled={fxLoading}><RefreshCw size={11} /></button>
+        <ChevronRight size={12} style={{ color: 'var(--ink-soft)' }} />
       </div>
+
+      {/* v0.9: Travel Prep — 도시별 사전 캐싱 (오프라인 대비) */}
+      <TravelPrepSection
+        cities={KNOWN_CITIES.slice(0, 6)}
+        status={preCacheStatus}
+        onCacheCity={onPreCacheCity}
+      />
 
       {(canInstall || needsNotif || notifDenied || inArtifact) && (
         <div className="bv-pwa-panel">
@@ -2549,6 +2756,160 @@ function AiItineraryView({ itinerary, loading, error, onBack, onOpenLandmark, on
 }
 
 // ─────────────────────────────────────────────────────────
+// v0.9: Travel Prep — 도시별 사전 캐싱 (오프라인 대비)
+// ─────────────────────────────────────────────────────────
+function TravelPrepSection({ cities, status, onCacheCity }) {
+  function formatRelativeTime(ts) {
+    if (!ts) return null;
+    const diff = Date.now() - ts;
+    const min = Math.floor(diff / 60000);
+    if (min < 1) return '방금';
+    if (min < 60) return `${min}분 전`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr}시간 전`;
+    const day = Math.floor(hr / 24);
+    return `${day}일 전`;
+  }
+
+  return (
+    <div className="bv-prep-section">
+      <div className="bv-prep-title">
+        <Database size={11} /> 도시별 사전 캐싱
+        <span className="hint">오프라인 대비 · 도시별 베스트 20곳</span>
+      </div>
+      <div className="bv-prep-list">
+        {cities.map((c) => {
+          const s = status[c.name];
+          const isLoading = s === 'loading';
+          const cached = s && typeof s === 'object' && s.count;
+          const errored = s && typeof s === 'object' && s.error;
+          return (
+            <div key={c.name} className="bv-prep-row">
+              <div className="info">
+                <div className="name">{c.name}</div>
+                <div className="meta">
+                  {cached && !isLoading && <>✓ {s.count}곳 캐싱 · {formatRelativeTime(s.fetchedAt)}</>}
+                  {!cached && !isLoading && !errored && <>아직 캐싱 안 함 · {c.landmarkCount}개 명소</>}
+                  {errored && <span style={{ color: 'var(--terracotta-deep)' }}>실패: {s.error.slice(0, 30)}</span>}
+                </div>
+              </div>
+              <button
+                className={`bv-prep-btn ${cached ? 'done' : ''}`}
+                onClick={() => onCacheCity(c.name)}
+                disabled={isLoading}
+              >
+                {isLoading ? <Loader2 size={11} className="spin" /> : cached ? <RefreshCw size={11} /> : <Download size={11} />}
+                {isLoading ? '캐싱 중…' : cached ? '갱신' : '캐싱'}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// v0.9: Currency Calculator — EUR ↔ KRW 양방향 계산기
+// ─────────────────────────────────────────────────────────
+function CurrencyCalcView({ fx, fxLoading, onBack, onRefresh }) {
+  const [eurInput, setEurInput] = useState('');
+  const [krwInput, setKrwInput] = useState('');
+  const rate = fx?.rate || 0;
+
+  function onEurChange(v) {
+    setEurInput(v);
+    const num = parseFloat(v);
+    if (!isFinite(num) || !rate) {
+      setKrwInput('');
+      return;
+    }
+    setKrwInput(Math.round(num * rate).toLocaleString('ko-KR'));
+  }
+  function onKrwChange(v) {
+    setKrwInput(v);
+    const num = parseFloat(v.replace(/[,\s]/g, ''));
+    if (!isFinite(num) || !rate) {
+      setEurInput('');
+      return;
+    }
+    setEurInput((num / rate).toFixed(2));
+  }
+
+  const quickAmounts = [10, 25, 50, 100, 200, 500];
+
+  return (
+    <div className="bv-subview">
+      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 뒤로</button>
+
+      <h2 className="bv-h1">Cambio Valuta</h2>
+      <div className="bv-h1-sub">환율 계산기 · EUR ↔ KRW 양방향</div>
+
+      {!rate && !fxLoading && (
+        <div className="bv-error" style={{ marginTop: 12 }}>
+          <AlertCircle size={16} />
+          <div>환율 정보를 불러올 수 없어요. 인터넷 연결을 확인하고 새로고침 해주세요.</div>
+        </div>
+      )}
+
+      <div className="bv-calc-card">
+        <div className="bv-calc-row">
+          <span className="symbol">€</span>
+          <input
+            type="text" inputMode="decimal"
+            value={eurInput}
+            onChange={(e) => onEurChange(e.target.value)}
+            placeholder="0.00"
+            autoFocus
+          />
+          <span className="label">EUR</span>
+        </div>
+        <div className="bv-calc-equals">⇅</div>
+        <div className="bv-calc-row">
+          <span className="symbol">₩</span>
+          <input
+            type="text" inputMode="numeric"
+            value={krwInput}
+            onChange={(e) => onKrwChange(e.target.value)}
+            placeholder="0"
+          />
+          <span className="label">KRW</span>
+        </div>
+      </div>
+
+      {/* 빠른 금액 버튼 */}
+      <div className="bv-calc-quick">
+        <div className="bv-calc-quick-label">자주 쓰는 € 금액</div>
+        <div className="bv-calc-quick-row">
+          {quickAmounts.map((amt) => (
+            <button key={amt} className="bv-calc-quick-btn" onClick={() => onEurChange(String(amt))}>
+              € {amt}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="bv-calc-rate-card">
+        <div className="rate-line">
+          <div className="rate-val">1 EUR = <strong>{rate ? rate.toFixed(2) : '-'}</strong> KRW</div>
+          <button onClick={onRefresh} disabled={fxLoading}>
+            {fxLoading ? <Loader2 size={11} className="spin" /> : <RefreshCw size={11} />}
+            {fxLoading ? '갱신 중…' : '새로'}
+          </button>
+        </div>
+        {fx?.date && (
+          <div className="rate-meta">출처: ECB · 기준일 {fx.date}</div>
+        )}
+      </div>
+
+      <div className="bv-route-disclaimer" style={{ marginTop: 12 }}>
+        ⓘ ECB(유럽중앙은행) 기준 환율입니다. 실제 현지 카드·환전 사용 시 1.5~3% 정도 비용이 더 붙어요. 카드 결제 시 <strong>원화 결제(DCC) 거부</strong>하고 유로로 결제하세요.
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
 // Restaurants View (v0.6) — Google Places + Bayesian weighted ranking
 // ─────────────────────────────────────────────────────────
 const CUISINE_FILTERS = [
@@ -2575,7 +2936,7 @@ function priceLevelToSign(level) {
   return map[level] || '';
 }
 
-function RestaurantsView({ restaurants, loading, error, meta, cuisine, setCuisine, origin, location, onBack, onSelect, onRefresh }) {
+function RestaurantsView({ restaurants, loading, error, meta, cuisine, setCuisine, origin, location, onBack, onSelect, onRefresh, voiceListening, voiceTranscript, onVoiceStart, onVoiceStop }) {
   return (
     <div className="bv-subview">
       <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 뒤로</button>
@@ -2589,6 +2950,23 @@ function RestaurantsView({ restaurants, loading, error, meta, cuisine, setCuisin
           <div>위치 정보가 필요해요. 위치 권한을 허용하거나 데모 모드를 선택해주세요.</div>
         </div>
       )}
+
+      {/* v0.9: Voice search button row */}
+      <div className="bv-voice-search">
+        <button
+          className={`bv-voice-btn ${voiceListening ? 'listening' : ''}`}
+          onClick={voiceListening ? onVoiceStop : onVoiceStart}
+          disabled={loading}
+        >
+          {voiceListening ? <MicOff size={14} /> : <Mic size={14} />}
+          <span>{voiceListening ? '듣는 중… (다시 탭하면 중지)' : '음성으로 검색'}</span>
+        </button>
+        {voiceTranscript && !voiceListening && (
+          <div className="bv-voice-result">
+            🎤 "{voiceTranscript}"
+          </div>
+        )}
+      </div>
 
       {/* Cuisine filter pills */}
       <div className="bv-cuisine-row">
@@ -2609,8 +2987,10 @@ function RestaurantsView({ restaurants, loading, error, meta, cuisine, setCuisin
       {meta && !loading && (
         <div className="bv-restaurants-meta">
           <div className="meta-line">
-            <TrendingUp size={10} /> {meta.count}곳 · 평균 평점 {meta.meanRating}
-            {meta.fromCache && <span style={{ marginLeft: 6 }}>· <Database size={9} /> 캐시</span>}
+            <TrendingUp size={10} /> {meta.count}곳
+            {meta.meanRating && <> · 평균 평점 {meta.meanRating}</>}
+            {meta.source === 'exact' && <span style={{ marginLeft: 6 }}>· <Database size={9} /> 캐시</span>}
+            {meta.source === 'precache' && <span style={{ marginLeft: 6, color: 'var(--terracotta-deep)' }}>· 📦 {meta.cityName} 사전 캐시</span>}
           </div>
           <button onClick={onRefresh} title="새로 검색"><RefreshCw size={10} /> 새로</button>
         </div>
@@ -2914,6 +3294,171 @@ function BelViaggioStyles() {
       .bv-pill.coll .cnt { background: var(--burgundy); color: #fff8ec; }
 
       .bv-fx-row { margin: 0 18px 12px; padding: 9px 14px; background: rgba(255, 252, 245, 0.5); border: 1px solid rgba(0,0,0,0.05); border-radius: 10px; display: flex; align-items: center; gap: 8px; font-size: 11px; }
+      .bv-fx-row.tappable { cursor: pointer; }
+      .bv-fx-row.tappable:active { background: rgba(255, 252, 245, 0.9); }
+
+      /* v0.9: Travel Prep section (도시별 사전 캐싱) */
+      .bv-prep-section {
+        margin: 4px 18px 14px; padding: 12px;
+        background: rgba(255, 252, 245, 0.5);
+        border: 1px dashed rgba(184,85,58,0.25);
+        border-radius: 12px;
+      }
+      .bv-prep-title {
+        font-size: 11px; color: var(--burgundy);
+        font-weight: 600; letter-spacing: 0.02em;
+        display: flex; align-items: center; gap: 5px;
+        margin-bottom: 8px;
+        font-family: 'DM Sans', sans-serif;
+      }
+      .bv-prep-title .hint {
+        margin-left: auto; font-size: 9px;
+        color: var(--ink-soft); font-weight: 400;
+        font-style: italic;
+      }
+      .bv-prep-list { display: flex; flex-direction: column; gap: 6px; }
+      .bv-prep-row {
+        display: flex; align-items: center; gap: 8px;
+        padding: 8px 10px;
+        background: #fff8ec;
+        border: 1px solid rgba(0,0,0,0.05);
+        border-radius: 8px;
+      }
+      .bv-prep-row .info { flex: 1; min-width: 0; }
+      .bv-prep-row .name {
+        font-size: 13px; font-weight: 500; color: var(--ink);
+        font-family: 'Cormorant Garamond', serif;
+      }
+      .bv-prep-row .meta {
+        font-size: 10px; color: var(--ink-soft); margin-top: 1px;
+      }
+      .bv-prep-btn {
+        flex-shrink: 0;
+        background: var(--burgundy); color: #fff8ec;
+        border: 0; padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 10px; cursor: pointer;
+        display: inline-flex; align-items: center; gap: 4px;
+        font-family: 'DM Sans', sans-serif; font-weight: 500;
+      }
+      .bv-prep-btn:disabled { opacity: 0.6; cursor: default; }
+      .bv-prep-btn.done {
+        background: rgba(107,143,101,0.15);
+        color: var(--sage);
+      }
+
+      /* v0.9: Voice search in Restaurants view */
+      .bv-voice-search { margin-top: 12px; }
+      .bv-voice-btn {
+        width: 100%; padding: 10px 14px;
+        background: linear-gradient(135deg, var(--terracotta) 0%, var(--burgundy) 100%);
+        color: #fff8ec; border: 0; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        cursor: pointer; font-size: 13px; font-weight: 500;
+        font-family: 'DM Sans', sans-serif;
+      }
+      .bv-voice-btn:disabled { opacity: 0.5; cursor: default; }
+      .bv-voice-btn.listening {
+        animation: bv-pulse 1.5s infinite;
+        background: linear-gradient(135deg, #b73a3a 0%, #5C1E2A 100%);
+      }
+      @keyframes bv-pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(184,85,58,0.4); }
+        50% { box-shadow: 0 0 0 10px rgba(184,85,58,0); }
+      }
+      .bv-voice-result {
+        margin-top: 8px; padding: 6px 10px;
+        background: rgba(255, 252, 245, 0.7);
+        border: 1px solid rgba(0,0,0,0.06);
+        border-radius: 8px;
+        font-size: 11px; color: var(--ink);
+        font-style: italic;
+      }
+
+      /* v0.9: Currency Calculator */
+      .bv-calc-card {
+        margin-top: 14px;
+        background: rgba(255, 252, 245, 0.7);
+        border: 1px solid rgba(0,0,0,0.06);
+        border-radius: 14px; padding: 16px;
+      }
+      .bv-calc-row {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 12px;
+        background: #fff8ec;
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 10px;
+      }
+      .bv-calc-row .symbol {
+        font-size: 22px; font-weight: 700;
+        color: var(--burgundy); flex-shrink: 0;
+        width: 24px; text-align: center;
+        font-family: 'Cormorant Garamond', serif;
+      }
+      .bv-calc-row input {
+        flex: 1; border: 0; background: transparent;
+        font-size: 22px; font-weight: 500;
+        color: var(--ink); padding: 0;
+        font-family: 'Cormorant Garamond', serif;
+        outline: none;
+        min-width: 0;
+      }
+      .bv-calc-row input::placeholder { color: var(--ink-soft); opacity: 0.5; }
+      .bv-calc-row .label {
+        font-size: 11px; color: var(--ink-soft);
+        font-family: 'DM Sans', sans-serif;
+        letter-spacing: 0.05em; font-weight: 500;
+        flex-shrink: 0;
+      }
+      .bv-calc-equals {
+        text-align: center; padding: 6px 0;
+        color: var(--terracotta); font-size: 14px;
+      }
+      .bv-calc-quick { margin-top: 14px; }
+      .bv-calc-quick-label {
+        font-size: 10px; color: var(--ink-soft);
+        text-transform: uppercase; letter-spacing: 0.1em;
+        font-family: 'DM Sans', sans-serif;
+        margin-bottom: 6px;
+      }
+      .bv-calc-quick-row {
+        display: flex; gap: 6px; overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .bv-calc-quick-row::-webkit-scrollbar { display: none; }
+      .bv-calc-quick-btn {
+        flex-shrink: 0; padding: 6px 12px;
+        background: rgba(255, 252, 245, 0.8);
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 999px;
+        font-size: 12px; color: var(--burgundy);
+        cursor: pointer;
+        font-family: 'DM Sans', sans-serif;
+      }
+      .bv-calc-quick-btn:hover { background: rgba(255, 252, 245, 1); }
+      .bv-calc-rate-card {
+        margin-top: 14px; padding: 12px;
+        background: rgba(184,85,58,0.06);
+        border: 1px solid rgba(184,85,58,0.15);
+        border-radius: 10px;
+      }
+      .bv-calc-rate-card .rate-line {
+        display: flex; align-items: center; justify-content: space-between;
+        font-size: 12px;
+      }
+      .bv-calc-rate-card .rate-val { color: var(--ink); }
+      .bv-calc-rate-card .rate-val strong { color: var(--burgundy); font-weight: 600; }
+      .bv-calc-rate-card button {
+        background: rgba(184,85,58,0.15); border: 0;
+        color: var(--terracotta-deep); padding: 4px 10px;
+        border-radius: 999px; font-size: 10px; cursor: pointer;
+        display: inline-flex; align-items: center; gap: 4px;
+        font-family: 'DM Sans', sans-serif;
+      }
+      .bv-calc-rate-card .rate-meta {
+        font-size: 9px; color: var(--ink-soft);
+        margin-top: 4px; font-style: italic;
+      }
       .bv-fx-row .lbl { color: var(--ink-soft); letter-spacing: 0.04em; }
       .bv-fx-row .val { color: var(--ink); flex: 1; display: flex; align-items: center; gap: 4px; }
       .bv-fx-row .val strong { font-weight: 600; color: var(--burgundy); }
