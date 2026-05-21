@@ -6,7 +6,8 @@ import {
   Utensils, FolderHeart, Trash2, Check, Bookmark, AlertTriangle,
   Receipt, Heart, Bell, BellRing, RefreshCw, Info, Layers,
   Mic, MicOff, Route, Clock, Footprints, Download, Share2,
-  Database
+  Database, ChevronDown, ChevronUp, Wand2, Sun, UtensilsCrossed,
+  CalendarDays, BookmarkCheck, BookmarkX
 } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────
@@ -216,8 +217,8 @@ function formatEUR(n) {
 // IndexedDB (gracefully degrades to in-memory in artifact env)
 // ─────────────────────────────────────────────────────────
 const DB_NAME = 'belviaggio';
-const DB_VERSION = 1;
-const STORES = ['collection', 'favorites', 'photos'];
+const DB_VERSION = 2;  // v0.5: added 'details' store
+const STORES = ['collection', 'favorites', 'photos', 'details'];
 
 let dbPromise = null;
 let dbAvailable = null; // null = unknown, true/false = checked
@@ -299,6 +300,46 @@ async function dbClear(storeName) {
 }
 
 // ─────────────────────────────────────────────────────────
+// Exchange rate — multi-provider fallback chain
+// (api.frankfurter.app moved to frankfurter.dev in early 2026,
+//  old URL returns 301 redirect which some browsers don't follow)
+// ─────────────────────────────────────────────────────────
+const FX_PROVIDERS = [
+  {
+    name: 'ECB',
+    url: 'https://api.frankfurter.dev/v1/latest?base=EUR&symbols=KRW',
+    parse: (d) => ({ rate: d.rates?.KRW, date: d.date, source: 'ECB' }),
+  },
+  {
+    name: 'open.er-api',
+    url: 'https://open.er-api.com/v6/latest/EUR',
+    parse: (d) => ({
+      rate: d.rates?.KRW,
+      date: d.time_last_update_utc ? new Date(d.time_last_update_utc).toISOString().slice(0, 10) : '',
+      source: 'open.er-api',
+    }),
+  },
+  {
+    name: 'exchangerate-api',
+    url: 'https://api.exchangerate-api.com/v4/latest/EUR',
+    parse: (d) => ({ rate: d.rates?.KRW, date: d.date, source: 'exchangerate-api' }),
+  },
+];
+
+async function fetchFxWithFallback() {
+  for (const provider of FX_PROVIDERS) {
+    try {
+      const r = await fetch(provider.url, { headers: { Accept: 'application/json' } });
+      if (!r.ok) continue;
+      const data = await r.json();
+      const parsed = provider.parse(data);
+      if (parsed.rate && isFinite(parsed.rate)) return parsed;
+    } catch { /* try next */ }
+  }
+  return null;
+}
+
+// ─────────────────────────────────────────────────────────
 // Wikipedia / Wikimedia hero photo fetcher
 // ─────────────────────────────────────────────────────────
 async function fetchLandmarkPhoto(nameLocal) {
@@ -373,7 +414,9 @@ function groupByCity(places) {
 // Main App
 // ─────────────────────────────────────────────────────────
 export default function BelViaggio() {
-  const [view, setView] = useState('home');
+  // View stack pattern — supports Android hardware back button via History API
+  const [viewStack, setViewStack] = useState(['home']);
+  const view = viewStack[viewStack.length - 1];
   const [location, setLocation] = useState(null);
   const [locationStatus, setLocationStatus] = useState('idle');
   const [demoMode, setDemoMode] = useState(false);
@@ -419,6 +462,19 @@ export default function BelViaggio() {
   const [savedFlash, setSavedFlash] = useState(null);
   const [storageReady, setStorageReady] = useState(false);
 
+  // Detail caching (v0.5) - load from IDB, fall back to API
+  const [detailCache, setDetailCache] = useState({});
+
+  // Currently displayed item IDs for save toggle (v0.5)
+  const [photoItemId, setPhotoItemId] = useState(null);
+  const [menuItemId, setMenuItemId] = useState(null);
+  const [receiptItemId, setReceiptItemId] = useState(null);
+
+  // AI Itinerary (v0.5)
+  const [itinerary, setItinerary] = useState(null);
+  const [itineraryLoading, setItineraryLoading] = useState(false);
+  const [itineraryError, setItineraryError] = useState(null);
+
   // Photo cache (in-memory only — re-fetched on session start)
   const [photoCache, setPhotoCache] = useState({}); // id -> {url, credit, extract}
   const [photoLoading, setPhotoLoading] = useState({}); // id -> boolean
@@ -444,16 +500,70 @@ export default function BelViaggio() {
 
   const effectiveLocation = demoMode ? demoCoord : location;
 
+  // ─── Navigation: view stack + browser history sync ─────
+  // setView(newView) pushes to stack and adds to browser history.
+  // Android hardware back button (popstate) pops the stack.
+  // History.back() in our onBack handlers fires popstate, no double-pop.
+
+  // On mount, replace initial history entry with depth 0
+  useEffect(() => {
+    try {
+      window.history.replaceState({ bvDepth: 0 }, '');
+    } catch { /* ignore */ }
+  }, []);
+
+  function setView(newView) {
+    setViewStack((s) => {
+      const newStack = [...s, newView];
+      try {
+        window.history.pushState({ bvDepth: newStack.length - 1 }, '');
+      } catch { /* ignore */ }
+      return newStack;
+    });
+  }
+
+  function goBack() {
+    if (viewStack.length > 1) {
+      try { window.history.back(); } catch { setViewStack((s) => s.slice(0, -1)); }
+    }
+  }
+
+  function goHome() {
+    // Go back to home (clear stack)
+    if (viewStack.length > 1) {
+      try {
+        window.history.go(-(viewStack.length - 1));
+      } catch {
+        setViewStack(['home']);
+      }
+    }
+  }
+
+  // Listen for popstate (Android back button or browser back)
+  useEffect(() => {
+    function handlePopState(e) {
+      const targetDepth = e.state?.bvDepth ?? 0;
+      setViewStack((s) => s.slice(0, targetDepth + 1));
+    }
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   // ─── Load persistent data on mount ──────────────────────
   useEffect(() => {
     (async () => {
       try {
-        const [savedItems, favItems] = await Promise.all([
+        const [savedItems, favItems, detailItems] = await Promise.all([
           dbAll('collection'),
           dbAll('favorites'),
+          dbAll('details'),
         ]);
         setCollection(savedItems.sort((a, b) => (b.addedAt || '').localeCompare(a.addedAt || '')));
-        setFavorites(new Set(favItems.map(f => f.id)));
+        setFavorites(new Set(favItems.map((f) => f.id)));
+        // Build detail cache from IDB
+        const cache = {};
+        detailItems.forEach((d) => { cache[d.id] = d.data; });
+        setDetailCache(cache);
       } catch { /* fallback to empty */ }
       setStorageReady(true);
     })();
@@ -475,19 +585,15 @@ export default function BelViaggio() {
   // ─── Exchange rate ──────────────────────────────────────
   useEffect(() => {
     setFxLoading(true);
-    fetch('https://api.frankfurter.app/latest?from=EUR&to=KRW')
-      .then((r) => r.json())
-      .then((d) => setFx({ rate: d.rates?.KRW, date: d.date }))
-      .catch(() => setFx(null))
+    fetchFxWithFallback()
+      .then((result) => setFx(result))
       .finally(() => setFxLoading(false));
   }, []);
 
   function refreshFx() {
     setFxLoading(true);
-    fetch('https://api.frankfurter.app/latest?from=EUR&to=KRW')
-      .then((r) => r.json())
-      .then((d) => setFx({ rate: d.rates?.KRW, date: d.date }))
-      .catch(() => {})
+    fetchFxWithFallback()
+      .then((result) => { if (result) setFx(result); })
       .finally(() => setFxLoading(false));
   }
 
@@ -612,6 +718,7 @@ export default function BelViaggio() {
     if (!file) return;
     e.target.value = '';
     setView('photo');
+    setPhotoItemId(null);  // Reset save tracking for new analysis
     setAnalyzing(true); setAnalyzeError(null); setAnalysis(null);
     try {
       const { dataUrl, base64, mimeType } = await compressImage(file);
@@ -629,7 +736,12 @@ export default function BelViaggio() {
   "confidence": "high|medium|low",
   "summary": "한 문장 핵심 설명",
   "history": "역사와 배경 3-5문장",
-  "viewingPoints": ["꼭 봐야 하는 포인트 1", "포인트 2", "포인트 3", "포인트 4"],
+  "viewingPoints": [
+    { "title": "포인트 1 제목 (간결)", "detail": "왜 봐야 하는지·어디서 보면 좋은지 1-2문장" },
+    { "title": "포인트 2 제목", "detail": "1-2문장 설명" },
+    { "title": "포인트 3 제목", "detail": "1-2문장 설명" },
+    { "title": "포인트 4 제목", "detail": "1-2문장 설명" }
+  ],
   "tip": "여행자에게 주는 실용적 팁 한 줄",
   "phrase": { "it": "현지에서 쓸 만한 이탈리아어 한 문장", "pronunciation": "한글 발음", "ko": "한국어 뜻" }
 }
@@ -653,6 +765,7 @@ export default function BelViaggio() {
     if (files.length === 0) return;
     e.target.value = '';
     setView('menu');
+    setMenuItemId(null);  // Reset save tracking
     setMenuAnalyzing(true); setMenuError(null); setMenuAnalysis(null);
     try {
       const compressed = await Promise.all(files.map((f) => compressImage(f)));
@@ -700,6 +813,7 @@ export default function BelViaggio() {
     if (!file) return;
     e.target.value = '';
     setView('receipt');
+    setReceiptItemId(null);  // Reset save tracking
     setReceiptAnalyzing(true); setReceiptError(null); setReceiptAnalysis(null);
     try {
       const { dataUrl, base64, mimeType } = await compressImage(file);
@@ -765,12 +879,20 @@ export default function BelViaggio() {
     }
   }
 
-  async function openDetail(landmark) {
+  async function openDetail(landmark, forceRefresh = false) {
     setView('detail');
     setDetail({ ...landmark, loading: true });
     setDetailLoading(true);
-    // Fetch Wikipedia photo in parallel (don't await)
     fetchPhoto(landmark);
+
+    // ─ v0.5: Check cache first (instant load, no API call) ─
+    if (!forceRefresh && detailCache[landmark.id]) {
+      const cached = detailCache[landmark.id];
+      setDetail({ ...landmark, ...cached, loading: false, fromCache: true });
+      setDetailLoading(false);
+      return;
+    }
+
     try {
       const text = await callClaude([{
         role: 'user',
@@ -779,18 +901,36 @@ export default function BelViaggio() {
 {
   "summary": "한 문장 핵심 설명",
   "history": "역사와 배경 3-5문장",
-  "viewingPoints": ["꼭 봐야 하는 포인트 1", "포인트 2", "포인트 3", "포인트 4"],
+  "viewingPoints": [
+    { "title": "포인트 1 제목 (간결)", "detail": "왜 봐야 하는지·어디서 보면 좋은지 1-2문장" },
+    { "title": "포인트 2 제목", "detail": "1-2문장 설명" },
+    { "title": "포인트 3 제목", "detail": "1-2문장 설명" },
+    { "title": "포인트 4 제목", "detail": "1-2문장 설명" }
+  ],
   "tip": "여행자에게 주는 실용적 팁 한 줄",
   "phrase": { "it": "현지에서 쓸 만한 이탈리아어 한 문장", "pronunciation": "한글 발음", "ko": "한국어 뜻" }
 }`,
       }], 1500);
       const parsed = safeParseJSON(text);
       setDetail({ ...landmark, ...parsed, loading: false });
+
+      // ─ v0.5: Save to cache (memory + IDB) ─
+      setDetailCache((c) => ({ ...c, [landmark.id]: parsed }));
+      await dbPut('details', { id: landmark.id, data: parsed, fetchedAt: new Date().toISOString() });
     } catch (err) {
       setDetail({ ...landmark, loading: false, error: err.message });
     } finally {
       setDetailLoading(false);
     }
+  }
+
+  async function clearDetailCache(landmarkId) {
+    setDetailCache((c) => {
+      const next = { ...c };
+      delete next[landmarkId];
+      return next;
+    });
+    await dbDelete('details', landmarkId);
   }
 
   function dismissAlert(id) { setDismissedAlerts((s) => new Set([...s, id])); setProximityAlert(null); }
@@ -809,14 +949,34 @@ export default function BelViaggio() {
       const thumb = receiptImage ? await compressThumbnail(receiptImage) : null;
       item = { id, type, addedAt: ts, thumbnail: thumb, fullImage: receiptImage, title: receiptAnalysis.venue || '영수증', subtitle: `${formatEUR(receiptAnalysis.total)} · ${receiptAnalysis.items?.length || 0}항목`, data: receiptAnalysis };
     } else if (type === 'landmark' && detail && !detail.loading) {
-      item = { id, type, addedAt: ts, thumbnail: null, emoji: detail.emoji, title: detail.name, subtitle: `${detail.nameLocal} · ${detail.city}`, data: { ...detail, loading: false } };
+      // For landmarks use stable landmark id (allows toggle check)
+      item = { id: `landmark-${detail.id}`, type, addedAt: ts, thumbnail: null, emoji: detail.emoji, title: detail.name, subtitle: `${detail.nameLocal} · ${detail.city}`, data: { ...detail, loading: false } };
     }
     if (item) {
-      setCollection((c) => [item, ...c]);
+      setCollection((c) => [item, ...c.filter((x) => x.id !== item.id)]);
       await dbPut('collection', item);
+      // Track ID for save toggle UI
+      if (type === 'photo') setPhotoItemId(item.id);
+      else if (type === 'menu') setMenuItemId(item.id);
+      else if (type === 'receipt') setReceiptItemId(item.id);
       setSavedFlash(type);
       setTimeout(() => setSavedFlash(null), 1800);
     }
+  }
+
+  // v0.5: Remove currently displayed item from collection (un-save)
+  async function unsaveCurrent(type) {
+    let idToRemove = null;
+    if (type === 'photo') idToRemove = photoItemId;
+    else if (type === 'menu') idToRemove = menuItemId;
+    else if (type === 'receipt') idToRemove = receiptItemId;
+    else if (type === 'landmark' && detail) idToRemove = `landmark-${detail.id}`;
+    if (!idToRemove) return;
+    setCollection((c) => c.filter((x) => x.id !== idToRemove));
+    await dbDelete('collection', idToRemove);
+    if (type === 'photo') setPhotoItemId(null);
+    else if (type === 'menu') setMenuItemId(null);
+    else if (type === 'receipt') setReceiptItemId(null);
   }
 
   async function removeFromCollection(id) {
@@ -827,12 +987,16 @@ export default function BelViaggio() {
   function openFromCollection(item) {
     if (item.type === 'photo') {
       setImageData(item.fullImage); setAnalysis(item.data);
+      setPhotoItemId(item.id);
       setAnalyzing(false); setAnalyzeError(null); setView('photo');
     } else if (item.type === 'menu') {
       setMenuImages(Array.isArray(item.fullImage) ? item.fullImage : [item.fullImage]);
-      setMenuAnalysis(item.data); setMenuAnalyzing(false); setMenuError(null); setView('menu');
+      setMenuAnalysis(item.data);
+      setMenuItemId(item.id);
+      setMenuAnalyzing(false); setMenuError(null); setView('menu');
     } else if (item.type === 'receipt') {
       setReceiptImage(item.fullImage); setReceiptAnalysis(item.data);
+      setReceiptItemId(item.id);
       setReceiptAnalyzing(false); setReceiptError(null); setView('receipt');
     } else if (item.type === 'landmark') {
       setDetail(item.data); setDetailLoading(false); setView('detail');
@@ -874,6 +1038,74 @@ export default function BelViaggio() {
     setView('route');
   }
 
+  // ─── v0.5: AI-recommended itinerary ─────────────────────
+  async function generateItinerary(cityFilter) {
+    const places = cityFilter
+      ? favoriteLandmarks.filter((l) => l.city === cityFilter)
+      : favoriteLandmarks;
+    if (places.length === 0) return;
+
+    setView('ai-itinerary');
+    setItineraryLoading(true);
+    setItineraryError(null);
+    setItinerary(null);
+
+    try {
+      const placesList = places.map((p) => `- ${p.name} (${p.nameLocal}, ${p.city}) [id: ${p.id}]`).join('\n');
+      const text = await callClaude([{
+        role: 'user',
+        content: `당신은 이탈리아 여행 전문가입니다. 다음 즐겨찾기 명소들을 효율적으로 방문할 수 있는 동선을 한국어로 제안해주세요.
+
+명소 목록 (총 ${places.length}곳):
+${placesList}
+
+고려할 사항:
+- 각 명소의 평균 관람 시간 (콜로세움 90분, 우피치 120분, 분수·광장 20분 등)
+- 개관 시간대와 휴관일 (월요일 박물관 휴무, 일요일 미사 등)
+- 인파 패턴 (콜로세움·우피치는 오전 추천, 트레비 분수는 야경)
+- 명소 간 도보 거리 (같은 도시는 도보, 다른 도시는 별도 일정)
+- 식사 시간: 점심 12:30~14:00, 저녁 19:30~
+- 너무 빡빡하지 않게 (하루 5~7곳, 4~6시간 활동)
+
+JSON 형식만 출력 (코드블록 금지):
+{
+  "title": "동선 제목 (예: '로마 핵심 1일 코스')",
+  "totalDays": 1,
+  "summary": "전체 한 줄 요약",
+  "days": [
+    {
+      "day": 1,
+      "theme": "이 날의 테마 (예: '고대 로마의 영광')",
+      "city": "도시명",
+      "stops": [
+        {
+          "id": "원본 명소 id (변경 금지)",
+          "arrivalTime": "09:00",
+          "duration": 90,
+          "reason": "이 시간에 가는 이유 (간결한 한 줄)",
+          "tip": "현장 팁 (한 줄, 사전예약·복장 등)"
+        }
+      ],
+      "meals": [
+        { "time": "13:00", "type": "점심", "suggestion": "추천 식당이나 구역 (한 줄)" }
+      ],
+      "walkingNote": "도보 이동 종합 코멘트 (한 줄)"
+    }
+  ],
+  "overallTips": ["전체 일정에 대한 팁 1", "팁 2", "팁 3"]
+}
+
+명소 수가 많으면 여러 날로 나누세요. 명소 id는 반드시 원본 그대로 출력하세요.`,
+      }], 3500);
+      const parsed = safeParseJSON(text);
+      setItinerary(parsed);
+    } catch (err) {
+      setItineraryError(`동선 생성 실패: ${err.message}`);
+    } finally {
+      setItineraryLoading(false);
+    }
+  }
+
   return (
     <div className="bv-root">
       <BelViaggioStyles />
@@ -906,25 +1138,30 @@ export default function BelViaggio() {
         {view === 'photo' && (
           <PhotoView
             imageData={imageData} analyzing={analyzing} analysis={analysis} error={analyzeError}
-            onBack={() => setView('home')} speak={speak} speakingId={speakingId}
+            onBack={goBack} speak={speak} speakingId={speakingId}
             onRetake={() => photoInputRef.current?.click()}
-            onSave={() => saveCurrent('photo')} saved={savedFlash === 'photo'}
-            inCollection={analysis && collection.some((c) => c.type === 'photo' && c.data.name === analysis.name && c.fullImage === imageData)}
+            onSave={() => saveCurrent('photo')} onUnsave={() => unsaveCurrent('photo')}
+            saved={savedFlash === 'photo'}
+            isSaved={!!photoItemId && collection.some((c) => c.id === photoItemId)}
           />
         )}
 
         {view === 'menu' && (
           <MenuView images={menuImages} analyzing={menuAnalyzing} analysis={menuAnalysis} error={menuError}
-            onBack={() => setView('home')} speak={speak} speakingId={speakingId}
+            onBack={goBack} speak={speak} speakingId={speakingId}
             onRetake={() => menuInputRef.current?.click()}
-            onSave={() => saveCurrent('menu')} saved={savedFlash === 'menu'} />
+            onSave={() => saveCurrent('menu')} onUnsave={() => unsaveCurrent('menu')}
+            saved={savedFlash === 'menu'}
+            isSaved={!!menuItemId && collection.some((c) => c.id === menuItemId)} />
         )}
 
         {view === 'receipt' && (
           <ReceiptView imageData={receiptImage} analyzing={receiptAnalyzing} analysis={receiptAnalysis} error={receiptError}
-            fx={fx} onBack={() => setView('home')} speak={speak} speakingId={speakingId}
+            fx={fx} onBack={goBack} speak={speak} speakingId={speakingId}
             onRetake={() => receiptInputRef.current?.click()}
-            onSave={() => saveCurrent('receipt')} saved={savedFlash === 'receipt'} />
+            onSave={() => saveCurrent('receipt')} onUnsave={() => unsaveCurrent('receipt')}
+            saved={savedFlash === 'receipt'}
+            isSaved={!!receiptItemId && collection.some((c) => c.id === receiptItemId)} />
         )}
 
         {view === 'translate' && (
@@ -932,7 +1169,7 @@ export default function BelViaggio() {
             input={translateInput} setInput={setTranslateInput}
             direction={translateDir} setDirection={setTranslateDir}
             translation={translation} translating={translating} error={translateError}
-            onTranslate={handleTranslate} onBack={() => setView('home')}
+            onTranslate={handleTranslate} onBack={goBack}
             speak={speak} speakingId={speakingId}
           />
         )}
@@ -940,33 +1177,49 @@ export default function BelViaggio() {
         {view === 'detail' && detail && (
           <DetailView
             detail={detail} loading={detailLoading}
-            onBack={() => setView('home')} speak={speak} speakingId={speakingId}
-            onSave={() => saveCurrent('landmark')} saved={savedFlash === 'landmark'}
+            onBack={goBack} speak={speak} speakingId={speakingId}
+            onSave={() => saveCurrent('landmark')} onUnsave={() => unsaveCurrent('landmark')}
+            saved={savedFlash === 'landmark'}
+            isSaved={collection.some((c) => c.id === `landmark-${detail.id}`)}
             onDirections={() => openInMaps(detail.lat, detail.lng, detail.nameLocal)}
             isFavorite={favorites.has(detail.id)} toggleFavorite={() => toggleFavorite(detail.id)}
             photo={photoCache[detail.id]} photoLoading={photoLoading[detail.id]}
+            onRefresh={() => openDetail(detail, true)}
           />
         )}
 
         {view === 'collection' && (
-          <CollectionView items={collection} onBack={() => setView('home')} onOpen={openFromCollection} onRemove={removeFromCollection} dbAvailable={dbAvailable} />
+          <CollectionView items={collection} onBack={goBack} onOpen={openFromCollection} onRemove={removeFromCollection} dbAvailable={dbAvailable} />
         )}
 
         {view === 'favorites' && (
           <FavoritesView
             items={favoriteLandmarks} hasLocation={!!effectiveLocation}
-            onBack={() => setView('home')} onOpen={openDetail}
+            onBack={goBack} onOpen={openDetail}
             onRemove={toggleFavorite}
             onDirections={(l) => openInMaps(l.lat, l.lng, l.nameLocal)}
             onPlanRoute={buildRoute}
+            onAiItinerary={generateItinerary}
             photoCache={photoCache} fetchPhoto={fetchPhoto}
           />
         )}
 
         {view === 'route' && routeData && (
-          <RouteView route={routeData} onBack={() => setView('favorites')}
+          <RouteView route={routeData} onBack={goBack}
             onOpenLandmark={openDetail}
             onOpenMaps={() => openMultiStopMaps(routeData.stops)} />
+        )}
+
+        {view === 'ai-itinerary' && (
+          <AiItineraryView
+            itinerary={itinerary} loading={itineraryLoading} error={itineraryError}
+            onBack={goBack}
+            onOpenLandmark={(id) => {
+              const landmark = LANDMARKS.find((l) => l.id === id);
+              if (landmark) openDetail(landmark);
+            }}
+            landmarks={LANDMARKS}
+          />
         )}
 
         <input ref={photoInputRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }} onChange={handlePhotoPick} />
@@ -989,6 +1242,72 @@ function BigTTSButton({ active, onClick, label = '한국어로 전체 듣기' })
         <div className="sub">{active ? 'tap to stop' : 'Ascolta'}</div>
       </div>
     </button>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// Save toggle button (v0.5) - clear state + un-save support
+// ─────────────────────────────────────────────────────────
+function SaveToggleButton({ isSaved, saved, onSave, onUnsave }) {
+  if (saved) {
+    // Just-saved flash (1.8s)
+    return (
+      <button className="bv-row-btn saved-flash">
+        <Check size={14} /> 저장됨!
+      </button>
+    );
+  }
+  if (isSaved) {
+    return (
+      <button className="bv-row-btn saved" onClick={onUnsave}>
+        <BookmarkCheck size={14} /> 컬렉션에 있음 — 빼기
+      </button>
+    );
+  }
+  return (
+    <button className="bv-row-btn" onClick={onSave}>
+      <Bookmark size={14} /> 컬렉션에 저장
+    </button>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// Viewing points (v0.5) - object format with expandable detail
+// Backward compat: handles both string[] and {title, detail}[] formats
+// ─────────────────────────────────────────────────────────
+function ViewingPointsCard({ points }) {
+  const normalized = (points || []).map((p) =>
+    typeof p === 'string' ? { title: p, detail: null } : p
+  );
+  const [expanded, setExpanded] = useState({});
+
+  return (
+    <div className="bv-card">
+      <div className="label"><Star size={11} /> Da non perdere · 봐야 할 포인트</div>
+      <ul className="bv-vp-list">
+        {normalized.map((p, i) => {
+          const isOpen = !!expanded[i];
+          const hasDetail = !!p.detail;
+          return (
+            <li key={i} className={isOpen ? 'open' : ''}>
+              <button
+                className="vp-head"
+                onClick={() => hasDetail && setExpanded((e) => ({ ...e, [i]: !e[i] }))}
+                disabled={!hasDetail}
+              >
+                <span className="vp-title">{p.title}</span>
+                {hasDetail && (
+                  <span className="vp-chev">
+                    {isOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                  </span>
+                )}
+              </button>
+              {isOpen && p.detail && <div className="vp-detail">{p.detail}</div>}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
@@ -1243,14 +1562,14 @@ function HomeView({
 // ─────────────────────────────────────────────────────────
 // Photo View
 // ─────────────────────────────────────────────────────────
-function PhotoView({ imageData, analyzing, analysis, error, onBack, speak, speakingId, onRetake, onSave, saved, inCollection }) {
+function PhotoView({ imageData, analyzing, analysis, error, onBack, speak, speakingId, onRetake, onSave, onUnsave, saved, isSaved }) {
   const ttsText = analysis
-    ? `${analysis.name}. ${analysis.summary} ${analysis.history} 봐야 할 포인트는, ${(analysis.viewingPoints || []).join(', ')}. ${analysis.tip}`
+    ? `${analysis.name}. ${analysis.summary} ${analysis.history} 봐야 할 포인트는, ${(analysis.viewingPoints || []).map(p => typeof p === 'string' ? p : `${p.title}. ${p.detail || ''}`).join(', ')}. ${analysis.tip}`
     : '';
 
   return (
     <div className="bv-subview">
-      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 홈으로</button>
+      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 뒤로</button>
       {imageData && <img src={imageData} alt="" className="bv-img" />}
       {analyzing && (
         <div className="bv-loading">
@@ -1265,19 +1584,13 @@ function PhotoView({ imageData, analyzing, analysis, error, onBack, speak, speak
           <div className="bv-h1-sub">{analysis.nameLocal} · {analysis.category}</div>
           <BigTTSButton active={speakingId === 'analysis'} onClick={() => speak(ttsText, 'ko-KR', 'analysis')} />
           <div className="bv-action-row">
-            <button className="bv-row-btn" onClick={onSave} disabled={saved || inCollection}>
-              {saved || inCollection ? <Check size={14} /> : <Bookmark size={14} />}
-              {saved ? '저장 완료' : inCollection ? '컬렉션에 있음' : '컬렉션에 저장'}
-            </button>
+            <SaveToggleButton isSaved={isSaved} saved={saved} onSave={onSave} onUnsave={onUnsave} />
             <button className="bv-row-btn" onClick={onRetake}><Camera size={14} /> 다른 사진</button>
           </div>
           <div className="bv-card"><div className="label"><BookOpen size={11} /> Sommario · 요약</div><p>{analysis.summary}</p></div>
           <div className="bv-card"><div className="label"><Sparkles size={11} /> Storia · 역사</div><p>{analysis.history}</p></div>
           {analysis.viewingPoints?.length > 0 && (
-            <div className="bv-card">
-              <div className="label"><Star size={11} /> Da non perdere · 봐야 할 포인트</div>
-              <ul>{analysis.viewingPoints.map((p, i) => <li key={i}>{p}</li>)}</ul>
-            </div>
+            <ViewingPointsCard points={analysis.viewingPoints} />
           )}
           {analysis.tip && <div className="bv-card"><div className="label"><Compass size={11} /> Consiglio · 팁</div><p>{analysis.tip}</p></div>}
           {analysis.phrase?.it && <PhraseCard phrase={analysis.phrase} speak={speak} speakingId={speakingId} id="phrase-photo" />}
@@ -1290,7 +1603,7 @@ function PhotoView({ imageData, analyzing, analysis, error, onBack, speak, speak
 // ─────────────────────────────────────────────────────────
 // Menu View
 // ─────────────────────────────────────────────────────────
-function MenuView({ images, analyzing, analysis, error, onBack, speak, speakingId, onRetake, onSave, saved }) {
+function MenuView({ images, analyzing, analysis, error, onBack, speak, speakingId, onRetake, onSave, onUnsave, saved, isSaved }) {
   const ttsText = analysis
     ? `${analysis.venue || '메뉴'}. ${analysis.summary || ''} ` +
       (analysis.items || []).map(i => `${i.name}, ${i.description || ''} ${i.allergens?.length ? '알레르기 주의, ' + i.allergens.join(', ') + '.' : ''}`).join(' ') +
@@ -1299,7 +1612,7 @@ function MenuView({ images, analyzing, analysis, error, onBack, speak, speakingI
 
   return (
     <div className="bv-subview">
-      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 홈으로</button>
+      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 뒤로</button>
       {images?.length > 0 && (
         <div className={`bv-multi-img count-${Math.min(images.length, 4)}`}>
           {images.map((src, i) => <img key={i} src={src} alt="" />)}
@@ -1319,10 +1632,7 @@ function MenuView({ images, analyzing, analysis, error, onBack, speak, speakingI
           <div className="bv-h1-sub">{analysis.items?.length || 0}개 항목 · {analysis.type}</div>
           <BigTTSButton active={speakingId === 'menu'} onClick={() => speak(ttsText, 'ko-KR', 'menu')} label="메뉴 전체 듣기" />
           <div className="bv-action-row">
-            <button className="bv-row-btn" onClick={onSave} disabled={saved}>
-              {saved ? <Check size={14} /> : <Bookmark size={14} />}
-              {saved ? '저장 완료' : '컬렉션에 저장'}
-            </button>
+            <SaveToggleButton isSaved={isSaved} saved={saved} onSave={onSave} onUnsave={onUnsave} />
             <button className="bv-row-btn" onClick={onRetake}><Camera size={14} /> 다른 사진</button>
           </div>
           {analysis.summary && <div className="bv-card"><div className="label"><BookOpen size={11} /> 가게 인상</div><p>{analysis.summary}</p></div>}
@@ -1378,7 +1688,7 @@ function MenuView({ images, analyzing, analysis, error, onBack, speak, speakingI
 // ─────────────────────────────────────────────────────────
 // Receipt View
 // ─────────────────────────────────────────────────────────
-function ReceiptView({ imageData, analyzing, analysis, error, fx, onBack, speak, speakingId, onRetake, onSave, saved }) {
+function ReceiptView({ imageData, analyzing, analysis, error, fx, onBack, speak, speakingId, onRetake, onSave, onUnsave, saved, isSaved }) {
   const itemsSum = analysis ? (analysis.items || []).reduce((s, it) => s + (it.total || 0), 0) : 0;
   const declaredTotal = analysis?.total ?? 0;
   const declaredCoperto = analysis?.coperto ?? 0;
@@ -1400,7 +1710,7 @@ function ReceiptView({ imageData, analyzing, analysis, error, fx, onBack, speak,
 
   return (
     <div className="bv-subview">
-      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 홈으로</button>
+      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 뒤로</button>
       {imageData && <img src={imageData} alt="" className="bv-img" />}
       {analyzing && (
         <div className="bv-loading">
@@ -1415,10 +1725,7 @@ function ReceiptView({ imageData, analyzing, analysis, error, fx, onBack, speak,
           <div className="bv-h1-sub">{analysis.venueType} {analysis.date && `· ${analysis.date}`}</div>
           <BigTTSButton active={speakingId === 'receipt'} onClick={() => speak(ttsText, 'ko-KR', 'receipt')} label="영수증 듣기" />
           <div className="bv-action-row">
-            <button className="bv-row-btn" onClick={onSave} disabled={saved}>
-              {saved ? <Check size={14} /> : <Bookmark size={14} />}
-              {saved ? '저장 완료' : '컬렉션에 저장'}
-            </button>
+            <SaveToggleButton isSaved={isSaved} saved={saved} onSave={onSave} onUnsave={onUnsave} />
             <button className="bv-row-btn" onClick={onRetake}><Camera size={14} /> 다른 영수증</button>
           </div>
           <div className="bv-receipt-tbl">
@@ -1495,7 +1802,7 @@ function TranslateView({ input, setInput, direction, setDirection, translation, 
 
   return (
     <div className="bv-subview">
-      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 홈으로</button>
+      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 뒤로</button>
       <h2 className="bv-h1">Traduzione</h2>
       <div className="bv-h1-sub">번역하기</div>
 
@@ -1539,22 +1846,21 @@ function TranslateView({ input, setInput, direction, setDirection, translation, 
 // ─────────────────────────────────────────────────────────
 // Detail View (with Wikipedia hero photo)
 // ─────────────────────────────────────────────────────────
-function DetailView({ detail, loading, onBack, speak, speakingId, onSave, saved, onDirections, isFavorite, toggleFavorite, photo, photoLoading }) {
+function DetailView({ detail, loading, onBack, speak, speakingId, onSave, onUnsave, saved, isSaved, onDirections, isFavorite, toggleFavorite, photo, photoLoading, onRefresh }) {
   const ttsText = detail && !detail.loading
-    ? `${detail.name}. ${detail.summary || ''} ${detail.history || ''} 봐야 할 포인트는, ${(detail.viewingPoints || []).join(', ')}. ${detail.tip || ''}`
+    ? `${detail.name}. ${detail.summary || ''} ${detail.history || ''} 봐야 할 포인트는, ${(detail.viewingPoints || []).map(p => typeof p === 'string' ? p : `${p.title}. ${p.detail || ''}`).join(', ')}. ${detail.tip || ''}`
     : '';
 
   return (
     <div className="bv-subview">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 홈으로</button>
+        <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 뒤로</button>
         <button className={`bv-heart-btn ${isFavorite ? 'on' : ''}`} onClick={toggleFavorite}>
           <Heart size={16} fill={isFavorite ? 'currentColor' : 'none'} />
           {isFavorite ? '즐겨찾기됨' : '즐겨찾기'}
         </button>
       </div>
 
-      {/* Wikipedia hero photo or emoji fallback */}
       {photo?.url ? (
         <div className="bv-hero-photo">
           <img src={photo.url} alt={detail.nameLocal} />
@@ -1572,6 +1878,14 @@ function DetailView({ detail, loading, onBack, speak, speakingId, onSave, saved,
       <h2 className="bv-h1">{detail.name}</h2>
       <div className="bv-h1-sub">{detail.nameLocal} · {detail.city}, {detail.region}</div>
 
+      {detail.fromCache && !detail.loading && (
+        <div className="bv-cache-row">
+          <Database size={10} />
+          <span>저장된 가이드 표시 중</span>
+          <button onClick={onRefresh} title="새로 가져오기"><RefreshCw size={10} /> 새로</button>
+        </div>
+      )}
+
       {detail.loading && (
         <div className="bv-loading">
           <Loader2 className="spin" size={22} style={{ color: 'var(--terracotta)' }} />
@@ -1585,20 +1899,12 @@ function DetailView({ detail, loading, onBack, speak, speakingId, onSave, saved,
         <>
           <BigTTSButton active={speakingId === 'detail'} onClick={() => speak(ttsText, 'ko-KR', 'detail')} />
           <div className="bv-action-row">
-            <button className="bv-row-btn" onClick={onSave} disabled={saved}>
-              {saved ? <Check size={14} /> : <Bookmark size={14} />}
-              {saved ? '저장됨' : '컬렉션에 저장'}
-            </button>
+            <SaveToggleButton isSaved={isSaved} saved={saved} onSave={onSave} onUnsave={onUnsave} />
             <button className="bv-row-btn" onClick={onDirections}><Navigation size={14} /> 길찾기</button>
           </div>
           {detail.summary && <div className="bv-card"><div className="label"><BookOpen size={11} /> Sommario</div><p>{detail.summary}</p></div>}
           {detail.history && <div className="bv-card"><div className="label"><Sparkles size={11} /> Storia · 역사</div><p>{detail.history}</p></div>}
-          {detail.viewingPoints?.length > 0 && (
-            <div className="bv-card">
-              <div className="label"><Star size={11} /> Da non perdere · 봐야 할 포인트</div>
-              <ul>{detail.viewingPoints.map((p, i) => <li key={i}>{p}</li>)}</ul>
-            </div>
-          )}
+          {detail.viewingPoints?.length > 0 && <ViewingPointsCard points={detail.viewingPoints} />}
           {detail.tip && <div className="bv-card"><div className="label"><Compass size={11} /> Consiglio · 팁</div><p>{detail.tip}</p></div>}
           {detail.phrase?.it && <PhraseCard phrase={detail.phrase} speak={speak} speakingId={speakingId} id="detail-phrase" />}
         </>
@@ -1620,7 +1926,7 @@ function CollectionView({ items, onBack, onOpen, onRemove, dbAvailable }) {
 
   return (
     <div className="bv-subview">
-      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 홈으로</button>
+      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 뒤로</button>
       <h2 className="bv-h1">Il mio viaggio</h2>
       <div className="bv-h1-sub">내 여행 컬렉션 · {items.length}개</div>
 
@@ -1679,7 +1985,7 @@ function CollectionGroup({ title, emoji, items, onOpen, onRemove }) {
 // ─────────────────────────────────────────────────────────
 // Favorites View (with route planning)
 // ─────────────────────────────────────────────────────────
-function FavoritesView({ items, hasLocation, onBack, onOpen, onRemove, onDirections, onPlanRoute, photoCache, fetchPhoto }) {
+function FavoritesView({ items, hasLocation, onBack, onOpen, onRemove, onDirections, onPlanRoute, onAiItinerary, photoCache, fetchPhoto }) {
   // Group by city for route options
   const cityGroups = useMemo(() => {
     const g = {};
@@ -1699,7 +2005,7 @@ function FavoritesView({ items, hasLocation, onBack, onOpen, onRemove, onDirecti
 
   return (
     <div className="bv-subview">
-      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 홈으로</button>
+      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 뒤로</button>
       <h2 className="bv-h1">Preferiti</h2>
       <div className="bv-h1-sub">즐겨찾기 · {items.length}곳</div>
 
@@ -1710,14 +2016,32 @@ function FavoritesView({ items, hasLocation, onBack, onOpen, onRemove, onDirecti
         </div>
       ) : (
         <>
-          {/* Route planner buttons */}
+          {/* AI Itinerary section (v0.5) */}
+          {items.length >= 2 && (
+            <div className="bv-ai-itinerary-cta">
+              <div className="head"><Wand2 size={12} /> AI 추천 동선</div>
+              <div className="sub">관람 시간, 인파 패턴, 식사 시간까지 고려한 일정을 AI가 짜드려요. 1회 약 $0.05~0.10 추정.</div>
+              <div className="btns">
+                <button className="primary" onClick={() => onAiItinerary(null)}>
+                  <Wand2 size={14} /> 전체 일정 추천 ({items.length}곳)
+                </button>
+                {cityGroups.map(([city, count]) => (
+                  <button key={city} onClick={() => onAiItinerary(city)}>
+                    {city} 일정 ({count}곳)
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Simple route planner (existing) */}
           {items.length >= 2 && (
             <div className="bv-route-actions">
-              <div className="head"><Route size={12} /> 방문 코스 짜기</div>
-              <div className="sub">즐겨찾기한 명소들의 최적 도보 순서를 자동 계산해요 (간단 알고리즘 — 최근접 이웃 방식). 실제 도보 시간은 추정치입니다.</div>
+              <div className="head"><Route size={12} /> 최단 도보 코스</div>
+              <div className="sub">즐겨찾기 명소의 최근접 이웃 순서. 도보 시간은 직선 거리 × 1.3 ÷ 시속 5km 추정.</div>
               <div className="btns">
                 <button className="primary" onClick={() => onPlanRoute(null)}>
-                  <Route size={14} /> 전체 코스 ({items.length}곳)
+                  <Route size={14} /> 전체 코스
                 </button>
                 {cityGroups.map(([city, count]) => (
                   <button key={city} onClick={() => onPlanRoute(city)}>
@@ -1773,7 +2097,7 @@ function RouteView({ route, onBack, onOpenLandmark, onOpenMaps }) {
 
   return (
     <div className="bv-subview">
-      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 즐겨찾기로</button>
+      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 뒤로</button>
       <h2 className="bv-h1">Itinerario · 코스</h2>
       <div className="bv-h1-sub">{city} · {stops.length}곳</div>
 
@@ -1845,6 +2169,110 @@ function RouteView({ route, onBack, onOpenLandmark, onOpenMaps }) {
 // ─────────────────────────────────────────────────────────
 // Phrase card
 // ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────
+// AI Itinerary View (v0.5)
+// ─────────────────────────────────────────────────────────
+function AiItineraryView({ itinerary, loading, error, onBack, onOpenLandmark, landmarks }) {
+  const [expandedDay, setExpandedDay] = useState(0);
+
+  const findLandmark = (id) => landmarks.find((l) => l.id === id);
+
+  return (
+    <div className="bv-subview">
+      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 뒤로</button>
+      <h2 className="bv-h1">Itinerario AI</h2>
+      <div className="bv-h1-sub">AI 추천 동선</div>
+
+      {loading && (
+        <div className="bv-loading">
+          <Loader2 className="spin" size={22} style={{ color: 'var(--terracotta)' }} />
+          <div style={{ marginTop: 8 }}>일정을 생성하는 중…<br /><i>L'AI sta pianificando il tuo viaggio.</i></div>
+        </div>
+      )}
+
+      {error && <div className="bv-error"><AlertCircle size={16} /><div>{error}</div></div>}
+
+      {itinerary && (
+        <>
+          <div className="bv-ai-hero">
+            <div className="title bv-display">{itinerary.title}</div>
+            <div className="meta">
+              <CalendarDays size={11} /> {itinerary.totalDays}일 일정
+            </div>
+            {itinerary.summary && <div className="summary">{itinerary.summary}</div>}
+          </div>
+
+          <div className="bv-route-disclaimer" style={{ marginTop: 12 }}>
+            ⓘ <strong>AI 추정 일정</strong>입니다. 관람 시간·인파 패턴·식사 시간을 가정해서 계산했어요. 실제 개관 시간·휴관일은 현지에서 한 번 더 확인하세요.
+          </div>
+
+          {(itinerary.days || []).map((day, di) => (
+            <div key={di} className="bv-day-card">
+              <button className="bv-day-head" onClick={() => setExpandedDay(expandedDay === di ? -1 : di)}>
+                <div className="day-num">Day {day.day}</div>
+                <div className="day-info">
+                  <div className="day-theme">{day.theme}</div>
+                  <div className="day-city">{day.city} · {(day.stops || []).length}곳</div>
+                </div>
+                {expandedDay === di ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </button>
+
+              {expandedDay === di && (
+                <div className="bv-day-body">
+                  {(day.stops || []).map((stop, si) => {
+                    const landmark = findLandmark(stop.id);
+                    return (
+                      <div key={si} className="bv-ai-stop" onClick={() => landmark && onOpenLandmark(stop.id)}>
+                        <div className="time">{stop.arrivalTime}</div>
+                        <div className="content">
+                          <div className="name bv-display">
+                            {landmark?.emoji} {landmark?.name || stop.id}
+                          </div>
+                          <div className="dur">
+                            <Clock size={10} /> 약 {stop.duration}분
+                          </div>
+                          {stop.reason && <div className="reason"><Sun size={10} /> {stop.reason}</div>}
+                          {stop.tip && <div className="tip"><Sparkles size={10} /> {stop.tip}</div>}
+                        </div>
+                        {landmark && <ChevronRight size={12} style={{ color: 'var(--ink-soft)' }} />}
+                      </div>
+                    );
+                  })}
+
+                  {(day.meals || []).map((meal, mi) => (
+                    <div key={`meal-${mi}`} className="bv-ai-meal">
+                      <div className="time">{meal.time}</div>
+                      <div className="content">
+                        <div className="name"><UtensilsCrossed size={12} /> {meal.type}</div>
+                        <div className="sug">{meal.suggestion}</div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {day.walkingNote && (
+                    <div className="bv-day-walk">
+                      <Footprints size={11} /> {day.walkingNote}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {(itinerary.overallTips || []).length > 0 && (
+            <div className="bv-card" style={{ marginTop: 14, borderColor: 'rgba(201,169,97,0.3)', background: 'rgba(201,169,97,0.08)' }}>
+              <div className="label"><Compass size={11} /> 전체 일정 팁</div>
+              <ul>
+                {itinerary.overallTips.map((tip, i) => <li key={i}>{tip}</li>)}
+              </ul>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 function PhraseCard({ phrase, speak, speakingId, id, label = '현지 표현' }) {
   return (
     <div className="bv-phrase">
@@ -2254,6 +2682,193 @@ function BelViaggioStyles() {
         background: rgba(0,0,0,0.04); border-radius: 999px;
         display: inline-flex; align-items: center; gap: 5px;
         margin: 2px 0;
+      }
+
+      /* v0.5: Save toggle states */
+      .bv-row-btn.saved { background: rgba(107,143,101,0.15); color: #4a6b46; border-color: rgba(107,143,101,0.3); }
+      .bv-row-btn.saved:hover { background: rgba(107,143,101,0.25); }
+      .bv-row-btn.saved-flash { background: var(--sage); color: #fff8ec; border-color: var(--sage); animation: flash-saved 1.8s ease-out; }
+      @keyframes flash-saved {
+        0% { transform: scale(1); }
+        15% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
+
+      /* v0.5: Expandable viewing points */
+      .bv-vp-list { margin: 0; padding: 0; list-style: none; }
+      .bv-vp-list li { padding: 0; border-bottom: 1px dashed rgba(0,0,0,0.06); position: relative; }
+      .bv-vp-list li:last-child { border-bottom: 0; }
+      .bv-vp-list li::before { display: none; }
+      .bv-vp-list .vp-head {
+        width: 100%; background: none; border: 0; cursor: pointer;
+        text-align: left; padding: 10px 0 10px 20px;
+        font-size: 14px; line-height: 1.5; color: var(--ink);
+        font-family: 'DM Sans', sans-serif;
+        display: flex; align-items: center; gap: 10px;
+        position: relative;
+      }
+      .bv-vp-list .vp-head::before {
+        content: '◆'; position: absolute; left: 0; top: 11px;
+        color: var(--terracotta); font-size: 10px;
+      }
+      .bv-vp-list .vp-head:disabled { cursor: default; }
+      .bv-vp-list .vp-title { flex: 1; }
+      .bv-vp-list .vp-chev { color: var(--ink-soft); flex-shrink: 0; }
+      .bv-vp-list li.open .vp-chev { color: var(--terracotta); }
+      .bv-vp-list .vp-detail {
+        padding: 4px 0 14px 20px;
+        font-size: 13px; line-height: 1.6;
+        color: var(--ink-soft);
+        animation: expand-down 0.2s ease-out;
+      }
+      @keyframes expand-down {
+        from { opacity: 0; transform: translateY(-4px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      /* v0.5: Cache indicator row */
+      .bv-cache-row {
+        margin-top: 8px; padding: 6px 12px;
+        background: rgba(107,143,101,0.08);
+        border-radius: 8px;
+        font-size: 10px; color: var(--ink-soft);
+        display: flex; align-items: center; gap: 6px;
+      }
+      .bv-cache-row span { flex: 1; }
+      .bv-cache-row button {
+        background: rgba(184,85,58,0.1); border: 0;
+        color: var(--terracotta-deep); padding: 3px 8px;
+        border-radius: 999px; font-size: 10px; cursor: pointer;
+        display: inline-flex; align-items: center; gap: 3px;
+        font-family: 'DM Sans', sans-serif;
+      }
+      .bv-cache-row button:hover { background: rgba(184,85,58,0.18); }
+
+      /* v0.5: AI Itinerary CTA in Favorites */
+      .bv-ai-itinerary-cta {
+        margin: 14px 0; padding: 14px;
+        background: linear-gradient(135deg, rgba(92,30,42,0.08) 0%, rgba(184,85,58,0.08) 100%);
+        border: 1px solid rgba(184,85,58,0.2);
+        border-radius: 14px;
+      }
+      .bv-ai-itinerary-cta .head {
+        font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+        color: var(--burgundy); font-weight: 600;
+        display: flex; align-items: center; gap: 6px;
+      }
+      .bv-ai-itinerary-cta .sub {
+        font-size: 11px; color: var(--ink-soft); line-height: 1.5;
+        margin-top: 6px; font-style: italic;
+      }
+      .bv-ai-itinerary-cta .btns {
+        display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;
+      }
+      .bv-ai-itinerary-cta .btns button {
+        background: rgba(255, 252, 245, 0.8); border: 1px solid rgba(0,0,0,0.06);
+        padding: 7px 12px; border-radius: 999px;
+        font-size: 11px; cursor: pointer; color: var(--ink);
+        font-family: 'DM Sans', sans-serif;
+      }
+      .bv-ai-itinerary-cta .btns button.primary {
+        background: var(--burgundy); color: #fff8ec; border-color: var(--burgundy);
+        display: inline-flex; align-items: center; gap: 4px; font-weight: 500;
+      }
+
+      /* v0.5: AI Itinerary view */
+      .bv-ai-hero {
+        margin-top: 14px; padding: 16px;
+        background: linear-gradient(135deg, var(--burgundy) 0%, #3A1018 100%);
+        color: #fff8ec; border-radius: 14px;
+        box-shadow: 0 8px 20px -8px rgba(92,30,42,0.45);
+      }
+      .bv-ai-hero .title {
+        font-size: 26px; font-weight: 500; line-height: 1.15;
+      }
+      .bv-ai-hero .meta {
+        font-size: 11px; color: var(--gold); margin-top: 4px;
+        display: inline-flex; align-items: center; gap: 4px;
+        letter-spacing: 0.1em; text-transform: uppercase;
+      }
+      .bv-ai-hero .summary {
+        font-size: 13px; line-height: 1.6; margin-top: 10px;
+        opacity: 0.92;
+      }
+
+      .bv-day-card {
+        margin-top: 10px; background: rgba(255, 252, 245, 0.7);
+        border: 1px solid rgba(0,0,0,0.06); border-radius: 14px;
+        overflow: hidden;
+      }
+      .bv-day-head {
+        width: 100%; background: none; border: 0; padding: 12px 14px;
+        display: flex; align-items: center; gap: 12px;
+        cursor: pointer; text-align: left;
+        font-family: 'DM Sans', sans-serif;
+      }
+      .bv-day-head:hover { background: rgba(0,0,0,0.02); }
+      .bv-day-head .day-num {
+        width: 40px; height: 40px; border-radius: 10px;
+        background: var(--burgundy); color: #fff8ec;
+        display: grid; place-items: center;
+        font-family: 'Cormorant Garamond', serif; font-size: 13px; font-weight: 600;
+        flex-shrink: 0;
+      }
+      .bv-day-head .day-info { flex: 1; }
+      .bv-day-head .day-theme {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 17px; font-weight: 500; color: var(--burgundy);
+        line-height: 1.1;
+      }
+      .bv-day-head .day-city {
+        font-size: 11px; color: var(--ink-soft); margin-top: 2px;
+      }
+      .bv-day-body {
+        padding: 0 14px 14px; border-top: 1px dashed rgba(0,0,0,0.06);
+      }
+      .bv-ai-stop, .bv-ai-meal {
+        display: flex; gap: 12px; padding: 10px 0;
+        border-bottom: 1px dashed rgba(0,0,0,0.05);
+        cursor: pointer;
+      }
+      .bv-ai-stop:last-child, .bv-ai-meal:last-child { border-bottom: 0; }
+      .bv-ai-meal { cursor: default; }
+      .bv-ai-stop .time, .bv-ai-meal .time {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 16px; font-weight: 600; color: var(--terracotta);
+        flex-shrink: 0; width: 52px; padding-top: 2px;
+      }
+      .bv-ai-stop .content, .bv-ai-meal .content { flex: 1; min-width: 0; }
+      .bv-ai-stop .name {
+        font-size: 16px; font-weight: 500; color: var(--burgundy);
+        line-height: 1.2;
+      }
+      .bv-ai-stop .dur {
+        font-size: 10px; color: var(--ink-soft); margin-top: 3px;
+        display: inline-flex; align-items: center; gap: 3px;
+      }
+      .bv-ai-stop .reason, .bv-ai-stop .tip {
+        font-size: 11px; line-height: 1.5; margin-top: 5px;
+        color: var(--ink); display: flex; align-items: flex-start; gap: 5px;
+      }
+      .bv-ai-stop .reason svg, .bv-ai-stop .tip svg {
+        flex-shrink: 0; margin-top: 2px; color: var(--gold-deep);
+      }
+      .bv-ai-meal {
+        background: rgba(201,169,97,0.06); border-radius: 8px;
+        padding: 8px 10px; margin: 4px 0;
+        border-bottom: 0;
+      }
+      .bv-ai-meal .name {
+        font-size: 12px; font-weight: 600; color: var(--gold-deep);
+        display: inline-flex; align-items: center; gap: 4px;
+      }
+      .bv-ai-meal .sug { font-size: 12px; color: var(--ink); margin-top: 3px; line-height: 1.5; }
+      .bv-day-walk {
+        margin-top: 10px; padding: 6px 10px;
+        background: rgba(107,143,101,0.08);
+        border-radius: 8px; font-size: 11px; color: var(--ink-soft);
+        display: flex; align-items: center; gap: 6px;
+        font-style: italic;
       }
     `}</style>
   );
