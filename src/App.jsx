@@ -520,6 +520,10 @@ export default function BelViaggio() {
   const menuInputRef = useRef(null);
   const receiptInputRef = useRef(null);
 
+  // v0.6 hotfix: scroll position tracking across view navigation
+  const scrollStackRef = useRef([]);  // synced with viewStack: scroll Y at each depth before leaving
+  const prevDepthRef = useRef(1);     // viewStack.length on previous render
+
   const effectiveLocation = demoMode ? demoCoord : location;
 
   // ─── Navigation: view stack + browser history sync ─────
@@ -535,6 +539,8 @@ export default function BelViaggio() {
   }, []);
 
   function setView(newView) {
+    // v0.6 hotfix: save current scroll before view change (restored on back)
+    scrollStackRef.current.push(window.scrollY);
     setViewStack((s) => {
       const newStack = [...s, newView];
       try {
@@ -570,6 +576,34 @@ export default function BelViaggio() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+
+  // ─── v0.6 fix: scroll management on view change ──────────
+  // Forward navigation (depth increases) → scroll new view to top.
+  // Back navigation (depth decreases) → restore previously saved scroll for that depth.
+  // Without this, the previous view's scrollY persists into the new view's window scroll,
+  // making the new view appear "scrolled in" (e.g. restaurants opening at #4 instead of #1).
+  useEffect(() => {
+    const currentDepth = viewStack.length;
+    const prevDepth = prevDepthRef.current;
+
+    if (currentDepth > prevDepth) {
+      // Forward — new view starts at top
+      window.scrollTo(0, 0);
+    } else if (currentDepth < prevDepth) {
+      // Back — restore saved scroll (last one popped corresponds to target depth)
+      const popCount = prevDepth - currentDepth;
+      let restoreY = 0;
+      for (let i = 0; i < popCount; i++) {
+        const popped = scrollStackRef.current.pop();
+        if (i === popCount - 1 && popped !== undefined) restoreY = popped;
+      }
+      // Defer until after DOM commits the new view
+      requestAnimationFrame(() => window.scrollTo(0, restoreY));
+    }
+    // currentDepth === prevDepth: same view, do nothing (avoids fighting user scroll on re-renders)
+
+    prevDepthRef.current = currentDepth;
+  }, [viewStack]);
 
   // ─── Load persistent data on mount ──────────────────────
   useEffect(() => {
