@@ -1,4 +1,5 @@
 // Vercel Serverless Function: /api/places
+// Redeploy trigger: 2026-05-21T11:44:10Z (env var refresh)
 // Google Places API (New) 프록시 + 베이지안 가중 정렬
 //
 // 평점만 보면 신뢰도 낮은 곳이 위로 올라옴 (5점인데 리뷰 10개 같은).
