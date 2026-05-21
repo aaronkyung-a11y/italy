@@ -7,7 +7,8 @@ import {
   Receipt, Heart, Bell, BellRing, RefreshCw, Info, Layers,
   Mic, MicOff, Route, Clock, Footprints, Download, Share2,
   Database, ChevronDown, ChevronUp, Wand2, Sun, UtensilsCrossed,
-  CalendarDays, BookmarkCheck, BookmarkX
+  CalendarDays, BookmarkCheck, BookmarkX,
+  Phone, ExternalLink, Users, TrendingUp, Filter
 } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────
@@ -217,8 +218,8 @@ function formatEUR(n) {
 // IndexedDB (gracefully degrades to in-memory in artifact env)
 // ─────────────────────────────────────────────────────────
 const DB_NAME = 'belviaggio';
-const DB_VERSION = 2;  // v0.5: added 'details' store
-const STORES = ['collection', 'favorites', 'photos', 'details'];
+const DB_VERSION = 3;  // v0.6: added 'restaurants' store for Places API cache
+const STORES = ['collection', 'favorites', 'photos', 'details', 'restaurants'];
 
 let dbPromise = null;
 let dbAvailable = null; // null = unknown, true/false = checked
@@ -261,6 +262,18 @@ async function dbAll(storeName) {
       req.onerror = () => reject(req.error);
     });
   } catch { return []; }
+}
+
+async function dbGet(storeName, key) {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(storeName, 'readonly');
+      const req = tx.objectStore(storeName).get(key);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+  } catch { return null; }
 }
 
 async function dbPut(storeName, item) {
@@ -474,6 +487,15 @@ export default function BelViaggio() {
   const [itinerary, setItinerary] = useState(null);
   const [itineraryLoading, setItineraryLoading] = useState(false);
   const [itineraryError, setItineraryError] = useState(null);
+
+  // v0.6: Restaurants (Google Places API)
+  const [restaurants, setRestaurants] = useState([]);
+  const [restaurantsLoading, setRestaurantsLoading] = useState(false);
+  const [restaurantsError, setRestaurantsError] = useState(null);
+  const [restaurantsMeta, setRestaurantsMeta] = useState(null);
+  const [restaurantCuisine, setRestaurantCuisine] = useState('all');
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [restaurantSearchOrigin, setRestaurantSearchOrigin] = useState(null); // {lat, lng}
 
   // Photo cache (in-memory only — re-fetched on session start)
   const [photoCache, setPhotoCache] = useState({}); // id -> {url, credit, extract}
@@ -1106,6 +1128,75 @@ JSON 형식만 출력 (코드블록 금지):
     }
   }
 
+  // ─── v0.6: Restaurants via Google Places API ───────────
+  // Returns ranked list using Bayesian weighted score (server-side).
+  // Caches results in IDB for 24h to avoid repeat API calls.
+  async function fetchNearbyRestaurants(cuisine = 'all', forceRefresh = false) {
+    if (!effectiveLocation) {
+      setRestaurantsError('위치 정보가 없어요. 위치 권한을 허용하거나 데모 모드로 전환해주세요.');
+      return;
+    }
+
+    setRestaurantsLoading(true);
+    setRestaurantsError(null);
+    const origin = { lat: effectiveLocation.lat, lng: effectiveLocation.lng };
+    setRestaurantSearchOrigin(origin);
+
+    // 1km 격자로 캐시 키 (위치가 미세하게 달라도 같은 결과 재사용)
+    const cacheKey = `places_${origin.lat.toFixed(2)}_${origin.lng.toFixed(2)}_${cuisine}`;
+
+    try {
+      if (!forceRefresh) {
+        const cached = await dbGet('restaurants', cacheKey);
+        if (cached && Date.now() - cached.fetchedAt < 24 * 60 * 60 * 1000) {
+          setRestaurants(cached.results || []);
+          setRestaurantsMeta({ ...cached.meta, fromCache: true });
+          setRestaurantsLoading(false);
+          return;
+        }
+      }
+
+      const res = await fetch('/api/places', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lat: origin.lat, lng: origin.lng, cuisine, radius: 1500 }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || `Places API error ${res.status}`);
+      }
+
+      setRestaurants(data.results || []);
+      setRestaurantsMeta({ ...data.meta, fromCache: false });
+
+      // 캐시 저장
+      await dbPut('restaurants', {
+        id: cacheKey,
+        results: data.results,
+        meta: data.meta,
+        fetchedAt: Date.now(),
+      });
+    } catch (err) {
+      setRestaurantsError(`맛집 검색 실패: ${err.message}`);
+    } finally {
+      setRestaurantsLoading(false);
+    }
+  }
+
+  function openRestaurants() {
+    setView('restaurants');
+    // 자동 검색 (현재 cuisine으로)
+    if (restaurants.length === 0 && effectiveLocation) {
+      fetchNearbyRestaurants(restaurantCuisine);
+    }
+  }
+
+  function selectRestaurant(restaurant) {
+    setSelectedRestaurant(restaurant);
+    setView('restaurant-detail');
+  }
+
   return (
     <div className="bv-root">
       <BelViaggioStyles />
@@ -1124,6 +1215,7 @@ JSON 형식만 출력 (코드블록 금지):
             onTranslateClick={() => setView('translate')}
             onCollectionClick={() => setView('collection')}
             onFavoritesClick={() => setView('favorites')}
+            onRestaurantsClick={openRestaurants}
             collectionCount={collection.length}
             favoritesCount={favorites.size}
             favorites={favorites} toggleFavorite={toggleFavorite}
@@ -1219,6 +1311,34 @@ JSON 형식만 출력 (코드블록 금지):
               if (landmark) openDetail(landmark);
             }}
             landmarks={LANDMARKS}
+          />
+        )}
+
+        {view === 'restaurants' && (
+          <RestaurantsView
+            restaurants={restaurants}
+            loading={restaurantsLoading}
+            error={restaurantsError}
+            meta={restaurantsMeta}
+            cuisine={restaurantCuisine}
+            setCuisine={(c) => { setRestaurantCuisine(c); fetchNearbyRestaurants(c); }}
+            origin={restaurantSearchOrigin}
+            location={effectiveLocation}
+            onBack={goBack}
+            onSelect={selectRestaurant}
+            onRefresh={() => fetchNearbyRestaurants(restaurantCuisine, true)}
+          />
+        )}
+
+        {view === 'restaurant-detail' && selectedRestaurant && (
+          <RestaurantDetailView
+            restaurant={selectedRestaurant}
+            onBack={goBack}
+            onDirections={() => openInMaps(
+              selectedRestaurant.location.latitude,
+              selectedRestaurant.location.longitude,
+              selectedRestaurant.name
+            )}
           />
         )}
 
@@ -1373,7 +1493,7 @@ function HomeView({
   location, locationStatus, demoMode, demoCoord, setDemoMode, setDemoCoord,
   nearby, proximityAlert, dismissAlert, onOpenDetail,
   onPhotoClick, onMenuClick, onReceiptClick, onTranslateClick,
-  onCollectionClick, onFavoritesClick, collectionCount, favoritesCount,
+  onCollectionClick, onFavoritesClick, onRestaurantsClick, collectionCount, favoritesCount,
   favorites, toggleFavorite, fx, fxLoading, refreshFx,
   swStatus, notifPermission, requestNotificationPermission,
   installPrompt, triggerInstall, isStandalone, storageReady,
@@ -1461,6 +1581,17 @@ function HomeView({
           <div className="sub">음성 입력</div>
         </button>
       </div>
+
+      {/* v0.6: Wide restaurant CTA card */}
+      <button className="bv-action-wide" onClick={onRestaurantsClick}>
+        <div className="ico"><UtensilsCrossed size={22} /></div>
+        <div className="text">
+          <div className="ttl bv-display">맛집 찾기</div>
+          <div className="sub">평점 + 리뷰 수 가중 정렬 · Google Maps 데이터</div>
+        </div>
+        <div className="badge"><Sparkles size={10} /> NEW</div>
+        <ChevronRight size={14} style={{ color: 'var(--ink-soft)' }} />
+      </button>
 
       <div className="bv-pills">
         <button className="bv-pill fav" onClick={onFavoritesClick}>
@@ -2273,6 +2404,266 @@ function AiItineraryView({ itinerary, loading, error, onBack, onOpenLandmark, la
   );
 }
 
+// ─────────────────────────────────────────────────────────
+// Restaurants View (v0.6) — Google Places + Bayesian weighted ranking
+// ─────────────────────────────────────────────────────────
+const CUISINE_FILTERS = [
+  { key: 'all',     label: '전체',    emoji: '🍽️' },
+  { key: 'italian', label: '이탈리아', emoji: '🇮🇹' },
+  { key: 'pasta',   label: '파스타',  emoji: '🍝' },
+  { key: 'pizza',   label: '피자',    emoji: '🍕' },
+  { key: 'seafood', label: '해산물',  emoji: '🐟' },
+  { key: 'steak',   label: '스테이크', emoji: '🥩' },
+  { key: 'gelato',  label: '젤라토',  emoji: '🍨' },
+  { key: 'cafe',    label: '카페',    emoji: '☕' },
+  { key: 'wine',    label: '와인바',   emoji: '🍷' },
+];
+
+function priceLevelToSign(level) {
+  // Google API: PRICE_LEVEL_INEXPENSIVE / MODERATE / EXPENSIVE / VERY_EXPENSIVE / FREE
+  const map = {
+    'PRICE_LEVEL_FREE': '',
+    'PRICE_LEVEL_INEXPENSIVE': '€',
+    'PRICE_LEVEL_MODERATE': '€€',
+    'PRICE_LEVEL_EXPENSIVE': '€€€',
+    'PRICE_LEVEL_VERY_EXPENSIVE': '€€€€',
+  };
+  return map[level] || '';
+}
+
+function RestaurantsView({ restaurants, loading, error, meta, cuisine, setCuisine, origin, location, onBack, onSelect, onRefresh }) {
+  return (
+    <div className="bv-subview">
+      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 뒤로</button>
+
+      <h2 className="bv-h1">Ristoranti</h2>
+      <div className="bv-h1-sub">맛집 · 평점 × 리뷰 수 가중 정렬</div>
+
+      {!location && (
+        <div className="bv-error" style={{ marginTop: 12 }}>
+          <AlertCircle size={16} />
+          <div>위치 정보가 필요해요. 위치 권한을 허용하거나 데모 모드를 선택해주세요.</div>
+        </div>
+      )}
+
+      {/* Cuisine filter pills */}
+      <div className="bv-cuisine-row">
+        {CUISINE_FILTERS.map((c) => (
+          <button
+            key={c.key}
+            className={`bv-cuisine-pill ${cuisine === c.key ? 'on' : ''}`}
+            onClick={() => setCuisine(c.key)}
+            disabled={loading}
+          >
+            <span className="emoji">{c.emoji}</span>
+            <span>{c.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Meta info row */}
+      {meta && !loading && (
+        <div className="bv-restaurants-meta">
+          <div className="meta-line">
+            <TrendingUp size={10} /> {meta.count}곳 · 평균 평점 {meta.meanRating}
+            {meta.fromCache && <span style={{ marginLeft: 6 }}>· <Database size={9} /> 캐시</span>}
+          </div>
+          <button onClick={onRefresh} title="새로 검색"><RefreshCw size={10} /> 새로</button>
+        </div>
+      )}
+
+      {loading && (
+        <div className="bv-loading">
+          <Loader2 className="spin" size={22} style={{ color: 'var(--terracotta)' }} />
+          <div style={{ marginTop: 8 }}>맛집 검색 중…<br /><i>Sto cercando i migliori ristoranti.</i></div>
+        </div>
+      )}
+
+      {error && (
+        <div className="bv-error" style={{ marginTop: 12 }}>
+          <AlertCircle size={16} /><div>{error}</div>
+        </div>
+      )}
+
+      {!loading && !error && restaurants.length === 0 && location && (
+        <div className="bv-empty" style={{ marginTop: 24 }}>
+          이 카테고리에 해당하는 결과가 없어요.<br />다른 카테고리를 선택해보세요.
+        </div>
+      )}
+
+      {/* Restaurant cards */}
+      {!loading && restaurants.length > 0 && (
+        <div className="bv-restaurant-list">
+          {restaurants.map((r, i) => (
+            <RestaurantCard key={r.id || i} restaurant={r} rank={i + 1} onClick={() => onSelect(r)} />
+          ))}
+        </div>
+      )}
+
+      {/* Footer caveat */}
+      {restaurants.length > 0 && (
+        <div className="bv-route-disclaimer" style={{ marginTop: 14 }}>
+          ⓘ 정렬 기준: <strong>(평점 × 리뷰수 + 평균평점 × 100) ÷ (리뷰수 + 100)</strong>. 평점만 높고 리뷰 적은 곳을 자동 후순위로 밀어내요. 영업 시간·휴무는 현지에서 한 번 더 확인하세요.
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RestaurantCard({ restaurant, rank, onClick }) {
+  const r = restaurant;
+  const photoName = r.photos?.[0];
+  const photoUrl = photoName ? `/api/places-photo?name=${encodeURIComponent(photoName)}&max=240` : null;
+  const priceSign = priceLevelToSign(r.priceLevel);
+  const distance = formatDistance(r.distance);
+  const walk = walkingMinutes(r.distance);
+
+  return (
+    <button className="bv-restaurant-card" onClick={onClick}>
+      <div className="rank">#{rank}</div>
+      {photoUrl ? (
+        <img src={photoUrl} alt="" className="thumb" loading="lazy" />
+      ) : (
+        <div className="thumb placeholder"><UtensilsCrossed size={20} /></div>
+      )}
+      <div className="info">
+        <div className="head">
+          <div className="name bv-display">{r.name}</div>
+          {priceSign && <div className="price">{priceSign}</div>}
+        </div>
+        <div className="rating-row">
+          <Star size={11} fill="currentColor" style={{ color: 'var(--gold-deep)' }} />
+          <span className="rating">{r.rating?.toFixed(1)}</span>
+          <span className="count"><Users size={9} /> {r.userRatingCount?.toLocaleString('ko-KR')}</span>
+          <span className="weighted">신뢰도 {r.weightedScore?.toFixed(2)}</span>
+        </div>
+        <div className="meta-row">
+          <span><Footprints size={9} /> {distance} · 약 {walk}분</span>
+          {r.openNow === true && <span className="open">영업 중</span>}
+          {r.openNow === false && <span className="closed">영업 종료</span>}
+        </div>
+      </div>
+      <ChevronRight size={14} style={{ color: 'var(--ink-soft)', flexShrink: 0 }} />
+    </button>
+  );
+}
+
+function RestaurantDetailView({ restaurant, onBack, onDirections }) {
+  const r = restaurant;
+  const [photoIdx, setPhotoIdx] = useState(0);
+  const photoNames = r.photos || [];
+  const heroPhoto = photoNames[photoIdx];
+  const heroUrl = heroPhoto ? `/api/places-photo?name=${encodeURIComponent(heroPhoto)}&max=720` : null;
+  const priceSign = priceLevelToSign(r.priceLevel);
+
+  // Find today's hours
+  const todayIdx = new Date().getDay(); // 0=Sun, 1=Mon...
+  // Google Places weekdayDescriptions starts with Monday (or locale-dependent — but key is to display them all)
+  const allHours = r.hours || [];
+
+  return (
+    <div className="bv-subview">
+      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 뒤로</button>
+
+      {heroUrl ? (
+        <div className="bv-hero-photo">
+          <img src={heroUrl} alt={r.name} />
+          <div className="credit">📷 Google Maps</div>
+          {photoNames.length > 1 && (
+            <div className="bv-photo-dots">
+              {photoNames.map((_, i) => (
+                <button key={i} className={i === photoIdx ? 'on' : ''} onClick={() => setPhotoIdx(i)} aria-label={`사진 ${i + 1}`} />
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div style={{ fontSize: 48, marginTop: 8, textAlign: 'center' }}>🍽️</div>
+      )}
+
+      <h2 className="bv-h1">{r.name}</h2>
+      <div className="bv-h1-sub">
+        {r.primaryTypeLabel && <>{r.primaryTypeLabel} · </>}
+        {priceSign && <>{priceSign} · </>}
+        신뢰도 점수 <strong>{r.weightedScore?.toFixed(2)}</strong>
+      </div>
+
+      <div className="bv-restaurant-stats">
+        <div className="stat">
+          <div className="val"><Star size={11} fill="currentColor" style={{ color: 'var(--gold-deep)' }} /> {r.rating?.toFixed(1)}</div>
+          <div className="lbl">평점</div>
+        </div>
+        <div className="stat">
+          <div className="val"><Users size={11} /> {r.userRatingCount?.toLocaleString('ko-KR')}</div>
+          <div className="lbl">리뷰 수</div>
+        </div>
+        <div className="stat">
+          <div className="val"><Footprints size={11} /> {formatDistance(r.distance)}</div>
+          <div className="lbl">거리 · 약 {walkingMinutes(r.distance)}분</div>
+        </div>
+      </div>
+
+      <div className="bv-action-row">
+        <button className="bv-row-btn primary" onClick={onDirections}>
+          <Navigation size={14} /> 길찾기
+        </button>
+        {r.googleMapsUri && (
+          <a className="bv-row-btn" href={r.googleMapsUri} target="_blank" rel="noopener noreferrer">
+            <ExternalLink size={14} /> Google Maps
+          </a>
+        )}
+      </div>
+
+      {r.editorialSummary && (
+        <div className="bv-card">
+          <div className="label"><BookOpen size={11} /> 소개</div>
+          <p>{r.editorialSummary}</p>
+        </div>
+      )}
+
+      {r.address && (
+        <div className="bv-card">
+          <div className="label"><MapPin size={11} /> 주소</div>
+          <p>{r.address}</p>
+        </div>
+      )}
+
+      {allHours.length > 0 && (
+        <div className="bv-card">
+          <div className="label">
+            <Clock size={11} /> 영업 시간
+            {r.openNow === true && <span className="bv-open-badge"> · 영업 중</span>}
+            {r.openNow === false && <span className="bv-closed-badge"> · 영업 종료</span>}
+          </div>
+          <ul className="bv-hours-list">
+            {allHours.map((line, i) => (
+              <li key={i}>{line}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="bv-card">
+        <div className="label"><Phone size={11} /> 연락처 · 웹사이트</div>
+        {r.phone ? (
+          <p><a href={`tel:${r.phone}`} className="bv-link">{r.phone}</a></p>
+        ) : <p style={{ color: 'var(--ink-soft)', fontStyle: 'italic' }}>전화번호 정보 없음</p>}
+        {r.websiteUri && (
+          <p style={{ marginTop: 6 }}>
+            <a href={r.websiteUri} target="_blank" rel="noopener noreferrer" className="bv-link">
+              <ExternalLink size={10} /> 웹사이트
+            </a>
+          </p>
+        )}
+      </div>
+
+      <div className="bv-route-disclaimer" style={{ marginTop: 12 }}>
+        ⓘ 데이터: <strong>Google Maps Places API</strong>. 신뢰도 점수는 베이지안 가중평균 (평점이 같으면 리뷰 수 많은 곳이 위로). 영업 시간·휴무는 명절·임시 휴무로 다를 수 있어요.
+      </div>
+    </div>
+  );
+}
+
 function PhraseCard({ phrase, speak, speakingId, id, label = '현지 표현' }) {
   return (
     <div className="bv-phrase">
@@ -2869,6 +3260,198 @@ function BelViaggioStyles() {
         border-radius: 8px; font-size: 11px; color: var(--ink-soft);
         display: flex; align-items: center; gap: 6px;
         font-style: italic;
+      }
+
+      /* v0.6: Wide restaurant CTA card on home */
+      .bv-action-wide {
+        margin: 12px 18px 4px; padding: 14px 16px;
+        background: linear-gradient(135deg, var(--burgundy) 0%, var(--terracotta) 100%);
+        color: #fff8ec; border: 0; border-radius: 14px;
+        display: flex; align-items: center; gap: 12px;
+        cursor: pointer; text-align: left;
+        box-shadow: 0 6px 16px -8px rgba(92,30,42,0.4);
+        position: relative;
+      }
+      .bv-action-wide .ico {
+        width: 38px; height: 38px; border-radius: 10px;
+        background: rgba(255,248,236,0.15); color: #fff8ec;
+        display: grid; place-items: center; flex-shrink: 0;
+      }
+      .bv-action-wide .text { flex: 1; min-width: 0; }
+      .bv-action-wide .ttl {
+        font-size: 18px; font-weight: 500; line-height: 1.1;
+        color: #fff8ec;
+      }
+      .bv-action-wide .sub {
+        font-size: 11px; margin-top: 3px; opacity: 0.85;
+        color: var(--gold);
+      }
+      .bv-action-wide .badge {
+        position: absolute; top: 10px; right: 30px;
+        background: var(--gold); color: var(--burgundy);
+        padding: 2px 6px; border-radius: 4px;
+        font-size: 9px; font-weight: 600; letter-spacing: 0.05em;
+        display: inline-flex; align-items: center; gap: 2px;
+        font-family: 'DM Sans', sans-serif;
+      }
+
+      /* v0.6: Cuisine filter row */
+      .bv-cuisine-row {
+        display: flex; gap: 6px; overflow-x: auto;
+        padding: 4px 0 8px; margin-top: 10px;
+        scrollbar-width: none;
+      }
+      .bv-cuisine-row::-webkit-scrollbar { display: none; }
+      .bv-cuisine-pill {
+        flex-shrink: 0; padding: 6px 12px;
+        background: rgba(255, 252, 245, 0.8);
+        border: 1px solid rgba(0,0,0,0.08);
+        border-radius: 999px;
+        font-size: 12px; cursor: pointer;
+        display: inline-flex; align-items: center; gap: 4px;
+        font-family: 'DM Sans', sans-serif;
+        color: var(--ink);
+      }
+      .bv-cuisine-pill .emoji { font-size: 13px; }
+      .bv-cuisine-pill.on {
+        background: var(--burgundy); color: #fff8ec;
+        border-color: var(--burgundy);
+      }
+      .bv-cuisine-pill:disabled { opacity: 0.5; cursor: default; }
+
+      /* v0.6: Restaurants meta row */
+      .bv-restaurants-meta {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 6px 10px; margin-bottom: 8px;
+        background: rgba(0,0,0,0.03); border-radius: 8px;
+        font-size: 10px; color: var(--ink-soft);
+      }
+      .bv-restaurants-meta .meta-line {
+        display: inline-flex; align-items: center; gap: 4px;
+      }
+      .bv-restaurants-meta button {
+        background: rgba(184,85,58,0.1); border: 0;
+        color: var(--terracotta-deep); padding: 3px 8px;
+        border-radius: 999px; font-size: 10px; cursor: pointer;
+        display: inline-flex; align-items: center; gap: 3px;
+        font-family: 'DM Sans', sans-serif;
+      }
+      .bv-restaurants-meta button:hover { background: rgba(184,85,58,0.18); }
+
+      /* v0.6: Restaurant list cards */
+      .bv-restaurant-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+      .bv-restaurant-card {
+        position: relative;
+        background: rgba(255, 252, 245, 0.7);
+        border: 1px solid rgba(0,0,0,0.06);
+        border-radius: 14px; padding: 12px;
+        display: flex; align-items: center; gap: 12px;
+        cursor: pointer; text-align: left;
+        font-family: 'DM Sans', sans-serif;
+      }
+      .bv-restaurant-card:hover { background: rgba(255, 252, 245, 0.95); }
+      .bv-restaurant-card .rank {
+        position: absolute; top: 6px; left: 6px;
+        background: var(--burgundy); color: #fff8ec;
+        font-size: 9px; padding: 2px 5px; border-radius: 4px;
+        font-weight: 600; letter-spacing: 0.02em;
+      }
+      .bv-restaurant-card .thumb {
+        width: 72px; height: 72px; border-radius: 10px;
+        object-fit: cover; background: rgba(0,0,0,0.05);
+        flex-shrink: 0;
+      }
+      .bv-restaurant-card .thumb.placeholder {
+        display: grid; place-items: center;
+        color: var(--ink-soft);
+      }
+      .bv-restaurant-card .info { flex: 1; min-width: 0; }
+      .bv-restaurant-card .head {
+        display: flex; align-items: flex-start; gap: 6px; margin-bottom: 4px;
+      }
+      .bv-restaurant-card .name {
+        flex: 1; font-size: 16px; font-weight: 500;
+        color: var(--burgundy); line-height: 1.15;
+      }
+      .bv-restaurant-card .price {
+        flex-shrink: 0; font-size: 11px; color: var(--gold-deep);
+        font-weight: 600;
+      }
+      .bv-restaurant-card .rating-row {
+        display: flex; align-items: center; gap: 6px;
+        font-size: 11px; color: var(--ink); margin-top: 2px;
+      }
+      .bv-restaurant-card .rating { font-weight: 600; }
+      .bv-restaurant-card .count {
+        display: inline-flex; align-items: center; gap: 2px;
+        color: var(--ink-soft);
+      }
+      .bv-restaurant-card .weighted {
+        background: rgba(92,30,42,0.1); color: var(--burgundy);
+        padding: 1px 6px; border-radius: 999px;
+        font-size: 9px; font-weight: 600;
+        margin-left: auto;
+      }
+      .bv-restaurant-card .meta-row {
+        display: flex; align-items: center; gap: 6px;
+        font-size: 10px; color: var(--ink-soft); margin-top: 4px;
+      }
+      .bv-restaurant-card .meta-row .open { color: var(--sage); font-weight: 600; }
+      .bv-restaurant-card .meta-row .closed { color: var(--terracotta-deep); font-weight: 600; }
+
+      /* v0.6: Restaurant detail */
+      .bv-restaurant-stats {
+        display: grid; grid-template-columns: repeat(3, 1fr);
+        gap: 8px; margin: 12px 0;
+      }
+      .bv-restaurant-stats .stat {
+        background: rgba(255, 252, 245, 0.7);
+        border: 1px solid rgba(0,0,0,0.06);
+        border-radius: 10px; padding: 10px 8px;
+        text-align: center;
+      }
+      .bv-restaurant-stats .val {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 18px; font-weight: 600; color: var(--burgundy);
+        display: inline-flex; align-items: center; gap: 4px;
+      }
+      .bv-restaurant-stats .lbl {
+        font-size: 9px; color: var(--ink-soft); margin-top: 3px;
+        text-transform: uppercase; letter-spacing: 0.1em;
+        font-family: 'DM Sans', sans-serif;
+      }
+      .bv-hours-list { margin: 0; padding-left: 0; list-style: none; }
+      .bv-hours-list li {
+        padding: 4px 0; font-size: 12px;
+        border-bottom: 1px dashed rgba(0,0,0,0.05);
+      }
+      .bv-hours-list li:last-child { border-bottom: 0; }
+      .bv-hours-list li::before { display: none; }
+      .bv-open-badge { color: var(--sage); font-weight: 600; }
+      .bv-closed-badge { color: var(--terracotta-deep); font-weight: 600; }
+
+      .bv-photo-dots {
+        position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+        display: flex; gap: 4px; padding: 4px 8px;
+        background: rgba(0,0,0,0.4); border-radius: 999px;
+      }
+      .bv-photo-dots button {
+        width: 6px; height: 6px; border-radius: 50%;
+        background: rgba(255,255,255,0.5); border: 0;
+        cursor: pointer; padding: 0;
+      }
+      .bv-photo-dots button.on { background: #fff8ec; }
+
+      .bv-row-btn.primary {
+        background: var(--burgundy); color: #fff8ec;
+        border-color: var(--burgundy);
+      }
+      .bv-row-btn.primary:hover {
+        background: #3a1118;
+      }
+      .bv-link {
+        color: var(--terracotta-deep); text-decoration: underline;
+        display: inline-flex; align-items: center; gap: 4px;
       }
     `}</style>
   );
