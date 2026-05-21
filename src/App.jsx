@@ -8,7 +8,8 @@ import {
   Mic, MicOff, Route, Clock, Footprints, Download, Share2,
   Database, ChevronDown, ChevronUp, Wand2, Sun, UtensilsCrossed,
   CalendarDays, BookmarkCheck, BookmarkX,
-  Phone, ExternalLink, Users, TrendingUp, Filter
+  Phone, ExternalLink, Users, TrendingUp, Filter,
+  Hotel, BedDouble
 } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────
@@ -187,6 +188,33 @@ function formatDistance(m) {
 // Walking time estimate. 5km/h base, ×1.3 detour factor for city walking
 function walkingMinutes(meters) {
   return Math.round((meters * 1.3) / 83.3);
+}
+
+// v1.0: 날짜 → 한국어 요일 ("월요일")
+function getWeekdayKo(dateStr) {
+  // dateStr: "2026-05-23"
+  try {
+    const d = new Date(dateStr);
+    const weekdays = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+    return weekdays[d.getDay()];
+  } catch { return ''; }
+}
+
+// 날짜 + n일 → "YYYY-MM-DD"
+function addDays(dateStr, n) {
+  try {
+    const d = new Date(dateStr);
+    d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0, 10);
+  } catch { return dateStr; }
+}
+
+// 날짜 "YYYY-MM-DD" → "M월 D일"
+function formatDateKo(dateStr) {
+  try {
+    const d = new Date(dateStr);
+    return `${d.getMonth() + 1}월 ${d.getDate()}일`;
+  } catch { return dateStr; }
 }
 
 function compressImage(file, maxDim = 1280) {
@@ -573,6 +601,15 @@ export default function BelViaggio() {
   const [restaurantCuisine, setRestaurantCuisine] = useState('all');
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [restaurantSearchOrigin, setRestaurantSearchOrigin] = useState(null); // {lat, lng}
+
+  // v1.0: Hotels (Google Places API — accommodation)
+  const [hotels, setHotels] = useState([]);
+  const [hotelsLoading, setHotelsLoading] = useState(false);
+  const [hotelsError, setHotelsError] = useState(null);
+  const [hotelsMeta, setHotelsMeta] = useState(null);
+  const [hotelType, setHotelType] = useState('all');
+  const [selectedHotel, setSelectedHotel] = useState(null);
+  const [hotelSearchOrigin, setHotelSearchOrigin] = useState(null);
 
   // v0.9: pre-cache per city + voice search + currency calculator
   const [preCacheStatus, setPreCacheStatus] = useState({}); // { cityName: 'loading' | { count, fetchedAt } | { error } }
@@ -1178,7 +1215,9 @@ export default function BelViaggio() {
   }
 
   // ─── v0.5: AI-recommended itinerary ─────────────────────
-  async function generateItinerary(cityFilter) {
+  // v1.0: + startDate parameter for date-aware planning (월요일 박물관 휴무 등)
+  // v1.0: + 식사 슬롯에 specific restaurant 배정 (Bayesian top picks)
+  async function generateItinerary(cityFilter, startDate = null) {
     const places = cityFilter
       ? favoriteLandmarks.filter((l) => l.city === cityFilter)
       : favoriteLandmarks;
@@ -1191,12 +1230,21 @@ export default function BelViaggio() {
 
     try {
       const placesList = places.map((p) => `- ${p.name} (${p.nameLocal}, ${p.city}) [id: ${p.id}]`).join('\n');
+
+      // v1.0: 시작일이 주어지면 프롬프트에 명시 + JSON 출력에 date/weekday 포함
+      const dateContext = startDate ? `
+
+여행 시작일: ${startDate} (${getWeekdayKo(startDate)})
+- 각 날짜의 요일을 반드시 고려해서 휴관일을 피하세요 (월요일: 보르게세·바르젤로·브레라 휴무, 화요일: 산타 크로체 휴무, 일요일: 일부 박물관 단축 운영).
+- 출력 JSON의 각 day에 "date" (YYYY-MM-DD)와 "weekday" (한국어 요일) 필드를 반드시 포함하세요.` : '';
+
       const text = await callClaude([{
         role: 'user',
         content: `당신은 이탈리아 여행 전문가입니다. 다음 즐겨찾기 명소들을 효율적으로 방문할 수 있는 동선을 한국어로 제안해주세요.
 
 명소 목록 (총 ${places.length}곳):
 ${placesList}
+${dateContext}
 
 고려할 사항:
 - 각 명소의 평균 관람 시간 (콜로세움 90분, 우피치 120분, 분수·광장 20분 등)
@@ -1213,7 +1261,9 @@ JSON 형식만 출력 (코드블록 금지):
   "summary": "전체 한 줄 요약",
   "days": [
     {
-      "day": 1,
+      "day": 1,${startDate ? `
+      "date": "YYYY-MM-DD",
+      "weekday": "한국어 요일",` : ''}
       "theme": "이 날의 테마 (예: '고대 로마의 영광')",
       "city": "도시명",
       "stops": [
@@ -1279,6 +1329,19 @@ JSON 형식만 출력 (코드블록 금지):
             if (results) {
               day.restaurantPicks = results.slice(0, 5);
               day.restaurantCenter = { lat: centerLat, lng: centerLng };
+
+              // v1.0: 각 식사 슬롯에 구체적인 식당 배정 (Bayesian top picks)
+              // - 점심: cuisine 적당히 캐주얼 (#1 또는 cafe/pizza 제외하고 첫번째)
+              // - 저녁: 정찬 우선 (italian/seafood/steak 우선)
+              if (day.meals?.length > 0) {
+                const picks = [...day.restaurantPicks];
+                day.meals.forEach((meal, idx) => {
+                  if (picks.length === 0) return;
+                  // 단순화: 첫번째 슬롯엔 #1, 두번째엔 #2, ...
+                  // 점심/저녁 구분 없이 순서대로 배정 (Bayesian 순위가 곧 추천 순위)
+                  meal.restaurant = picks[idx % picks.length];
+                });
+              }
             }
           } catch (e) {
             // 맛집 조회 실패해도 동선 자체는 표시
@@ -1450,6 +1513,60 @@ JSON 형식만 출력 (코드블록 금지):
     setView('restaurant-detail');
   }
 
+  // ─── v1.0: Hotels (Google Places API) ──────────────────
+  async function fetchNearbyHotels(type = 'all', forceRefresh = false) {
+    if (!effectiveLocation) {
+      setHotelsError('위치 정보가 없어요. 위치 권한을 허용하거나 데모 모드로 전환해주세요.');
+      return;
+    }
+    setHotelsLoading(true);
+    setHotelsError(null);
+    const origin = { lat: effectiveLocation.lat, lng: effectiveLocation.lng };
+    setHotelSearchOrigin(origin);
+
+    const cacheKey = `hotels_${origin.lat.toFixed(2)}_${origin.lng.toFixed(2)}_${type}`;
+
+    try {
+      if (!forceRefresh) {
+        const cached = await dbGet('restaurants', cacheKey);  // 같은 store 재사용
+        if (cached && Date.now() - cached.fetchedAt < 24 * 60 * 60 * 1000) {
+          setHotels(cached.results || []);
+          setHotelsMeta({ ...cached.meta, fromCache: true });
+          setHotelsLoading(false);
+          return;
+        }
+      }
+
+      const res = await fetch('/api/hotels', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lat: origin.lat, lng: origin.lng, type, radius: 3000 }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `Hotels API error ${res.status}`);
+
+      setHotels(data.results || []);
+      setHotelsMeta({ ...data.meta, fromCache: false });
+      await dbPut('restaurants', { id: cacheKey, results: data.results, meta: data.meta, fetchedAt: Date.now() });
+    } catch (err) {
+      setHotelsError(`숙소 검색 실패: ${err.message}`);
+    } finally {
+      setHotelsLoading(false);
+    }
+  }
+
+  function openHotels() {
+    setView('hotels');
+    if (hotels.length === 0 && effectiveLocation) {
+      fetchNearbyHotels(hotelType);
+    }
+  }
+
+  function selectHotel(hotel) {
+    setSelectedHotel(hotel);
+    setView('hotel-detail');
+  }
+
   // v0.9: 음성 검색 — 한국어 음성을 Web Speech Recognition으로 받아서
   // 로컬 키워드 매칭으로 카테고리 자동 선택 + 검색 실행. (API 호출 없음, 오프라인 가능)
   function startVoiceSearch() {
@@ -1515,6 +1632,7 @@ JSON 형식만 출력 (코드블록 금지):
             onCollectionClick={() => setView('collection')}
             onFavoritesClick={() => setView('favorites')}
             onRestaurantsClick={openRestaurants}
+            onHotelsClick={openHotels}
             onFxClick={() => setView('currency-calc')}
             preCacheStatus={preCacheStatus}
             onPreCacheCity={preCacheCity}
@@ -1654,6 +1772,30 @@ JSON 형식만 출력 (코드블록 금지):
               selectedRestaurant.location.latitude,
               selectedRestaurant.location.longitude,
               selectedRestaurant.name
+            )}
+          />
+        )}
+
+        {/* v1.0: Hotels */}
+        {view === 'hotels' && (
+          <HotelsView
+            hotels={hotels} loading={hotelsLoading} error={hotelsError} meta={hotelsMeta}
+            type={hotelType}
+            setType={(t) => { setHotelType(t); fetchNearbyHotels(t); }}
+            origin={hotelSearchOrigin} location={effectiveLocation}
+            onBack={goBack}
+            onSelect={selectHotel}
+            onRefresh={() => fetchNearbyHotels(hotelType, true)}
+          />
+        )}
+        {view === 'hotel-detail' && selectedHotel && (
+          <HotelDetailView
+            hotel={selectedHotel}
+            onBack={goBack}
+            onDirections={() => openInMaps(
+              selectedHotel.location.latitude,
+              selectedHotel.location.longitude,
+              selectedHotel.name
             )}
           />
         )}
@@ -1809,7 +1951,7 @@ function HomeView({
   location, locationStatus, demoMode, demoCoord, setDemoMode, setDemoCoord,
   nearby, proximityAlert, dismissAlert, onOpenDetail,
   onPhotoClick, onMenuClick, onReceiptClick, onTranslateClick,
-  onCollectionClick, onFavoritesClick, onRestaurantsClick, onFxClick,
+  onCollectionClick, onFavoritesClick, onRestaurantsClick, onHotelsClick, onFxClick,
   preCacheStatus, onPreCacheCity,
   collectionCount, favoritesCount,
   favorites, toggleFavorite, fx, fxLoading, refreshFx,
@@ -1900,16 +2042,24 @@ function HomeView({
         </button>
       </div>
 
-      {/* v0.6: Wide restaurant CTA card */}
-      <button className="bv-action-wide" onClick={onRestaurantsClick}>
-        <div className="ico"><UtensilsCrossed size={22} /></div>
-        <div className="text">
-          <div className="ttl bv-display">맛집 찾기</div>
-          <div className="sub">평점 + 리뷰 수 가중 정렬 · Google Maps 데이터</div>
-        </div>
-        <div className="badge"><Sparkles size={10} /> NEW</div>
-        <ChevronRight size={14} style={{ color: 'var(--ink-soft)' }} />
-      </button>
+      {/* v0.6+v1.0: Restaurants + Hotels CTA row */}
+      <div className="bv-action-duo">
+        <button className="bv-action-half restaurants" onClick={onRestaurantsClick}>
+          <div className="ico"><UtensilsCrossed size={20} /></div>
+          <div className="text">
+            <div className="ttl bv-display">맛집</div>
+            <div className="sub">평점 × 리뷰수</div>
+          </div>
+        </button>
+        <button className="bv-action-half hotels" onClick={onHotelsClick}>
+          <div className="ico"><Hotel size={20} /></div>
+          <div className="text">
+            <div className="ttl bv-display">숙소</div>
+            <div className="sub">신뢰도 가중 정렬</div>
+          </div>
+          <div className="badge"><Sparkles size={9} /> NEW</div>
+        </button>
+      </div>
 
       <div className="bv-pills">
         <button className="bv-pill fav" onClick={onFavoritesClick}>
@@ -2453,6 +2603,10 @@ function FavoritesView({ items, hasLocation, onBack, onOpen, onRemove, onDirecti
     return Object.entries(g).filter(([, count]) => count >= 2).sort((a, b) => b[1] - a[1]);
   }, [items]);
 
+  // v1.0: trip start date (defaults to today)
+  const [startDate, setStartDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [useDate, setUseDate] = useState(false);  // 토글: 날짜 미포함 / 포함
+
   // Lazy-fetch first 5 photos
   useEffect(() => {
     items.slice(0, 5).forEach(l => {
@@ -2478,12 +2632,34 @@ function FavoritesView({ items, hasLocation, onBack, onOpen, onRemove, onDirecti
             <div className="bv-ai-itinerary-cta">
               <div className="head"><Wand2 size={12} /> AI 추천 동선</div>
               <div className="sub">관람 시간, 인파 패턴, 식사 시간까지 고려한 일정을 AI가 짜드려요. 1회 약 $0.05~0.10 추정.</div>
+
+              {/* v1.0: 날짜 입력 (선택) */}
+              <div className="bv-date-toggle">
+                <label className="bv-date-toggle-row">
+                  <input type="checkbox" checked={useDate} onChange={(e) => setUseDate(e.target.checked)} />
+                  <CalendarDays size={11} /> 시작일 지정 (요일별 휴관일 고려)
+                </label>
+                {useDate && (
+                  <input
+                    type="date"
+                    className="bv-date-input"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                  />
+                )}
+                {useDate && startDate && (
+                  <div className="bv-date-info">
+                    Day 1 = {formatDateKo(startDate)} ({getWeekdayKo(startDate)})
+                  </div>
+                )}
+              </div>
+
               <div className="btns">
-                <button className="primary" onClick={() => onAiItinerary(null)}>
+                <button className="primary" onClick={() => onAiItinerary(null, useDate ? startDate : null)}>
                   <Wand2 size={14} /> 전체 일정 추천 ({items.length}곳)
                 </button>
                 {cityGroups.map(([city, count]) => (
-                  <button key={city} onClick={() => onAiItinerary(city)}>
+                  <button key={city} onClick={() => onAiItinerary(city, useDate ? startDate : null)}>
                     {city} 일정 ({count}곳)
                   </button>
                 ))}
@@ -2631,8 +2807,10 @@ function RouteView({ route, onBack, onOpenLandmark, onOpenMaps }) {
 // ─────────────────────────────────────────────────────────
 function AiItineraryView({ itinerary, loading, error, onBack, onOpenLandmark, onSelectRestaurant, landmarks }) {
   const [expandedDay, setExpandedDay] = useState(0);
+  const [mapOpenDays, setMapOpenDays] = useState({});  // v1.0: { dayIndex: true } for inline map toggle
 
   const findLandmark = (id) => landmarks.find((l) => l.id === id);
+  const toggleMap = (di) => setMapOpenDays((s) => ({ ...s, [di]: !s[di] }));
 
   return (
     <div className="bv-subview">
@@ -2666,7 +2844,12 @@ function AiItineraryView({ itinerary, loading, error, onBack, onOpenLandmark, on
           {(itinerary.days || []).map((day, di) => (
             <div key={di} className="bv-day-card">
               <button className="bv-day-head" onClick={() => setExpandedDay(expandedDay === di ? -1 : di)}>
-                <div className="day-num">Day {day.day}</div>
+                <div className="day-num">
+                  Day {day.day}
+                  {day.date && (
+                    <div className="day-date">{formatDateKo(day.date)}{day.weekday ? ` (${day.weekday})` : ''}</div>
+                  )}
+                </div>
                 <div className="day-info">
                   <div className="day-theme">{day.theme}</div>
                   <div className="day-city">{day.city} · {(day.stops || []).length}곳</div>
@@ -2696,14 +2879,35 @@ function AiItineraryView({ itinerary, loading, error, onBack, onOpenLandmark, on
                     );
                   })}
 
+                  {/* v1.0: 식사 슬롯에 specific restaurant 배정 (클릭하면 상세) */}
                   {(day.meals || []).map((meal, mi) => (
-                    <div key={`meal-${mi}`} className="bv-ai-meal">
-                      <div className="time">{meal.time}</div>
-                      <div className="content">
-                        <div className="name"><UtensilsCrossed size={12} /> {meal.type}</div>
-                        <div className="sug">{meal.suggestion}</div>
+                    meal.restaurant ? (
+                      <button key={`meal-${mi}`} className="bv-ai-meal with-restaurant" onClick={() => onSelectRestaurant?.(meal.restaurant)}>
+                        <div className="time">{meal.time}</div>
+                        <div className="content">
+                          <div className="meal-header">
+                            <UtensilsCrossed size={11} />
+                            <span className="meal-type">{meal.type}</span>
+                            <span className="meal-rating">
+                              <Star size={9} fill="currentColor" style={{ color: 'var(--gold-deep)' }} />
+                              {meal.restaurant.rating?.toFixed(1)}
+                              <span className="muted"> · {meal.restaurant.userRatingCount?.toLocaleString('ko-KR')}</span>
+                            </span>
+                          </div>
+                          <div className="restaurant-name bv-display">{meal.restaurant.name}</div>
+                          {meal.suggestion && <div className="sug">{meal.suggestion}</div>}
+                        </div>
+                        <ChevronRight size={12} style={{ color: 'var(--ink-soft)', flexShrink: 0 }} />
+                      </button>
+                    ) : (
+                      <div key={`meal-${mi}`} className="bv-ai-meal">
+                        <div className="time">{meal.time}</div>
+                        <div className="content">
+                          <div className="name"><UtensilsCrossed size={12} /> {meal.type}</div>
+                          <div className="sug">{meal.suggestion}</div>
+                        </div>
                       </div>
-                    </div>
+                    )
                   ))}
 
                   {/* v0.7: 그날 동선 근처 베이지안 가중 정렬 맛집 5곳 */}
@@ -2729,6 +2933,20 @@ function AiItineraryView({ itinerary, loading, error, onBack, onOpenLandmark, on
                         </button>
                       ))}
                     </div>
+                  )}
+
+                  {/* v1.0: 동선 지도 (OSM + Leaflet) */}
+                  {day.stops?.length > 0 && (
+                    <>
+                      <button className="bv-day-map-toggle" onClick={() => toggleMap(di)}>
+                        <MapPin size={11} />
+                        <span>{mapOpenDays[di] ? '지도 접기' : '지도 보기'}</span>
+                        {mapOpenDays[di] ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                      </button>
+                      {mapOpenDays[di] && (
+                        <DayMapView day={day} landmarks={landmarks} />
+                      )}
+                    </>
                   )}
 
                   {day.walkingNote && (
@@ -2910,8 +3128,112 @@ function CurrencyCalcView({ fx, fxLoading, onBack, onRefresh }) {
 }
 
 // ─────────────────────────────────────────────────────────
-// Restaurants View (v0.6) — Google Places + Bayesian weighted ranking
+// v1.0: DayMapView — Leaflet + OSM 인라인 지도
+// 명소(부르군디) + 식당(테라코타) 핀, 명소만 선으로 연결 (방문 순서).
 // ─────────────────────────────────────────────────────────
+function DayMapView({ day, landmarks }) {
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const L = window.L;
+    if (!L) {
+      // Leaflet이 아직 로딩 안 됐을 수 있음 — 재시도
+      const t = setTimeout(() => {
+        if (window.L && mapRef.current && !mapInstanceRef.current) {
+          // Force re-mount by triggering effect again
+          mapRef.current.dataset.leafletReady = 'true';
+        }
+      }, 300);
+      return () => clearTimeout(t);
+    }
+
+    // 좌표 모으기
+    const landmarkPoints = (day.stops || [])
+      .map((s, idx) => {
+        const lm = landmarks.find((l) => l.id === s.id);
+        return lm ? { lat: lm.lat, lng: lm.lng, label: lm.name, order: idx + 1, time: s.arrivalTime, type: 'landmark', emoji: lm.emoji } : null;
+      })
+      .filter(Boolean);
+
+    const restaurantPoints = (day.restaurantPicks || []).slice(0, 5).map((r, idx) => ({
+      lat: r.location?.latitude,
+      lng: r.location?.longitude,
+      label: r.name,
+      rank: idx + 1,
+      type: 'restaurant',
+      rating: r.rating,
+    })).filter((p) => p.lat != null && p.lng != null);
+
+    const allPoints = [...landmarkPoints, ...restaurantPoints];
+    if (allPoints.length === 0) return;
+
+    // 지도 초기화 (이미 있으면 제거)
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+    }
+    const map = L.map(mapRef.current, {
+      scrollWheelZoom: false,
+      attributionControl: true,
+    });
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+      maxZoom: 19,
+    }).addTo(map);
+
+    // 명소 핀 (번호 + 부르군디색)
+    landmarkPoints.forEach((p) => {
+      const icon = L.divIcon({
+        className: 'bv-map-pin landmark',
+        html: `<div class="pin landmark-pin">${p.order}</div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+      });
+      L.marker([p.lat, p.lng], { icon })
+        .bindPopup(`<div style="font-family:'DM Sans',sans-serif"><b>${p.order}. ${p.emoji || ''} ${p.label}</b><br/><small>${p.time || ''}</small></div>`)
+        .addTo(map);
+    });
+
+    // 식당 핀 (포크 아이콘 + 테라코타색)
+    restaurantPoints.forEach((p) => {
+      const icon = L.divIcon({
+        className: 'bv-map-pin restaurant',
+        html: `<div class="pin restaurant-pin">🍴</div>`,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+      });
+      L.marker([p.lat, p.lng], { icon })
+        .bindPopup(`<div style="font-family:'DM Sans',sans-serif"><b>#${p.rank} ${p.label}</b><br/><small>⭐ ${p.rating?.toFixed(1) || '-'}</small></div>`)
+        .addTo(map);
+    });
+
+    // 명소 동선 (점선)
+    if (landmarkPoints.length > 1) {
+      L.polyline(landmarkPoints.map((p) => [p.lat, p.lng]), {
+        color: '#5C1E2A',
+        weight: 3,
+        opacity: 0.65,
+        dashArray: '6, 6',
+      }).addTo(map);
+    }
+
+    // 모든 포인트에 맞춰 fit
+    const bounds = L.latLngBounds(allPoints.map((p) => [p.lat, p.lng]));
+    map.fitBounds(bounds, { padding: [30, 30] });
+
+    mapInstanceRef.current = map;
+
+    return () => {
+      try { map.remove(); } catch { /* ignore */ }
+      mapInstanceRef.current = null;
+    };
+  }, [day, landmarks]);
+
+  return <div ref={mapRef} className="bv-leaflet-container" />;
+}
+
+
 const CUISINE_FILTERS = [
   { key: 'all',     label: '전체',    emoji: '🍽️' },
   { key: 'italian', label: '이탈리아', emoji: '🇮🇹' },
@@ -3183,6 +3505,214 @@ function RestaurantDetailView({ restaurant, onBack, onDirections }) {
 
       <div className="bv-route-disclaimer" style={{ marginTop: 12 }}>
         ⓘ 데이터: <strong>Google Maps Places API</strong>. 신뢰도 점수는 베이지안 가중평균 (평점이 같으면 리뷰 수 많은 곳이 위로). 영업 시간·휴무는 명절·임시 휴무로 다를 수 있어요.
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// v1.0: Hotels View — Google Places + Bayesian ranked (M=200)
+// ─────────────────────────────────────────────────────────
+const HOTEL_TYPE_FILTERS = [
+  { key: 'all',       label: '전체',    emoji: '🏨' },
+  { key: 'luxury',    label: '럭셔리',  emoji: '✨' },
+  { key: 'midrange',  label: '중급',    emoji: '🏩' },
+  { key: 'budget',    label: '저렴',    emoji: '💰' },
+  { key: 'bnb',       label: 'B&B',     emoji: '🛏️' },
+  { key: 'apartment', label: '아파트',  emoji: '🏘️' },
+];
+
+function HotelsView({ hotels, loading, error, meta, type, setType, origin, location, onBack, onSelect, onRefresh }) {
+  return (
+    <div className="bv-subview">
+      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 뒤로</button>
+      <h2 className="bv-h1">Alloggi</h2>
+      <div className="bv-h1-sub">숙소 · 평점 × 리뷰 수 가중 정렬 (M=200)</div>
+
+      {!location && (
+        <div className="bv-error" style={{ marginTop: 12 }}>
+          <AlertCircle size={16} />
+          <div>위치 정보가 필요해요. 위치 권한을 허용하거나 데모 모드를 선택해주세요.</div>
+        </div>
+      )}
+
+      <div className="bv-cuisine-row">
+        {HOTEL_TYPE_FILTERS.map((c) => (
+          <button key={c.key} className={`bv-cuisine-pill ${type === c.key ? 'on' : ''}`}
+                  onClick={() => setType(c.key)} disabled={loading}>
+            <span className="emoji">{c.emoji}</span><span>{c.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {meta && !loading && (
+        <div className="bv-restaurants-meta">
+          <div className="meta-line">
+            <TrendingUp size={10} /> {meta.count}곳 · 평균 평점 {meta.meanRating}
+            {meta.fromCache && <span style={{ marginLeft: 6 }}>· <Database size={9} /> 캐시</span>}
+          </div>
+          <button onClick={onRefresh}><RefreshCw size={10} /> 새로</button>
+        </div>
+      )}
+
+      {loading && (
+        <div className="bv-loading">
+          <Loader2 className="spin" size={22} style={{ color: 'var(--terracotta)' }} />
+          <div style={{ marginTop: 8 }}>숙소 검색 중…<br /><i>Sto cercando i migliori alloggi.</i></div>
+        </div>
+      )}
+
+      {error && <div className="bv-error" style={{ marginTop: 12 }}><AlertCircle size={16} /><div>{error}</div></div>}
+
+      {!loading && !error && hotels.length === 0 && location && (
+        <div className="bv-empty" style={{ marginTop: 24 }}>
+          이 카테고리에 해당하는 결과가 없어요.<br />다른 카테고리를 선택해보세요.
+        </div>
+      )}
+
+      {!loading && hotels.length > 0 && (
+        <div className="bv-restaurant-list">
+          {hotels.map((h, i) => (
+            <HotelCard key={h.id || i} hotel={h} rank={i + 1} onClick={() => onSelect(h)} />
+          ))}
+        </div>
+      )}
+
+      {hotels.length > 0 && (
+        <div className="bv-route-disclaimer" style={{ marginTop: 14 }}>
+          ⓘ 정렬 기준: <strong>(평점 × 리뷰수 + 평균평점 × 200) ÷ (리뷰수 + 200)</strong>. 호텔은 리뷰 수가 많은 편이라 신뢰 임계값을 200으로 설정 (식당은 100). 가격·예약 가능 여부는 호텔 사이트에서 확인.
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HotelCard({ hotel, rank, onClick }) {
+  const h = hotel;
+  const photoName = h.photos?.[0];
+  const photoUrl = photoName ? `/api/places-photo?name=${encodeURIComponent(photoName)}&max=240` : null;
+  const priceSign = priceLevelToSign(h.priceLevel);
+  const distance = formatDistance(h.distance);
+  const walk = walkingMinutes(h.distance);
+
+  return (
+    <button className="bv-restaurant-card" onClick={onClick}>
+      <div className="rank">#{rank}</div>
+      {photoUrl ? (
+        <img src={photoUrl} alt="" className="thumb" loading="lazy" />
+      ) : (
+        <div className="thumb placeholder"><Hotel size={20} /></div>
+      )}
+      <div className="info">
+        <div className="head">
+          <div className="name bv-display">{h.name}</div>
+          {priceSign && <div className="price">{priceSign}</div>}
+        </div>
+        <div className="rating-row">
+          <Star size={11} fill="currentColor" style={{ color: 'var(--gold-deep)' }} />
+          <span className="rating">{h.rating?.toFixed(1)}</span>
+          <span className="count"><Users size={9} /> {h.userRatingCount?.toLocaleString('ko-KR')}</span>
+          <span className="weighted">신뢰도 {h.weightedScore?.toFixed(2)}</span>
+        </div>
+        <div className="meta-row">
+          <span><Footprints size={9} /> {distance} · 약 {walk}분</span>
+          {h.primaryTypeLabel && <span style={{ color: 'var(--ink-soft)' }}>· {h.primaryTypeLabel}</span>}
+        </div>
+      </div>
+      <ChevronRight size={14} style={{ color: 'var(--ink-soft)', flexShrink: 0 }} />
+    </button>
+  );
+}
+
+function HotelDetailView({ hotel, onBack, onDirections }) {
+  const h = hotel;
+  const [photoIdx, setPhotoIdx] = useState(0);
+  const photoNames = h.photos || [];
+  const heroPhoto = photoNames[photoIdx];
+  const heroUrl = heroPhoto ? `/api/places-photo?name=${encodeURIComponent(heroPhoto)}&max=720` : null;
+  const priceSign = priceLevelToSign(h.priceLevel);
+
+  return (
+    <div className="bv-subview">
+      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 뒤로</button>
+
+      {heroUrl ? (
+        <div className="bv-hero-photo">
+          <img src={heroUrl} alt={h.name} />
+          <div className="credit">📷 Google Maps</div>
+          {photoNames.length > 1 && (
+            <div className="bv-photo-dots">
+              {photoNames.map((_, i) => (
+                <button key={i} className={i === photoIdx ? 'on' : ''} onClick={() => setPhotoIdx(i)} aria-label={`사진 ${i + 1}`} />
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div style={{ fontSize: 48, marginTop: 8, textAlign: 'center' }}>🏨</div>
+      )}
+
+      <h2 className="bv-h1">{h.name}</h2>
+      <div className="bv-h1-sub">
+        {h.primaryTypeLabel && <>{h.primaryTypeLabel} · </>}
+        {priceSign && <>{priceSign} · </>}
+        신뢰도 점수 <strong>{h.weightedScore?.toFixed(2)}</strong>
+      </div>
+
+      <div className="bv-restaurant-stats">
+        <div className="stat">
+          <div className="val"><Star size={11} fill="currentColor" style={{ color: 'var(--gold-deep)' }} /> {h.rating?.toFixed(1)}</div>
+          <div className="lbl">평점</div>
+        </div>
+        <div className="stat">
+          <div className="val"><Users size={11} /> {h.userRatingCount?.toLocaleString('ko-KR')}</div>
+          <div className="lbl">리뷰 수</div>
+        </div>
+        <div className="stat">
+          <div className="val"><Footprints size={11} /> {formatDistance(h.distance)}</div>
+          <div className="lbl">거리 · 약 {walkingMinutes(h.distance)}분</div>
+        </div>
+      </div>
+
+      <div className="bv-action-row">
+        {h.websiteUri && (
+          <a className="bv-row-btn primary" href={h.websiteUri} target="_blank" rel="noopener noreferrer">
+            <ExternalLink size={14} /> 호텔 사이트
+          </a>
+        )}
+        <button className="bv-row-btn" onClick={onDirections}>
+          <Navigation size={14} /> 길찾기
+        </button>
+        {h.googleMapsUri && (
+          <a className="bv-row-btn" href={h.googleMapsUri} target="_blank" rel="noopener noreferrer">
+            <MapPin size={14} /> Google Maps
+          </a>
+        )}
+      </div>
+
+      {h.editorialSummary && (
+        <div className="bv-card">
+          <div className="label"><BookOpen size={11} /> 소개</div>
+          <p>{h.editorialSummary}</p>
+        </div>
+      )}
+
+      {h.address && (
+        <div className="bv-card">
+          <div className="label"><MapPin size={11} /> 주소</div>
+          <p>{h.address}</p>
+        </div>
+      )}
+
+      <div className="bv-card">
+        <div className="label"><Phone size={11} /> 연락처</div>
+        {h.phone ? (
+          <p><a href={`tel:${h.phone}`} className="bv-link">{h.phone}</a></p>
+        ) : <p style={{ color: 'var(--ink-soft)', fontStyle: 'italic' }}>전화번호 정보 없음</p>}
+      </div>
+
+      <div className="bv-route-disclaimer" style={{ marginTop: 12 }}>
+        ⓘ 데이터: <strong>Google Maps Places API</strong>. 가격대(€~€€€€)는 Google 추정치, 실제 1박 요금은 호텔 사이트·Booking.com·Agoda 등에서 별도 확인. 신뢰도 점수는 베이지안 가중평균 (M=200, 식당은 100).
       </div>
     </div>
   );
@@ -3943,6 +4473,129 @@ function BelViaggioStyles() {
         display: inline-flex; align-items: center; gap: 4px;
       }
       .bv-ai-meal .sug { font-size: 12px; color: var(--ink); margin-top: 3px; line-height: 1.5; }
+
+      /* v1.0: meal slot with specific restaurant assigned (clickable) */
+      .bv-ai-meal.with-restaurant {
+        display: flex; gap: 10px; align-items: flex-start;
+        background: rgba(184,85,58,0.07);
+        border: 1px solid rgba(184,85,58,0.2);
+        cursor: pointer; text-align: left;
+        font-family: 'DM Sans', sans-serif;
+        width: 100%;
+        padding: 10px;
+      }
+      .bv-ai-meal.with-restaurant:hover {
+        background: rgba(184,85,58,0.12);
+      }
+      .bv-ai-meal.with-restaurant .time {
+        flex-shrink: 0; font-family: 'Cormorant Garamond', serif;
+        font-size: 14px; color: var(--terracotta-deep); font-weight: 600;
+        min-width: 48px;
+      }
+      .bv-ai-meal.with-restaurant .content { flex: 1; min-width: 0; }
+      .bv-ai-meal.with-restaurant .meal-header {
+        display: flex; align-items: center; gap: 5px;
+        font-size: 10px; color: var(--terracotta-deep);
+        font-weight: 600; margin-bottom: 4px;
+      }
+      .bv-ai-meal.with-restaurant .meal-type { letter-spacing: 0.02em; }
+      .bv-ai-meal.with-restaurant .meal-rating {
+        margin-left: auto;
+        background: rgba(255,255,255,0.5);
+        padding: 1px 6px; border-radius: 999px;
+        font-size: 10px; color: var(--ink);
+        display: inline-flex; align-items: center; gap: 2px;
+        font-weight: 500;
+      }
+      .bv-ai-meal.with-restaurant .meal-rating .muted { color: var(--ink-soft); font-weight: 400; }
+      .bv-ai-meal.with-restaurant .restaurant-name {
+        font-size: 14px; font-weight: 500; color: var(--burgundy);
+        line-height: 1.2; margin-bottom: 2px;
+      }
+      .bv-ai-meal.with-restaurant .sug {
+        font-size: 11px; color: var(--ink-soft);
+        line-height: 1.4; font-style: italic;
+      }
+
+      /* v1.0: Day card date display */
+      .bv-day-head .day-date {
+        font-size: 9px; color: var(--gold-deep);
+        margin-top: 2px; font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+
+      /* v1.0: Day map toggle + Leaflet container */
+      .bv-day-map-toggle {
+        width: 100%; margin-top: 10px; padding: 8px 12px;
+        background: rgba(0,0,0,0.04);
+        border: 1px dashed rgba(0,0,0,0.15);
+        border-radius: 8px;
+        font-size: 11px; color: var(--ink);
+        display: flex; align-items: center; gap: 5px;
+        justify-content: center; cursor: pointer;
+        font-family: 'DM Sans', sans-serif;
+      }
+      .bv-day-map-toggle:hover { background: rgba(0,0,0,0.07); }
+      .bv-day-map-toggle span { flex: 1; text-align: center; }
+      .bv-leaflet-container {
+        height: 280px;
+        margin-top: 6px;
+        border-radius: 10px;
+        border: 1px solid rgba(0,0,0,0.1);
+        overflow: hidden;
+        z-index: 0;
+      }
+      .bv-map-pin .pin {
+        display: flex; align-items: center; justify-content: center;
+        width: 100%; height: 100%;
+        border-radius: 50%;
+        font-family: 'DM Sans', sans-serif;
+        font-size: 11px; font-weight: 700;
+        color: #fff8ec;
+        border: 2px solid #fff8ec;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      }
+      .bv-map-pin.landmark .pin { background: var(--burgundy); }
+      .bv-map-pin.restaurant .pin {
+        background: var(--terracotta);
+        font-size: 13px;
+      }
+      .leaflet-popup-content-wrapper {
+        border-radius: 8px;
+      }
+      .leaflet-popup-content {
+        margin: 8px 10px;
+        font-size: 12px;
+      }
+
+      /* v1.0: Date toggle in Favorites view */
+      .bv-date-toggle {
+        background: rgba(255, 252, 245, 0.6);
+        border: 1px dashed rgba(0,0,0,0.1);
+        border-radius: 8px; padding: 8px 10px;
+        margin: 10px 0;
+      }
+      .bv-date-toggle-row {
+        display: flex; align-items: center; gap: 6px;
+        font-size: 11px; cursor: pointer;
+        color: var(--ink); font-family: 'DM Sans', sans-serif;
+      }
+      .bv-date-toggle-row input[type="checkbox"] {
+        accent-color: var(--burgundy);
+      }
+      .bv-date-input {
+        margin-top: 8px; width: 100%;
+        padding: 6px 8px; font-size: 13px;
+        border: 1px solid rgba(0,0,0,0.15);
+        border-radius: 6px;
+        font-family: 'DM Sans', sans-serif;
+        background: white;
+      }
+      .bv-date-info {
+        margin-top: 4px; font-size: 10px;
+        color: var(--gold-deep); font-weight: 600;
+        letter-spacing: 0.02em;
+      }
       .bv-day-walk {
         margin-top: 10px; padding: 6px 10px;
         background: rgba(107,143,101,0.08);
@@ -4003,35 +4656,44 @@ function BelViaggioStyles() {
         font-size: 9px; font-weight: 600;
       }
 
-      /* v0.6: Wide restaurant CTA card on home */
-      .bv-action-wide {
-        margin: 12px 18px 4px; padding: 14px 16px;
-        background: linear-gradient(135deg, var(--burgundy) 0%, var(--terracotta) 100%);
-        color: #fff8ec; border: 0; border-radius: 14px;
-        display: flex; align-items: center; gap: 12px;
-        cursor: pointer; text-align: left;
-        box-shadow: 0 6px 16px -8px rgba(92,30,42,0.4);
-        position: relative;
+      /* v1.0: Restaurants + Hotels duo CTA */
+      .bv-action-duo {
+        margin: 12px 18px 4px; display: grid;
+        grid-template-columns: 1fr 1fr; gap: 8px;
       }
-      .bv-action-wide .ico {
-        width: 38px; height: 38px; border-radius: 10px;
-        background: rgba(255,248,236,0.15); color: #fff8ec;
+      .bv-action-half {
+        position: relative;
+        padding: 12px 12px;
+        border: 0; border-radius: 14px;
+        color: #fff8ec; text-align: left;
+        display: flex; align-items: center; gap: 10px;
+        cursor: pointer;
+        box-shadow: 0 6px 16px -8px rgba(92,30,42,0.35);
+      }
+      .bv-action-half.restaurants {
+        background: linear-gradient(135deg, var(--burgundy) 0%, var(--terracotta) 100%);
+      }
+      .bv-action-half.hotels {
+        background: linear-gradient(135deg, #2d4a5e 0%, var(--sage) 100%);
+      }
+      .bv-action-half .ico {
+        width: 34px; height: 34px; border-radius: 8px;
+        background: rgba(255,248,236,0.18); color: #fff8ec;
         display: grid; place-items: center; flex-shrink: 0;
       }
-      .bv-action-wide .text { flex: 1; min-width: 0; }
-      .bv-action-wide .ttl {
-        font-size: 18px; font-weight: 500; line-height: 1.1;
+      .bv-action-half .text { flex: 1; min-width: 0; }
+      .bv-action-half .ttl {
+        font-size: 16px; font-weight: 500; line-height: 1;
         color: #fff8ec;
       }
-      .bv-action-wide .sub {
-        font-size: 11px; margin-top: 3px; opacity: 0.85;
-        color: var(--gold);
+      .bv-action-half .sub {
+        font-size: 10px; margin-top: 3px; opacity: 0.85;
       }
-      .bv-action-wide .badge {
-        position: absolute; top: 10px; right: 30px;
+      .bv-action-half .badge {
+        position: absolute; top: 6px; right: 8px;
         background: var(--gold); color: var(--burgundy);
-        padding: 2px 6px; border-radius: 4px;
-        font-size: 9px; font-weight: 600; letter-spacing: 0.05em;
+        padding: 1px 5px; border-radius: 4px;
+        font-size: 8px; font-weight: 700; letter-spacing: 0.05em;
         display: inline-flex; align-items: center; gap: 2px;
         font-family: 'DM Sans', sans-serif;
       }
