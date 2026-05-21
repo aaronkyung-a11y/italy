@@ -1154,6 +1154,57 @@ JSON 형식만 출력 (코드블록 금지):
 명소 수가 많으면 여러 날로 나누세요. 명소 id는 반드시 원본 그대로 출력하세요.`,
       }], 3500);
       const parsed = safeParseJSON(text);
+
+      // v0.7: 각 날짜에 그 동선 중심 근처의 추천 맛집 5곳 붙이기 (Bayesian 정렬)
+      // Claude는 명소 동선만 짜고, 맛집은 Google Places + 우리의 Bayesian 가중 정렬로
+      // 신뢰도 높은 곳을 자동 선정.
+      if (parsed?.days?.length > 0) {
+        const dayPromises = parsed.days.map(async (day, dIdx) => {
+          // 그날 stops의 평균 좌표 (중심점) 계산
+          const stopCoords = (day.stops || [])
+            .map((s) => LANDMARKS.find((l) => l.id === s.id))
+            .filter(Boolean);
+          if (stopCoords.length === 0) return;
+
+          const centerLat = stopCoords.reduce((s, c) => s + c.lat, 0) / stopCoords.length;
+          const centerLng = stopCoords.reduce((s, c) => s + c.lng, 0) / stopCoords.length;
+
+          try {
+            // 1km 격자 캐시 적용 (restaurants view와 동일 키 체계)
+            const cacheKey = `places_${centerLat.toFixed(2)}_${centerLng.toFixed(2)}_all`;
+            const cached = await dbGet('restaurants', cacheKey);
+
+            let results = null;
+            if (cached && Date.now() - cached.fetchedAt < 24 * 60 * 60 * 1000) {
+              results = cached.results;
+            } else {
+              const r = await fetch('/api/places', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ lat: centerLat, lng: centerLng, cuisine: 'all', radius: 1500 }),
+              });
+              if (r.ok) {
+                const data = await r.json();
+                results = data.results || [];
+                // 캐시 저장 (restaurants view와 공유)
+                await dbPut('restaurants', {
+                  id: cacheKey, results, meta: data.meta, fetchedAt: Date.now(),
+                });
+              }
+            }
+
+            if (results) {
+              day.restaurantPicks = results.slice(0, 5);
+              day.restaurantCenter = { lat: centerLat, lng: centerLng };
+            }
+          } catch (e) {
+            // 맛집 조회 실패해도 동선 자체는 표시
+            console.warn(`[itinerary] day ${dIdx + 1} restaurants fetch failed:`, e);
+          }
+        });
+        await Promise.all(dayPromises);
+      }
+
       setItinerary(parsed);
     } catch (err) {
       setItineraryError(`동선 생성 실패: ${err.message}`);
@@ -1344,6 +1395,7 @@ JSON 형식만 출력 (코드블록 금지):
               const landmark = LANDMARKS.find((l) => l.id === id);
               if (landmark) openDetail(landmark);
             }}
+            onSelectRestaurant={selectRestaurant}
             landmarks={LANDMARKS}
           />
         )}
@@ -2337,7 +2389,7 @@ function RouteView({ route, onBack, onOpenLandmark, onOpenMaps }) {
 // ─────────────────────────────────────────────────────────
 // AI Itinerary View (v0.5)
 // ─────────────────────────────────────────────────────────
-function AiItineraryView({ itinerary, loading, error, onBack, onOpenLandmark, landmarks }) {
+function AiItineraryView({ itinerary, loading, error, onBack, onOpenLandmark, onSelectRestaurant, landmarks }) {
   const [expandedDay, setExpandedDay] = useState(0);
 
   const findLandmark = (id) => landmarks.find((l) => l.id === id);
@@ -2413,6 +2465,31 @@ function AiItineraryView({ itinerary, loading, error, onBack, onOpenLandmark, la
                       </div>
                     </div>
                   ))}
+
+                  {/* v0.7: 그날 동선 근처 베이지안 가중 정렬 맛집 5곳 */}
+                  {day.restaurantPicks?.length > 0 && (
+                    <div className="bv-day-restaurants">
+                      <div className="bv-day-section-title">
+                        <UtensilsCrossed size={11} /> 이 동선의 추천 맛집
+                        <span className="hint">평점 × 리뷰수 가중 정렬</span>
+                      </div>
+                      {day.restaurantPicks.map((r, ri) => (
+                        <button key={r.id || ri} className="bv-day-restaurant" onClick={() => onSelectRestaurant?.(r)}>
+                          <span className="rank">#{ri + 1}</span>
+                          <div className="info">
+                            <div className="name bv-display">{r.name}</div>
+                            <div className="meta">
+                              <Star size={9} fill="currentColor" style={{ color: 'var(--gold-deep)' }} />
+                              <span>{r.rating?.toFixed(1)}</span>
+                              <span className="muted">· {r.userRatingCount?.toLocaleString('ko-KR')}리뷰</span>
+                              <span className="weighted">{r.weightedScore?.toFixed(2)}</span>
+                            </div>
+                          </div>
+                          <ChevronRight size={11} style={{ color: 'var(--ink-soft)', flexShrink: 0 }} />
+                        </button>
+                      ))}
+                    </div>
+                  )}
 
                   {day.walkingNote && (
                     <div className="bv-day-walk">
@@ -3294,6 +3371,58 @@ function BelViaggioStyles() {
         border-radius: 8px; font-size: 11px; color: var(--ink-soft);
         display: flex; align-items: center; gap: 6px;
         font-style: italic;
+      }
+
+      /* v0.7: Per-day restaurant picks (Bayesian-ranked) */
+      .bv-day-restaurants {
+        margin-top: 12px; padding: 10px;
+        background: rgba(184,85,58,0.05);
+        border: 1px dashed rgba(184,85,58,0.25);
+        border-radius: 10px;
+      }
+      .bv-day-section-title {
+        font-size: 11px; color: var(--terracotta-deep);
+        font-weight: 600; letter-spacing: 0.02em;
+        display: flex; align-items: center; gap: 5px;
+        margin-bottom: 8px;
+        font-family: 'DM Sans', sans-serif;
+      }
+      .bv-day-section-title .hint {
+        margin-left: auto; font-size: 9px;
+        color: var(--ink-soft); font-weight: 400;
+        font-style: italic;
+      }
+      .bv-day-restaurant {
+        width: 100%; display: flex; align-items: center; gap: 8px;
+        padding: 8px; margin-bottom: 4px;
+        background: rgba(255, 252, 245, 0.7);
+        border: 1px solid rgba(0,0,0,0.06);
+        border-radius: 8px; cursor: pointer; text-align: left;
+        font-family: 'DM Sans', sans-serif;
+      }
+      .bv-day-restaurant:last-child { margin-bottom: 0; }
+      .bv-day-restaurant:hover { background: rgba(255, 252, 245, 0.95); }
+      .bv-day-restaurant .rank {
+        flex-shrink: 0; padding: 2px 6px; border-radius: 4px;
+        background: var(--burgundy); color: #fff8ec;
+        font-size: 9px; font-weight: 600;
+      }
+      .bv-day-restaurant .info { flex: 1; min-width: 0; }
+      .bv-day-restaurant .name {
+        font-size: 13px; font-weight: 500; color: var(--burgundy);
+        line-height: 1.15; white-space: nowrap;
+        overflow: hidden; text-overflow: ellipsis;
+      }
+      .bv-day-restaurant .meta {
+        display: flex; align-items: center; gap: 4px;
+        font-size: 10px; color: var(--ink); margin-top: 2px;
+      }
+      .bv-day-restaurant .meta .muted { color: var(--ink-soft); }
+      .bv-day-restaurant .meta .weighted {
+        margin-left: auto;
+        background: rgba(92,30,42,0.1); color: var(--burgundy);
+        padding: 1px 5px; border-radius: 999px;
+        font-size: 9px; font-weight: 600;
       }
 
       /* v0.6: Wide restaurant CTA card on home */
