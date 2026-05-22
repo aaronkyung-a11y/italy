@@ -595,6 +595,14 @@ export default function BelViaggio() {
   const [translating, setTranslating] = useState(false);
   const [translateError, setTranslateError] = useState(null);
 
+  // v1.2: Translate modes (text | conversation | photo)
+  const [translateMode, setTranslateMode] = useState('text');
+  const [conversation, setConversation] = useState([]); // [{ id, lang: 'ko'|'it', original, translated, pronunciation }]
+  const [convTranslating, setConvTranslating] = useState(false);
+  const [photoTranslation, setPhotoTranslation] = useState(null); // { extracted, translated, imageUrl, category, context }
+  const [photoTranslateLoading, setPhotoTranslateLoading] = useState(false);
+  const [photoTranslateError, setPhotoTranslateError] = useState(null);
+
   // Detail
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -1083,6 +1091,101 @@ export default function BelViaggio() {
     } finally {
       setTranslating(false);
     }
+  }
+
+  // ─── v1.2: 대화 모드 번역 ──────────────────────────────────
+  // 한쪽 언어로 음성 인식 → 반대 언어로 번역 → 대화 로그에 추가.
+  // 양쪽이 자기 언어로 보면서 상대 언어 번역도 같이 보임.
+  async function addConversationMessage(text, fromLang) {
+    if (!text.trim()) return;
+    setConvTranslating(true);
+    try {
+      const toLang = fromLang === 'ko' ? 'it' : 'ko';
+      const dir = fromLang === 'ko' ? '한국어→이탈리아어' : '이탈리아어→한국어';
+      const resp = await callClaude([{
+        role: 'user',
+        content: `이탈리아 여행 중 한국인-현지인 대화 번역입니다. ${dir} 번역을 해주세요. 격식 없는 자연스러운 구어체로. JSON만 출력:
+
+{
+  "translated": "번역문",
+  "pronunciation": "${toLang === 'it' ? '한글 발음 (예: \\\"꽌또 꼬스따\\\")' : '빈 문자열'}"
+}
+
+원문: ${text}`,
+      }], 400);
+      const parsed = safeParseJSON(resp) || {};
+      setConversation((prev) => [...prev, {
+        id: Date.now() + Math.random(),
+        lang: fromLang,
+        original: text,
+        translated: parsed.translated || '',
+        pronunciation: parsed.pronunciation || '',
+      }]);
+    } catch (err) {
+      setConversation((prev) => [...prev, {
+        id: Date.now() + Math.random(),
+        lang: fromLang,
+        original: text,
+        translated: '',
+        error: err.message,
+      }]);
+    } finally {
+      setConvTranslating(false);
+    }
+  }
+
+  function clearConversation() {
+    setConversation([]);
+  }
+
+  // ─── v1.2: 사진 번역 (OCR + 번역, Claude Vision) ────────────
+  async function handlePhotoTranslate(file) {
+    if (!file) return;
+    setPhotoTranslateLoading(true);
+    setPhotoTranslateError(null);
+    setPhotoTranslation(null);
+    try {
+      const compressed = await compressImage(file, 1280);
+      const text = await callClaude([{
+        role: 'user',
+        content: [
+          {
+            type: 'image',
+            source: { type: 'base64', media_type: compressed.mimeType, data: compressed.base64 },
+          },
+          {
+            type: 'text',
+            text: `이 사진에 있는 모든 이탈리아어 텍스트를 추출하고 한국어로 번역해주세요. 메뉴판, 표지판, 안내문, 가격표 등 어떤 종류의 텍스트든 OK.
+
+JSON만 출력:
+{
+  "extracted": "추출된 원문 (이탈리아어, 줄바꿈 보존)",
+  "translated": "한국어 번역 (줄바꿈 보존, 자연스럽게)",
+  "category": "menu | sign | notice | label | receipt | other 중 하나",
+  "context": "이 사진의 맥락 설명 (1-2 문장, 한국어). 가격이나 주의사항이 있으면 강조."
+}
+
+이탈리아어 외 다른 언어 (영어/독어 등)도 보이면 그것도 포함해서 한국어로.`,
+          },
+        ],
+      }], 1500);
+
+      const parsed = safeParseJSON(text);
+      if (parsed) {
+        setPhotoTranslation({ ...parsed, imageUrl: compressed.dataUrl });
+      } else {
+        throw new Error('AI 응답 파싱 실패');
+      }
+    } catch (err) {
+      setPhotoTranslateError(`사진 번역 오류: ${err.message}`);
+    } finally {
+      setPhotoTranslateLoading(false);
+    }
+  }
+
+  function clearPhotoTranslation() {
+    setPhotoTranslation(null);
+    setPhotoTranslateError(null);
   }
 
   async function openDetail(landmark, forceRefresh = false) {
@@ -1735,6 +1838,16 @@ JSON 형식만 출력 (코드블록 금지):
             translation={translation} translating={translating} error={translateError}
             onTranslate={handleTranslate} onBack={goBack}
             speak={speak} speakingId={speakingId}
+            mode={translateMode} setMode={setTranslateMode}
+            conversation={conversation}
+            convTranslating={convTranslating}
+            onConvSay={addConversationMessage}
+            onConvClear={clearConversation}
+            photoResult={photoTranslation}
+            photoLoading={photoTranslateLoading}
+            photoError={photoTranslateError}
+            onPhotoPick={handlePhotoTranslate}
+            onPhotoClear={clearPhotoTranslation}
           />
         )}
 
@@ -2477,7 +2590,59 @@ function ReceiptView({ imageData, analyzing, analysis, error, fx, onBack, speak,
 // ─────────────────────────────────────────────────────────
 // Translate View (with voice input)
 // ─────────────────────────────────────────────────────────
-function TranslateView({ input, setInput, direction, setDirection, translation, translating, error, onTranslate, onBack, speak, speakingId }) {
+function TranslateView({
+  input, setInput, direction, setDirection, translation, translating, error, onTranslate, onBack, speak, speakingId,
+  mode, setMode,
+  conversation, convTranslating, onConvSay, onConvClear,
+  photoResult, photoLoading, photoError, onPhotoPick, onPhotoClear,
+}) {
+  return (
+    <div className="bv-subview">
+      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 뒤로</button>
+      <h2 className="bv-h1">Traduzione</h2>
+      <div className="bv-h1-sub">번역 · 텍스트 / 대화 / 사진</div>
+
+      {/* v1.2: 모드 탭 */}
+      <div className="bv-translate-modes">
+        <button className={mode === 'text' ? 'on' : ''} onClick={() => setMode('text')}>
+          <Languages size={12} /> 텍스트
+        </button>
+        <button className={mode === 'conversation' ? 'on' : ''} onClick={() => setMode('conversation')}>
+          <Mic size={12} /> 대화
+        </button>
+        <button className={mode === 'photo' ? 'on' : ''} onClick={() => setMode('photo')}>
+          <Camera size={12} /> 사진
+        </button>
+      </div>
+
+      {mode === 'text' && (
+        <TranslateTextMode
+          input={input} setInput={setInput}
+          direction={direction} setDirection={setDirection}
+          translation={translation} translating={translating} error={error}
+          onTranslate={onTranslate}
+          speak={speak} speakingId={speakingId}
+        />
+      )}
+      {mode === 'conversation' && (
+        <TranslateConversationMode
+          conversation={conversation} translating={convTranslating}
+          onSay={onConvSay} onClear={onConvClear}
+          speak={speak} speakingId={speakingId}
+        />
+      )}
+      {mode === 'photo' && (
+        <TranslatePhotoMode
+          result={photoResult} loading={photoLoading} error={photoError}
+          onPick={onPhotoPick} onClear={onPhotoClear}
+        />
+      )}
+    </div>
+  );
+}
+
+// v1.2: 기존 텍스트 번역 (separated)
+function TranslateTextMode({ input, setInput, direction, setDirection, translation, translating, error, onTranslate, speak, speakingId }) {
   const placeholder = direction === 'ko-it'
     ? '한국어를 입력하세요 — 예: "이거 얼마예요?"'
     : 'Inserisci italiano — es: "Quanto costa?"';
@@ -2485,11 +2650,7 @@ function TranslateView({ input, setInput, direction, setDirection, translation, 
   const [voiceError, setVoiceError] = useState(null);
 
   return (
-    <div className="bv-subview">
-      <button className="bv-back" onClick={onBack}><ArrowLeft size={14} /> 뒤로</button>
-      <h2 className="bv-h1">Traduzione</h2>
-      <div className="bv-h1-sub">번역하기</div>
-
+    <>
       <div className="bv-dir-toggle">
         <button className={direction === 'ko-it' ? 'active' : ''} onClick={() => setDirection('ko-it')}>한국어 → IT</button>
         <button className={direction === 'it-ko' ? 'active' : ''} onClick={() => setDirection('it-ko')}>IT → 한국어</button>
@@ -2498,7 +2659,7 @@ function TranslateView({ input, setInput, direction, setDirection, translation, 
       <VoiceInputButton lang={voiceLang} onResult={setInput} onError={setVoiceError} />
       {voiceError && (
         <div className="bv-voice-err">
-          <AlertCircle size={11} /> 음성 입력 실패: {voiceError === 'not-allowed' ? '마이크 권한 없음 (브라우저 설정에서 허용)' : voiceError}
+          <AlertCircle size={11} /> 음성 입력 실패: {voiceError === 'not-allowed' ? '마이크 권한 없음' : voiceError}
         </div>
       )}
 
@@ -2523,8 +2684,227 @@ function TranslateView({ input, setInput, direction, setDirection, translation, 
           </button>
         </div>
       )}
-    </div>
+    </>
   );
+}
+
+// v1.2: 대화 모드 — 양방향 음성 + 채팅 UI
+function TranslateConversationMode({ conversation, translating, onSay, onClear, speak, speakingId }) {
+  const [listening, setListening] = useState(null);  // null | 'ko' | 'it'
+  const [voiceError, setVoiceError] = useState(null);
+  const recognitionRef = useRef(null);
+  const scrollRef = useRef(null);
+
+  // Auto-scroll to bottom on new message
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [conversation, translating]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch { /* ignore */ }
+      }
+    };
+  }, []);
+
+  function startListening(lang) {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      setVoiceError('이 브라우저는 음성 인식 미지원 (Chrome on Android·Desktop 필요)');
+      return;
+    }
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch { /* ignore */ }
+    }
+    setVoiceError(null);
+
+    const recognition = new SR();
+    recognition.lang = lang === 'ko' ? 'ko-KR' : 'it-IT';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => setListening(lang);
+    recognition.onend = () => setListening(null);
+    recognition.onerror = (e) => {
+      setListening(null);
+      if (e.error !== 'no-speech' && e.error !== 'aborted') {
+        setVoiceError(e.error === 'not-allowed' ? '마이크 권한 없음' : `음성 인식 오류: ${e.error}`);
+      }
+    };
+    recognition.onresult = (event) => {
+      const text = event.results[0]?.[0]?.transcript || '';
+      if (text.trim()) onSay(text, lang);
+    };
+    recognitionRef.current = recognition;
+    recognition.start();
+  }
+
+  function stopListening() {
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch { /* ignore */ }
+    }
+    setListening(null);
+  }
+
+  return (
+    <>
+      <div className="bv-conv-hint">
+        <Info size={11} /> 자기 언어 버튼을 누르고 말하세요. 양쪽이 자기 언어로 보면서 상대 언어 번역도 같이 보입니다.
+      </div>
+
+      <div className="bv-conv-log" ref={scrollRef}>
+        {conversation.length === 0 ? (
+          <div className="bv-conv-empty">
+            🇰🇷 또는 🇮🇹 버튼을 누르고 말하면 자동 번역됩니다.<br />
+            예: 한국어로 "이거 얼마예요?" → Italian 측이 이탈리아어로 보고 답함.
+          </div>
+        ) : (
+          conversation.map((msg) => (
+            <div key={msg.id} className={`bv-conv-msg ${msg.lang === 'ko' ? 'from-ko' : 'from-it'}`}>
+              <div className="lang-tag">{msg.lang === 'ko' ? '🇰🇷 한국어' : '🇮🇹 Italiano'}</div>
+              <div className="original">{msg.original}</div>
+              <div className="divider" />
+              {msg.error ? (
+                <div className="trans-error"><AlertCircle size={11} /> {msg.error}</div>
+              ) : msg.translated ? (
+                <>
+                  <div className="translated">
+                    <span className="trans-lang">{msg.lang === 'ko' ? '🇮🇹 →' : '🇰🇷 →'}</span> {msg.translated}
+                  </div>
+                  {msg.pronunciation && (
+                    <div className="pron">[{msg.pronunciation}]</div>
+                  )}
+                  <button
+                    className={`bv-conv-speak ${speakingId === `conv-${msg.id}` ? 'on' : ''}`}
+                    onClick={() => speak(msg.translated, msg.lang === 'ko' ? 'it-IT' : 'ko-KR', `conv-${msg.id}`)}
+                    aria-label="번역문 듣기"
+                  >
+                    {speakingId === `conv-${msg.id}` ? <VolumeX size={11} /> : <Volume2 size={11} />}
+                  </button>
+                </>
+              ) : null}
+            </div>
+          ))
+        )}
+        {translating && (
+          <div className="bv-conv-msg loading">
+            <Loader2 size={14} className="spin" /> 번역 중...
+          </div>
+        )}
+      </div>
+
+      {voiceError && (
+        <div className="bv-voice-err"><AlertCircle size={11} /> {voiceError}</div>
+      )}
+
+      <div className="bv-conv-controls">
+        <button
+          className={`bv-conv-btn ko ${listening === 'ko' ? 'listening' : ''}`}
+          onClick={() => listening === 'ko' ? stopListening() : startListening('ko')}
+          disabled={translating || (listening && listening !== 'ko')}
+        >
+          {listening === 'ko' ? <MicOff size={18} /> : <Mic size={18} />}
+          <span>🇰🇷 한국어</span>
+          {listening === 'ko' && <span className="dot pulse" />}
+        </button>
+        <button
+          className={`bv-conv-btn it ${listening === 'it' ? 'listening' : ''}`}
+          onClick={() => listening === 'it' ? stopListening() : startListening('it')}
+          disabled={translating || (listening && listening !== 'it')}
+        >
+          {listening === 'it' ? <MicOff size={18} /> : <Mic size={18} />}
+          <span>🇮🇹 Italiano</span>
+          {listening === 'it' && <span className="dot pulse" />}
+        </button>
+      </div>
+
+      {conversation.length > 0 && (
+        <button className="bv-conv-clear" onClick={onClear}>
+          <Trash2 size={11} /> 대화 비우기
+        </button>
+      )}
+    </>
+  );
+}
+
+// v1.2: 사진 번역 모드 — 이미지 업로드 → Claude Vision OCR + 번역
+function TranslatePhotoMode({ result, loading, error, onPick, onClear }) {
+  const inputRef = useRef(null);
+  const cameraRef = useRef(null);
+
+  return (
+    <>
+      <div className="bv-photo-hint">
+        <Info size={11} /> 메뉴, 표지판, 안내문, 가격표 등 어떤 이탈리아어 텍스트든 사진 찍으면 한국어로 번역.
+      </div>
+
+      {!result && !loading && !error && (
+        <div className="bv-photo-pick">
+          <button className="bv-primary-btn" onClick={() => cameraRef.current?.click()}>
+            <Camera size={16} /> 카메라로 찍기
+          </button>
+          <button className="bv-secondary-btn" onClick={() => inputRef.current?.click()}>
+            <ImageIcon size={16} /> 갤러리에서 선택
+          </button>
+        </div>
+      )}
+
+      <input ref={cameraRef} type="file" accept="image/*" capture="environment" style={{ display: 'none' }}
+             onChange={(e) => { const f = e.target.files?.[0]; if (f) { onPick(f); e.target.value = ''; } }} />
+      <input ref={inputRef} type="file" accept="image/*" style={{ display: 'none' }}
+             onChange={(e) => { const f = e.target.files?.[0]; if (f) { onPick(f); e.target.value = ''; } }} />
+
+      {loading && (
+        <div className="bv-loading">
+          <Loader2 className="spin" size={22} style={{ color: 'var(--terracotta)' }} />
+          <div style={{ marginTop: 8 }}>텍스트 추출 + 번역 중…<br /><i>Sto leggendo l'immagine.</i></div>
+        </div>
+      )}
+
+      {error && <div className="bv-error"><AlertCircle size={16} /><div>{error}</div></div>}
+
+      {result && !loading && (
+        <>
+          {result.imageUrl && (
+            <div className="bv-photo-preview">
+              <img src={result.imageUrl} alt="번역할 사진" />
+              {result.category && <div className="cat-badge">{categoryLabel(result.category)}</div>}
+            </div>
+          )}
+
+          <div className="bv-card" style={{ marginTop: 12 }}>
+            <div className="label"><BookOpen size={11} /> 원문 (이탈리아어)</div>
+            <pre className="bv-photo-extracted">{result.extracted}</pre>
+          </div>
+
+          <div className="bv-card" style={{ marginTop: 10, background: 'rgba(184,85,58,0.06)', borderColor: 'rgba(184,85,58,0.25)' }}>
+            <div className="label" style={{ color: 'var(--terracotta-deep)' }}><Languages size={11} /> 한국어 번역</div>
+            <pre className="bv-photo-translated">{result.translated}</pre>
+          </div>
+
+          {result.context && (
+            <div className="bv-card" style={{ marginTop: 10 }}>
+              <div className="label"><Info size={11} /> 맥락</div>
+              <p style={{ fontSize: 13 }}>{result.context}</p>
+            </div>
+          )}
+
+          <button className="bv-secondary-btn" onClick={onClear} style={{ marginTop: 14 }}>
+            <RefreshCw size={14} /> 다른 사진 번역
+          </button>
+        </>
+      )}
+    </>
+  );
+}
+
+function categoryLabel(cat) {
+  return { menu: '🍽️ 메뉴', sign: '🪧 표지판', notice: '📋 안내문', label: '🏷️ 라벨', receipt: '🧾 영수증', other: '📄 기타' }[cat] || '📄';
 }
 
 // ─────────────────────────────────────────────────────────
@@ -4173,6 +4553,208 @@ function BelViaggioStyles() {
 
       .bv-voice-unsupported { margin-top: 10px; font-size: 10px; color: var(--ink-soft); display: flex; align-items: center; gap: 4px; font-style: italic; }
       .bv-voice-err { margin-top: 6px; font-size: 11px; color: var(--terracotta-deep); display: flex; align-items: center; gap: 4px; }
+
+      /* v1.2: Translation mode tabs */
+      .bv-translate-modes {
+        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;
+        margin: 14px 0 4px;
+        background: rgba(0,0,0,0.04);
+        padding: 4px; border-radius: 10px;
+      }
+      .bv-translate-modes button {
+        padding: 8px 6px; background: none; border: 0;
+        font-size: 12px; cursor: pointer; color: var(--ink-soft);
+        display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+        border-radius: 8px; font-family: 'DM Sans', sans-serif;
+        transition: all 0.15s;
+      }
+      .bv-translate-modes button.on {
+        background: var(--burgundy); color: #fff8ec;
+        box-shadow: 0 2px 6px -2px rgba(92,30,42,0.4);
+      }
+
+      /* v1.2: Conversation mode */
+      .bv-conv-hint, .bv-photo-hint {
+        margin-top: 12px; padding: 8px 10px;
+        background: rgba(201,169,97,0.08);
+        border: 1px solid rgba(201,169,97,0.25);
+        border-radius: 8px;
+        font-size: 11px; color: var(--ink-soft);
+        display: flex; align-items: flex-start; gap: 6px;
+        font-family: 'DM Sans', sans-serif; line-height: 1.4;
+      }
+      .bv-conv-log {
+        margin-top: 12px;
+        min-height: 200px; max-height: 50vh;
+        overflow-y: auto;
+        padding: 8px;
+        background: rgba(255,252,245,0.5);
+        border-radius: 10px;
+        border: 1px solid rgba(0,0,0,0.06);
+        display: flex; flex-direction: column; gap: 10px;
+      }
+      .bv-conv-empty {
+        text-align: center; color: var(--ink-soft);
+        font-size: 12px; padding: 30px 16px;
+        font-family: 'DM Sans', sans-serif; line-height: 1.6;
+      }
+      .bv-conv-msg {
+        position: relative;
+        padding: 10px 12px;
+        border-radius: 10px;
+        max-width: 90%;
+        font-family: 'DM Sans', sans-serif;
+      }
+      .bv-conv-msg.from-ko {
+        align-self: flex-start;
+        background: rgba(92,30,42,0.08);
+        border: 1px solid rgba(92,30,42,0.18);
+      }
+      .bv-conv-msg.from-it {
+        align-self: flex-end;
+        background: rgba(184,85,58,0.08);
+        border: 1px solid rgba(184,85,58,0.18);
+      }
+      .bv-conv-msg.loading {
+        align-self: center;
+        background: rgba(0,0,0,0.04);
+        color: var(--ink-soft); font-size: 12px;
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 6px 12px;
+      }
+      .bv-conv-msg .lang-tag {
+        font-size: 9px; color: var(--ink-soft);
+        font-weight: 600; letter-spacing: 0.05em;
+        margin-bottom: 4px; text-transform: uppercase;
+      }
+      .bv-conv-msg .original {
+        font-size: 14px; color: var(--ink);
+        font-weight: 500; line-height: 1.35;
+      }
+      .bv-conv-msg .divider {
+        height: 1px; background: rgba(0,0,0,0.08);
+        margin: 6px 0;
+      }
+      .bv-conv-msg .translated {
+        font-size: 14px; color: var(--burgundy);
+        font-family: 'Cormorant Garamond', serif;
+        font-style: italic; line-height: 1.35;
+      }
+      .bv-conv-msg.from-it .translated { font-style: normal; }
+      .bv-conv-msg .trans-lang {
+        font-size: 10px; color: var(--ink-soft);
+        font-family: 'DM Sans', sans-serif;
+        font-style: normal; font-weight: 600;
+        margin-right: 4px;
+      }
+      .bv-conv-msg .pron {
+        font-size: 10px; color: var(--ink-soft);
+        margin-top: 2px; letter-spacing: 0.03em;
+      }
+      .bv-conv-msg .trans-error {
+        color: var(--terracotta-deep); font-size: 11px;
+        display: inline-flex; align-items: center; gap: 4px;
+      }
+      .bv-conv-speak {
+        position: absolute; bottom: 6px; right: 6px;
+        background: rgba(255,255,255,0.7); border: 0;
+        width: 24px; height: 24px; border-radius: 50%;
+        display: grid; place-items: center;
+        cursor: pointer; color: var(--burgundy);
+      }
+      .bv-conv-speak:hover { background: white; }
+      .bv-conv-speak.on { background: var(--burgundy); color: #fff8ec; }
+
+      .bv-conv-controls {
+        display: grid; grid-template-columns: 1fr 1fr;
+        gap: 8px; margin-top: 12px;
+      }
+      .bv-conv-btn {
+        padding: 14px 12px;
+        border: 0; border-radius: 12px;
+        font-size: 14px; font-weight: 500;
+        font-family: 'DM Sans', sans-serif;
+        color: #fff8ec; cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        position: relative;
+        box-shadow: 0 4px 12px -4px rgba(0,0,0,0.3);
+      }
+      .bv-conv-btn.ko {
+        background: linear-gradient(135deg, var(--burgundy) 0%, #7c2e3a 100%);
+      }
+      .bv-conv-btn.it {
+        background: linear-gradient(135deg, var(--terracotta) 0%, #d96a4e 100%);
+      }
+      .bv-conv-btn.listening {
+        animation: convPulse 1.2s ease-in-out infinite;
+      }
+      .bv-conv-btn:disabled { opacity: 0.4; cursor: default; }
+      .bv-conv-btn .dot {
+        position: absolute; top: 8px; right: 8px;
+        width: 8px; height: 8px; border-radius: 50%;
+        background: #fff;
+      }
+      .bv-conv-btn .dot.pulse { animation: convPulse 0.8s ease-in-out infinite; }
+      @keyframes convPulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.6; transform: scale(0.95); }
+      }
+      .bv-conv-clear {
+        margin-top: 8px; width: 100%;
+        padding: 6px; background: rgba(0,0,0,0.04);
+        border: 1px dashed rgba(0,0,0,0.15);
+        border-radius: 8px; cursor: pointer;
+        font-size: 11px; color: var(--ink-soft);
+        font-family: 'DM Sans', sans-serif;
+        display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+      }
+
+      /* v1.2: Photo translation mode */
+      .bv-photo-pick {
+        margin-top: 14px;
+        display: flex; flex-direction: column; gap: 8px;
+      }
+      .bv-photo-preview {
+        position: relative; margin-top: 14px;
+        border-radius: 12px; overflow: hidden;
+        max-height: 320px;
+      }
+      .bv-photo-preview img {
+        width: 100%; height: auto; display: block;
+        max-height: 320px; object-fit: contain;
+        background: rgba(0,0,0,0.04);
+      }
+      .bv-photo-preview .cat-badge {
+        position: absolute; top: 10px; left: 10px;
+        background: rgba(92,30,42,0.85); color: #fff8ec;
+        padding: 4px 10px; border-radius: 999px;
+        font-size: 11px; font-weight: 500;
+        font-family: 'DM Sans', sans-serif;
+        backdrop-filter: blur(4px);
+      }
+      .bv-photo-extracted, .bv-photo-translated {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 13px; line-height: 1.55;
+        margin: 0; white-space: pre-wrap;
+        word-break: break-word;
+        color: var(--ink);
+      }
+      .bv-photo-translated {
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 15px;
+        color: var(--burgundy);
+        line-height: 1.5;
+      }
+      .bv-secondary-btn {
+        padding: 11px 16px; background: rgba(0,0,0,0.04);
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 10px; cursor: pointer;
+        font-size: 13px; color: var(--ink);
+        display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+        font-family: 'DM Sans', sans-serif;
+        width: 100%;
+      }
+      .bv-secondary-btn:hover { background: rgba(0,0,0,0.07); }
 
       .bv-textarea { width: 100%; min-height: 110px; padding: 12px 14px; border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; background: #fff8ec; font-family: 'DM Sans', sans-serif; font-size: 14px; line-height: 1.5; color: var(--ink); resize: vertical; margin-top: 12px; box-sizing: border-box; }
 
