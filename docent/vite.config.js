@@ -11,6 +11,7 @@ export default defineConfig({
       manifest: {
         name: '도슨트 · Docent',
         short_name: '도슨트',
+        lang: 'ko',
         description: '로마 핵심 명소 5곳의 한국어 오디오 가이드',
         start_url: '/',
         display: 'standalone',
