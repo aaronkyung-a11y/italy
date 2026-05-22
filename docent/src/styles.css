@@ -727,6 +727,120 @@ img {
    Scan view — Camera artwork recognition
    ═══════════════════════════════════════════════════════════ */
 
+/* ═══════════════════════════════════════════════════════════
+   PWA Install Card
+   ═══════════════════════════════════════════════════════════ */
+
+.dc-install-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(107, 143, 101, 0.14) 0%, rgba(201, 169, 97, 0.06) 100%);
+  border: 1px solid rgba(107, 143, 101, 0.3);
+  border-radius: 14px;
+  margin-bottom: 12px;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dc-install-dismiss {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  z-index: 2;
+}
+
+.dc-install-dismiss:hover {
+  color: var(--text-soft);
+  background: var(--surface-2);
+}
+
+.dc-install-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--sage);
+  color: var(--bg);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.dc-install-body {
+  flex: 1;
+  min-width: 0;
+  padding-right: 20px;
+}
+
+.dc-install-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.dc-install-sub {
+  font-size: 11px;
+  color: var(--text-soft);
+  font-family: 'DM Sans', sans-serif;
+  line-height: 1.4;
+}
+
+.dc-install-btn {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  background: var(--sage);
+  border: none;
+  border-radius: 999px;
+  color: var(--bg);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dc-install-btn:hover {
+  background: #7ea375;
+  transform: translateY(-1px);
+}
+
+.dc-ios-guide {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.dc-ios-guide strong {
+  color: var(--gold);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PWA Install Card END
+   ═══════════════════════════════════════════════════════════ */
+
 .dc-scan-cta {
   width: 100%;
   display: flex;

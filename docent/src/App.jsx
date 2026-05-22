@@ -3,6 +3,7 @@ import {
   ChevronRight, ArrowLeft, Play, Pause, Volume2, VolumeX,
   Clock, Info, MapPin, Star, Headphones, BookOpen, Eye, Sparkles, Quote,
   Camera, Image as ImageIcon, Loader2, AlertCircle, RefreshCw, WifiOff, Search,
+  Download, Smartphone, X,
 } from 'lucide-react';
 import { ATTRACTIONS, findAttraction, findPoint, TOTAL_POINTS } from './data/attractions.js';
 
@@ -28,6 +29,62 @@ function compressImage(file, maxDim = 1280) {
     img.onerror = reject;
     img.src = URL.createObjectURL(file);
   });
+}
+
+// ─────────────────────────────────────────────────────────
+// PWA install prompt — beforeinstallprompt event
+// 사이트 내 "앱 설치" 버튼을 위한 hook
+// ─────────────────────────────────────────────────────────
+function useInstallPrompt() {
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+
+  useEffect(() => {
+    // 1. 이미 PWA로 실행 중이면 설치된 상태
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true;
+    if (isStandalone) setIsInstalled(true);
+
+    // 2. iOS 감지 (iOS Safari는 beforeinstallprompt 미지원)
+    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    setIsIOS(iOS);
+
+    // 3. install prompt 가로채기
+    const onBeforeInstall = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', onBeforeInstall);
+
+    // 4. 설치 완료 감지
+    const onInstalled = () => {
+      setIsInstalled(true);
+      setDeferredPrompt(null);
+    };
+    window.addEventListener('appinstalled', onInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onBeforeInstall);
+      window.removeEventListener('appinstalled', onInstalled);
+    };
+  }, []);
+
+  async function install() {
+    if (!deferredPrompt) return false;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    setDeferredPrompt(null);
+    return outcome === 'accepted';
+  }
+
+  return {
+    canInstall: !!deferredPrompt,
+    isInstalled,
+    isIOS,
+    install,
+  };
 }
 
 // ─────────────────────────────────────────────────────────
@@ -159,6 +216,11 @@ export default function App() {
 // ─────────────────────────────────────────────────────────
 function HomeView({ push }) {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const installer = useInstallPrompt();
+  const [iosGuideOpen, setIosGuideOpen] = useState(false);
+  const [installDismissed, setInstallDismissed] = useState(
+    () => sessionStorage.getItem('docent-install-dismissed') === '1'
+  );
 
   useEffect(() => {
     const onOnline = () => setIsOffline(false);
@@ -170,6 +232,25 @@ function HomeView({ push }) {
       window.removeEventListener('offline', onOffline);
     };
   }, []);
+
+  const showInstallCard =
+    !installer.isInstalled &&
+    !installDismissed &&
+    (installer.canInstall || installer.isIOS);
+
+  function dismissInstall() {
+    sessionStorage.setItem('docent-install-dismissed', '1');
+    setInstallDismissed(true);
+  }
+
+  async function handleInstall() {
+    if (installer.isIOS) {
+      setIosGuideOpen((v) => !v);
+    } else {
+      const accepted = await installer.install();
+      if (accepted) setInstallDismissed(true);
+    }
+  }
 
   return (
     <div className="dc-home">
@@ -189,8 +270,45 @@ function HomeView({ push }) {
               </span>
             </>
           )}
+          {installer.isInstalled && (
+            <>
+              <span>·</span>
+              <span style={{ color: 'var(--sage)' }}>
+                <Smartphone size={11} /> 앱 모드
+              </span>
+            </>
+          )}
         </div>
       </header>
+
+      {showInstallCard && (
+        <div className="dc-install-card">
+          <button className="dc-install-dismiss" onClick={dismissInstall} aria-label="닫기">
+            <X size={14} />
+          </button>
+          <div className="dc-install-icon">
+            <Smartphone size={20} />
+          </div>
+          <div className="dc-install-body">
+            <div className="dc-install-title">앱으로 설치하기</div>
+            <div className="dc-install-sub">
+              풀스크린·홈 화면 아이콘·오프라인 가이드
+            </div>
+            {iosGuideOpen && (
+              <div className="dc-ios-guide">
+                <strong>iPhone 설치:</strong><br />
+                1. Safari 하단 공유 버튼 (□↑) 탭<br />
+                2. "<strong>홈 화면에 추가</strong>" 선택<br />
+                3. 우상단 "추가"
+              </div>
+            )}
+          </div>
+          <button className="dc-install-btn" onClick={handleInstall}>
+            <Download size={14} />
+            {installer.isIOS ? (iosGuideOpen ? '닫기' : '방법') : '설치'}
+          </button>
+        </div>
+      )}
 
       <button className="dc-scan-cta" onClick={() => push({ name: 'scan' })}>
         <div className="dc-scan-cta-icon">
