@@ -1,0 +1,705 @@
+/* ═══════════════════════════════════════════════════════════
+   도슨트 · Docent — Dark gallery aesthetic
+   Background: deep navy-charcoal. Accent: gold. Text: warm cream.
+   Inspired by museum lighting — quiet, focused, theater-like.
+   ═══════════════════════════════════════════════════════════ */
+
+:root {
+  /* Backgrounds */
+  --bg: #0F1419;
+  --bg-2: #1A1F2C;
+  --bg-3: #232938;
+  --surface: rgba(255, 252, 245, 0.04);
+  --surface-2: rgba(255, 252, 245, 0.07);
+
+  /* Lines */
+  --line: rgba(201, 169, 97, 0.12);
+  --line-2: rgba(201, 169, 97, 0.22);
+
+  /* Accents */
+  --gold: #C9A961;
+  --gold-deep: #A88945;
+  --gold-soft: rgba(201, 169, 97, 0.4);
+  --terracotta: #B85B3F;
+  --burgundy: #7C2E3A;
+  --sage: #6B8F65;
+
+  /* Text */
+  --text: #F5EBDC;
+  --text-soft: #A8A294;
+  --text-faint: #6B6960;
+
+  /* Per-attraction accent (set inline) */
+  --accent: var(--gold);
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans KR', 'DM Sans', -apple-system, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   App container
+   ═══════════════════════════════════════════════════════════ */
+
+.dc-app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--bg);
+  padding-bottom: 60px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Home — Hero + attraction cards
+   ═══════════════════════════════════════════════════════════ */
+
+.dc-home {
+  padding: 48px 20px 24px;
+}
+
+.dc-hero {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.dc-hero-mark {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  color: var(--gold);
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.dc-hero-title {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-weight: 300;
+  font-size: 44px;
+  letter-spacing: 0.05em;
+  margin: 0 0 12px;
+  color: var(--text);
+}
+
+.dc-hero-sub {
+  font-size: 13px;
+  color: var(--text-soft);
+  margin: 0 0 16px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.dc-hero-stats {
+  display: inline-flex;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+  font-family: 'DM Sans', sans-serif;
+  text-transform: uppercase;
+}
+
+.dc-hero-stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Attraction cards */
+.dc-attractions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dc-attraction-card {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 16px 14px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  text-align: left;
+  color: var(--text);
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.dc-attraction-card:hover {
+  border-color: var(--line-2);
+  background: var(--bg-3);
+  transform: translateY(-1px);
+}
+
+.dc-card-emoji {
+  font-size: 32px;
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 252, 245, 0.04);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.dc-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.dc-card-body h2 {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 17px;
+  font-weight: 500;
+  margin: 0 0 2px;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.dc-card-local {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--gold-soft);
+  margin-bottom: 6px;
+  font-family: 'Cormorant Garamond', serif;
+  letter-spacing: 0.02em;
+}
+
+.dc-card-tagline {
+  font-size: 12px;
+  color: var(--text-soft);
+  margin: 0 0 8px;
+  line-height: 1.45;
+}
+
+.dc-card-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 10px;
+  color: var(--text-faint);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.dc-card-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.dc-card-chev {
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Subview (Attraction, Point)
+   ═══════════════════════════════════════════════════════════ */
+
+.dc-subview {
+  padding: 20px 20px 24px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dc-back {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--text-soft);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 18px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.dc-back:hover {
+  border-color: var(--gold-soft);
+  color: var(--gold);
+}
+
+/* Attraction hero */
+.dc-attraction-hero {
+  text-align: center;
+  padding: 16px 0 28px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 28px;
+}
+
+.dc-emoji-big {
+  font-size: 64px;
+  margin-bottom: 12px;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+}
+
+.dc-attraction-title {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-weight: 400;
+  font-size: 28px;
+  margin: 0 0 6px;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+
+.dc-attraction-local {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 18px;
+  color: var(--accent);
+  margin-bottom: 14px;
+  letter-spacing: 0.03em;
+}
+
+.dc-attraction-tagline {
+  font-size: 13px;
+  color: var(--text-soft);
+  line-height: 1.5;
+  max-width: 360px;
+  margin: 0 auto;
+  font-style: italic;
+}
+
+/* Sections */
+.dc-section {
+  margin-bottom: 30px;
+}
+
+.dc-section-h {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin: 0 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+
+.dc-prose {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text);
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.dc-must-know {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dc-must-know li {
+  font-size: 13px;
+  color: var(--text-soft);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--surface);
+  border-radius: 8px;
+  border-left: 2px solid var(--gold-soft);
+}
+
+.dc-must-know li svg {
+  color: var(--gold);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Point cards in attraction view */
+.dc-points {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dc-point-card {
+  display: flex;
+  gap: 12px;
+  padding: 0;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  text-align: left;
+  color: var(--text);
+  overflow: hidden;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.dc-point-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.dc-point-thumb {
+  position: relative;
+  width: 90px;
+  flex-shrink: 0;
+  background: var(--bg-3);
+  overflow: hidden;
+}
+
+.dc-point-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  min-height: 100px;
+}
+
+.dc-point-num {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: rgba(15, 20, 25, 0.85);
+  color: var(--accent);
+  font-size: 9px;
+  font-family: 'DM Sans', sans-serif;
+  padding: 3px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.1em;
+  backdrop-filter: blur(4px);
+}
+
+.dc-point-body {
+  flex: 1;
+  padding: 10px 12px 10px 0;
+  min-width: 0;
+}
+
+.dc-point-body h4 {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 3px;
+  color: var(--text);
+}
+
+.dc-point-artist {
+  font-size: 11px;
+  color: var(--gold-soft);
+  margin-bottom: 4px;
+  font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
+  letter-spacing: 0.02em;
+}
+
+.dc-point-location {
+  font-size: 10px;
+  color: var(--text-faint);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-bottom: 4px;
+}
+
+.dc-point-rating {
+  display: inline-flex;
+  gap: 1px;
+  color: var(--accent);
+}
+
+/* Coming soon */
+.dc-coming-soon {
+  text-align: center;
+  padding: 14px;
+  font-size: 11px;
+  color: var(--text-faint);
+  font-family: 'DM Sans', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Point detail view
+   ═══════════════════════════════════════════════════════════ */
+
+.dc-point-hero {
+  position: relative;
+  margin: 0 -20px 18px;
+  overflow: hidden;
+  background: var(--bg-2);
+}
+
+.dc-point-hero img {
+  width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+  display: block;
+}
+
+.dc-point-credit {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-size: 9px;
+  color: rgba(245, 235, 220, 0.5);
+  background: rgba(15, 20, 25, 0.7);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.dc-point-header {
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 20px;
+}
+
+.dc-point-header h1 {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-weight: 500;
+  font-size: 24px;
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.dc-point-italian {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 18px;
+  color: var(--accent);
+  margin-bottom: 10px;
+  letter-spacing: 0.02em;
+}
+
+.dc-point-by {
+  font-size: 11px;
+  color: var(--text-soft);
+  font-family: 'DM Sans', sans-serif;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.dc-point-loc-detail {
+  font-size: 11px;
+  color: var(--text-faint);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Audio button */
+.dc-audio-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, var(--bg-2) 0%, var(--bg-3) 100%);
+  border: 1px solid var(--gold-soft);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 22px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.dc-audio-btn:hover {
+  border-color: var(--gold);
+  background: linear-gradient(135deg, var(--bg-3) 0%, var(--bg-2) 100%);
+}
+
+.dc-audio-btn.on {
+  border-color: var(--gold);
+  background: linear-gradient(135deg, rgba(201, 169, 97, 0.18) 0%, rgba(201, 169, 97, 0.08) 100%);
+  box-shadow: 0 0 24px -8px var(--gold-soft);
+}
+
+.dc-audio-btn.on::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(201, 169, 97, 0.15), transparent);
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.dc-audio-btn svg {
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+.dc-audio-btn span:nth-of-type(1) {
+  flex: 1;
+  text-align: left;
+}
+
+.dc-audio-meta {
+  font-size: 10px;
+  color: var(--text-faint);
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.05em;
+}
+
+/* Short quote */
+.dc-short-desc {
+  display: flex;
+  gap: 10px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border-left: 2px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text);
+  margin-bottom: 28px;
+}
+
+.dc-short-desc svg {
+  color: var(--accent);
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.dc-long-desc {
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* Viewing points */
+.dc-viewing {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dc-viewing-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border-radius: 10px;
+  border: 1px solid var(--line);
+}
+
+.dc-viewing-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 11px;
+  font-weight: 600;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.dc-viewing-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+
+.dc-viewing-detail {
+  font-size: 12px;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+/* Fun fact section */
+.dc-funfact .dc-prose {
+  padding: 12px 14px;
+  background: linear-gradient(135deg, rgba(201, 169, 97, 0.08) 0%, rgba(201, 169, 97, 0.03) 100%);
+  border-radius: 10px;
+  border: 1px solid var(--gold-soft);
+  font-size: 13px;
+  color: var(--text);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Footer
+   ═══════════════════════════════════════════════════════════ */
+
+.dc-footer {
+  margin-top: 40px;
+  padding: 20px;
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-faint);
+  font-family: 'DM Sans', sans-serif;
+  line-height: 1.6;
+  border-top: 1px solid var(--line);
+}
+
+.dc-footer div + div {
+  margin-top: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Responsive
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 480px) {
+  .dc-home {
+    padding: 36px 16px 24px;
+  }
+
+  .dc-subview {
+    padding: 16px 16px 24px;
+  }
+
+  .dc-point-hero {
+    margin: 0 -16px 18px;
+  }
+
+  .dc-hero-title {
+    font-size: 38px;
+  }
+}
