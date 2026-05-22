@@ -30,41 +30,66 @@ function useViewStack(initial = { name: 'home' }) {
 }
 
 // ─────────────────────────────────────────────────────────
-// TTS player (Web Speech API — v0.1 임시. v0.2에서 OpenAI MP3로 교체)
+// MP3 audio player (v0.3 — replaces Web Speech with pre-generated MP3)
+// Audio files at /audio/{attractionId}/{pointId}.mp3
+// Generated via Microsoft Edge TTS (ko-KR-SunHiNeural voice)
 // ─────────────────────────────────────────────────────────
-function useTTS() {
+function useAudio() {
   const [playing, setPlaying] = useState(null); // pointId currently playing
-  const utterRef = useRef(null);
+  const [progress, setProgress] = useState(0);  // 0-1
+  const [duration, setDuration] = useState(0);  // seconds
+  const audioRef = useRef(null);
 
-  // Stop on unmount
   useEffect(() => () => stop(), []);
 
   function stop() {
-    try { window.speechSynthesis?.cancel(); } catch { /* ignore */ }
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
     setPlaying(null);
-    utterRef.current = null;
+    setProgress(0);
+    setDuration(0);
   }
 
-  function play(pointId, text) {
-    if (!('speechSynthesis' in window)) return;
+  function play(pointId, audioUrl) {
     stop();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'ko-KR';
-    u.rate = 0.95;
-    u.pitch = 1.0;
-    u.onend = () => { setPlaying(null); utterRef.current = null; };
-    u.onerror = () => { setPlaying(null); utterRef.current = null; };
-    utterRef.current = u;
+    const audio = new Audio(audioUrl);
+    audio.preload = 'auto';
+    audioRef.current = audio;
     setPlaying(pointId);
-    window.speechSynthesis.speak(u);
+
+    audio.addEventListener('loadedmetadata', () => {
+      setDuration(audio.duration);
+    });
+    audio.addEventListener('timeupdate', () => {
+      if (audio.duration) setProgress(audio.currentTime / audio.duration);
+    });
+    audio.addEventListener('ended', () => {
+      setPlaying(null);
+      setProgress(0);
+    });
+    audio.addEventListener('error', (e) => {
+      console.error('Audio playback error:', e);
+      setPlaying(null);
+    });
+
+    audio.play().catch((err) => {
+      console.error('Play rejected:', err);
+      setPlaying(null);
+    });
   }
 
-  function toggle(pointId, text) {
+  function toggle(pointId, audioUrl) {
     if (playing === pointId) stop();
-    else play(pointId, text);
+    else play(pointId, audioUrl);
   }
 
-  return { playing, play, stop, toggle };
+  function seek(t) {
+    if (audioRef.current) audioRef.current.currentTime = t;
+  }
+
+  return { playing, progress, duration, play, stop, toggle, seek };
 }
 
 // ─────────────────────────────────────────────────────────
@@ -72,10 +97,10 @@ function useTTS() {
 // ─────────────────────────────────────────────────────────
 export default function App() {
   const view = useViewStack();
-  const tts = useTTS();
+  const audio = useAudio();
 
   // Stop audio on view change
-  useEffect(() => { tts.stop(); }, [view.current.name]);
+  useEffect(() => { audio.stop(); }, [view.current.name]);
 
   return (
     <div className="dc-app">
@@ -92,7 +117,7 @@ export default function App() {
           attractionId={view.current.attractionId}
           pointId={view.current.pointId}
           pop={view.pop}
-          tts={tts}
+          audio={audio}
         />
       )}
 
@@ -235,12 +260,20 @@ function PointCard({ point, idx, accent, onClick }) {
 // ─────────────────────────────────────────────────────────
 // Point detail — image, audio player, viewing points, fun fact
 // ─────────────────────────────────────────────────────────
-function PointView({ attractionId, pointId, pop, tts }) {
+function PointView({ attractionId, pointId, pop, audio }) {
   const point = findPoint(attractionId, pointId);
   const attraction = findAttraction(attractionId);
-  const isPlaying = tts.playing === pointId;
+  const isPlaying = audio.playing === pointId;
+  const audioUrl = `/audio/${attractionId}/${pointId}.mp3`;
 
   if (!point) return <div>포인트를 찾을 수 없습니다.</div>;
+
+  function fmtTime(s) {
+    if (!s || !isFinite(s)) return '--:--';
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${String(sec).padStart(2, '0')}`;
+  }
 
   return (
     <div className="dc-subview" style={{ '--accent': attraction.coverHue }}>
@@ -266,14 +299,36 @@ function PointView({ attractionId, pointId, pop, tts }) {
         <div className="dc-point-loc-detail"><MapPin size={11} /> {point.location}</div>
       </div>
 
-      <button
-        className={`dc-audio-btn ${isPlaying ? 'on' : ''}`}
-        onClick={() => tts.toggle(point.id, point.ttsScript)}
-      >
-        {isPlaying ? <Pause size={20} /> : <Play size={20} />}
-        <span>{isPlaying ? '재생 중...' : '오디오 도슨트 듣기'}</span>
-        <span className="dc-audio-meta">약 {Math.ceil(point.ttsScript.length / 250)}분</span>
-      </button>
+      <div className={`dc-audio-player ${isPlaying ? 'on' : ''}`}>
+        <button
+          className="dc-audio-play"
+          onClick={() => audio.toggle(pointId, audioUrl)}
+          aria-label={isPlaying ? '일시정지' : '재생'}
+        >
+          {isPlaying ? <Pause size={22} /> : <Play size={22} />}
+        </button>
+        <div className="dc-audio-info">
+          <div className="dc-audio-label">
+            <Headphones size={11} /> 도슨트 오디오
+            <span className="dc-audio-voice">SunHi · 한국어</span>
+          </div>
+          <div
+            className="dc-audio-progress"
+            onClick={(e) => {
+              if (!isPlaying || !audio.duration) return;
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = e.clientX - rect.left;
+              audio.seek((x / rect.width) * audio.duration);
+            }}
+          >
+            <div className="dc-audio-progress-fill" style={{ width: `${audio.progress * 100}%` }} />
+          </div>
+          <div className="dc-audio-time">
+            <span>{fmtTime(audio.duration * audio.progress)}</span>
+            <span>{fmtTime(audio.duration)}</span>
+          </div>
+        </div>
+      </div>
 
       <div className="dc-short-desc">
         <Quote size={14} /> {point.shortDesc}
@@ -315,9 +370,9 @@ function PointView({ attractionId, pointId, pop, tts }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.1</div>
+      <div>도슨트 · Docent v0.3</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
-      <div>오디오: Web Speech TTS · v0.2에서 OpenAI MP3로 교체 예정</div>
+      <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
     </footer>
   );
 }
