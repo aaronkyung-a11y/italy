@@ -34,7 +34,7 @@ export const ATTRACTIONS = [
         location: '방 III',
         rating: 5,
         type: '대리석 조각',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Apollo_and_Daphne_%28Bernini%29_%28cropped%29.jpg/640px-Apollo_and_Daphne_%28Bernini%29_%28cropped%29.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Apollo_and_Daphne_%28Bernini%29_%28cropped%29.jpg/640px-Apollo_and_Daphne_%28Bernini%29_%28cropped%29.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '아폴로가 다프네를 잡는 순간, 그녀는 월계수로 변하기 시작한다. 베르니니 25세 작.',
         longDesc: `오비디우스의 〈변신 이야기〉를 한 덩어리의 대리석으로 옮긴 베르니니의 마법. 사랑의 신 큐피드가 두 화살을 쏘았다 — 아폴로에겐 사랑의 화살, 강의 요정 다프네에겐 거부의 화살. 아폴로가 추격해 잡으려는 바로 그 순간, 다프네는 아버지에게 도와달라 외치고 그녀의 몸이 월계수로 변한다.
@@ -62,7 +62,7 @@ export const ATTRACTIONS = [
         location: '방 II',
         rating: 5,
         type: '대리석 조각',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Bernini-David.jpg/640px-Bernini-David.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Bernini%27s_David_02.jpg/640px-Bernini%27s_David_02.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '돌을 던지기 직전, 골리앗을 노려보는 다비드. 베르니니의 자화상이라는 얼굴.',
         longDesc: `미켈란젤로의 다비드(피렌체)가 "전투 전의 완벽한 청년"이라면, 베르니니의 다비드는 "전투 한가운데의 인간"입니다. 미켈란젤로가 정적인 영웅상을 깎았다면, 베르니니는 동적인 순간을 포착했습니다.
@@ -82,6 +82,69 @@ export const ATTRACTIONS = [
         ttsScript: '베르니니의 〈다비드〉. 1623년에서 1624년 작품. 베르니니가 25살에 만들었습니다. 미켈란젤로의 다비드가 전투 전의 완벽한 청년이라면, 베르니니의 다비드는 전투 한가운데의 인간입니다. 다비드는 새총을 뒤로 당겨 곧 돌을 던지려 합니다. 발은 골리앗의 갑옷을 밟고, 입술은 굳게 다물고, 이마엔 주름이 잡혔습니다. 베르니니는 작업하면서 추기경 마페오 바르베리니에게 거울을 들고 있게 했고, 자신의 얼굴을 다비드에 새겼다는 일화가 유명합니다. 이 작품의 천재성은 공간의 확장에 있습니다. 다비드의 시선이 향하는 곳, 즉 골리앗이 있어야 할 곳은 관객의 공간입니다. 작품을 보는 당신이 바로 골리앗이 됩니다. 베르니니 이전에는 조각이 받침대 위에 갇혀 있었지만, 베르니니는 작품 밖으로 시선과 동작을 확장시켰습니다.',
       },
       {
+        id: 'proserpina',
+        name: '프로세르피나의 납치',
+        nameLocal: 'Il Ratto di Proserpina',
+        artist: 'Gian Lorenzo Bernini',
+        year: '1621–1622',
+        location: '방 IV',
+        rating: 5,
+        type: '대리석 조각',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Rape_of_Prosepina_September_2015-3a.jpg/640px-Rape_of_Prosepina_September_2015-3a.jpg',
+        imageCredit: 'Wikimedia Commons / Public Domain',
+        shortDesc: '플루토의 손가락이 프로세르피나의 허벅지를 누르는 디테일 — 대리석에서 살을 느끼게 한 베르니니의 마법.',
+        longDesc: `베르니니가 23살에 만든 작품으로, 〈아폴로와 다프네〉보다 1년 먼저 만들어진 자매작입니다. 지하 세계의 신 플루토(하데스)가 풍요의 여신 데메테르의 딸 프로세르피나를 납치하는 신화 장면.
+
+이 작품의 천재성은 한 가지 디테일에 집약됩니다: **플루토의 손가락이 프로세르피나의 허벅지를 누르는 순간, 살이 들어갑니다**. 대리석이라는 가장 단단한 재료로 살의 부드러움을 표현했습니다. 가까이 다가가서 손가락이 닿는 부분을 보세요 — 미세하게 패인 것이 보입니다. 이는 1622년 당시에는 불가능하다고 여겨졌던 표현이었습니다.
+
+또 다른 핵심:
+- **세 머리의 케르베로스** (지하 세계 입구의 개) — 플루토 발 아래
+- **프로세르피나의 눈물** — 그녀의 뺨에서 흘러내리는 한 방울의 눈물이 대리석으로 표현되어 있습니다
+- **회전하는 구도** — 360도로 보세요. 정면에서는 추격의 폭력성, 옆에서는 프로세르피나의 절망, 뒤에서는 그녀의 손이 플루토의 얼굴을 밀어내는 모습이 보입니다
+
+데메테르는 딸을 잃은 슬픔에 곡식이 자라지 않게 했고, 결국 제우스가 중재하여 1년의 반은 어머니와, 반은 플루토와 지내기로 했습니다. 이것이 그리스 신화에서 사계절의 기원입니다.`,
+        viewingPoints: [
+          { title: '플루토의 손가락 = 살의 들어감', detail: '허벅지에 닿은 손가락 자리에 미세한 패임. 가까이 보세요' },
+          { title: '프로세르피나의 눈물', detail: '뺨을 흘러내리는 한 방울의 눈물 — 대리석으로 표현' },
+          { title: '세 머리 케르베로스', detail: '플루토 발 아래의 지옥 개. 세 머리 모두 다른 표정' },
+          { title: '360도 회전', detail: '정면(폭력) → 옆면(절망) → 뒷면(밀어냄). 베르니니 조각의 특징' },
+        ],
+        funFact: '베르니니는 이 작품을 받은 시피오네 보르게세 추기경이 너무 만족해서, 곧바로 〈아폴로와 다프네〉를 의뢰했습니다. 두 작품이 한 미술관에 있는 이유.',
+        ttsScript: '베르니니의 〈프로세르피나의 납치〉. 1621년에서 1622년 작품. 베르니니가 23살에 만든 작품으로, 〈아폴로와 다프네〉보다 1년 먼저 만들어진 자매작입니다. 지하 세계의 신 플루토가 풍요의 여신 데메테르의 딸 프로세르피나를 납치하는 신화 장면입니다. 이 작품의 천재성은 한 가지 디테일에 집약됩니다. 플루토의 손가락이 프로세르피나의 허벅지를 누르는 순간, 살이 들어갑니다. 대리석이라는 가장 단단한 재료로 살의 부드러움을 표현했습니다. 가까이 다가가서 손가락이 닿는 부분을 보세요. 미세하게 패인 것이 보입니다. 이는 1622년 당시에는 불가능하다고 여겨졌던 표현이었습니다. 또 다른 핵심을 보세요. 플루토 발 아래에는 세 머리의 케르베로스, 지하 세계 입구의 개가 있습니다. 그리고 프로세르피나의 뺨에서 흘러내리는 한 방울의 눈물이 대리석으로 표현되어 있습니다. 베르니니의 조각은 반드시 360도로 보세요. 정면에서는 추격의 폭력성, 옆에서는 프로세르피나의 절망, 뒤에서는 그녀의 손이 플루토의 얼굴을 밀어내는 모습이 보입니다.',
+      },
+      {
+        id: 'pauline-bonaparte',
+        name: '비너스로서의 파올리나 보나파르테',
+        nameLocal: 'Paolina Borghese come Venere Vincitrice',
+        artist: 'Antonio Canova',
+        year: '1804–1808',
+        location: '방 I (입구)',
+        rating: 5,
+        type: '대리석 조각',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Paolina_Borghese_%28Canova%29.jpg/640px-Paolina_Borghese_%28Canova%29.jpg',
+        imageCredit: 'Wikimedia Commons / Public Domain',
+        shortDesc: '나폴레옹의 누이, 누드로 비너스가 된 도발. 신고전주의의 정점.',
+        longDesc: `미술관 입구 첫 번째 방의 작품. 일반인은 이 작품을 처음 보고 충격을 받습니다 — **상반신이 완전 누드인 19세기 여인의 실제 초상**.
+
+모델은 **파올리나 보나파르테(Paolina Bonaparte)**, 나폴레옹의 누이이자 카밀로 보르게세 공의 두 번째 부인. 그녀가 카노바에게 비너스로 자신을 조각해달라고 의뢰했고, 보르게세 가문이 영원히 보관하게 되었습니다.
+
+손에 든 **사과**가 핵심입니다 — 이는 트로이의 왕자 파리스가 세 여신(헤라, 아테나, 비너스) 중 가장 아름다운 자로 비너스를 선택했을 때 준 사과. 즉 파올리나 자신이 "가장 아름다운 여신"임을 주장한 셈입니다.
+
+당시 사람들이 "어떻게 그렇게 누드로 자세를 잡을 수 있었나" 물었을 때, 파올리나는 "스튜디오에 난방이 잘 되어 있었어요"라고 답했다는 일화가 유명합니다.
+
+**카노바의 천재성** — 마트리스(소파)의 부드러움. 매트리스가 몸의 무게에 미세하게 들어가 있는 것이 보입니다. 베르니니의 손가락-허벅지처럼, 카노바도 대리석으로 직물과 살의 다른 질감을 구별했습니다.
+
+**신고전주의 vs 바로크** — 보르게세의 다른 베르니니 조각들과 비교하면 카노바의 차이가 명확합니다. 바로크의 베르니니는 동적이고 극적이고 360도로 봐야 하는 작품을 만들었지만, 카노바의 신고전주의는 정적이고 우아하며 정면에서 보는 것을 전제로 합니다. 두 시대의 미학을 한 미술관에서 비교할 수 있는 기회.`,
+        viewingPoints: [
+          { title: '손에 든 사과', detail: '파리스의 선택 — 가장 아름다운 여신 비너스가 받은 사과' },
+          { title: '매트리스의 들어감', detail: '몸 무게에 매트리스가 미세하게 패임 — 직물의 질감' },
+          { title: '회전 받침대', detail: '받침대가 원래 회전 가능했음. 카노바가 조명에 따라 모든 각도로 보이게 설계' },
+          { title: '머리띠와 곱슬머리', detail: '고대 그리스 헬레니즘의 헤어스타일 — 신고전주의의 특징' },
+        ],
+        funFact: '파올리나의 남편 카밀로 보르게세 공은 이 작품이 너무 도발적이라 가까운 친구들에게만 보여줬습니다. 그래서 한동안 비공개였다가 1900년대 이후에야 일반 공개되었습니다.',
+        ttsScript: '카노바의 〈비너스로서의 파올리나 보나파르테〉. 1804년에서 1808년 작품. 미술관 입구 첫 번째 방의 작품으로, 일반인은 이 작품을 처음 보고 충격을 받습니다. 상반신이 완전 누드인 19세기 여인의 실제 초상입니다. 모델은 파올리나 보나파르테, 나폴레옹의 누이이자 카밀로 보르게세 공의 두 번째 부인입니다. 그녀가 카노바에게 비너스로 자신을 조각해달라고 의뢰했고, 보르게세 가문이 영원히 보관하게 되었습니다. 손에 든 사과가 핵심입니다. 이는 트로이의 왕자 파리스가 세 여신 중 가장 아름다운 자로 비너스를 선택했을 때 준 사과입니다. 즉 파올리나 자신이 가장 아름다운 여신임을 주장한 셈입니다. 당시 사람들이 어떻게 그렇게 누드로 자세를 잡을 수 있었나 물었을 때, 파올리나는 스튜디오에 난방이 잘 되어 있었어요라고 답했다는 일화가 유명합니다. 신고전주의와 바로크의 차이를 느껴보세요. 보르게세의 베르니니 조각들과 비교하면 카노바의 차이가 명확합니다. 바로크는 동적이고 극적이지만, 카노바의 신고전주의는 정적이고 우아합니다.',
+      },
+      {
         id: 'david-goliath',
         name: '다비드와 골리앗의 머리',
         nameLocal: 'Davide con la testa di Golia',
@@ -90,7 +153,7 @@ export const ATTRACTIONS = [
         location: '방 8 (Sala VIII)',
         rating: 5,
         type: '회화 (캔버스에 유채)',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Caravaggio_-_David_with_the_Head_of_Goliath_-_Galleria_Borghese.jpg/512px-Caravaggio_-_David_with_the_Head_of_Goliath_-_Galleria_Borghese.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/David_with_the_Head_of_Goliath-Caravaggio_%281610%29.jpg/640px-David_with_the_Head_of_Goliath-Caravaggio_%281610%29.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '잘린 머리는 카라바조 자신의 자화상. 살인범이 된 화가가 그린 마지막 자백.',
         longDesc: `1606년 카라바조는 로마에서 한 남자를 살해했습니다. 사형 선고를 받고 도망쳤고, 4년 동안 나폴리·말타·시칠리아를 떠돌았습니다. 1610년, 교황의 사면을 기대하며 로마로 돌아오던 중 38세에 사망합니다. 이 작품은 그가 마지막 시기에 그린 것 중 하나이고, 사면을 위해 시피오네 보르게세 추기경에게 보낸 것으로 추정됩니다.
@@ -143,7 +206,7 @@ export const ATTRACTIONS = [
         location: '시스티나 성당 (천장 중앙)',
         rating: 5,
         type: '프레스코',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Michelangelo_-_Creation_of_Adam_%28cropped%29.jpg/640px-Michelangelo_-_Creation_of_Adam_%28cropped%29.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Sistine_Chapel_ceiling_02_%28brightened%29.jpg/640px-Sistine_Chapel_ceiling_02_%28brightened%29.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '신과 아담의 손가락이 닿기 직전. 르네상스 최정점.',
         longDesc: `시스티나 성당 천장의 9개 창세기 패널 중 4번째, 가장 유명한 장면입니다. 미켈란젤로는 1508년부터 1512년까지 4년간 거의 혼자 천장 전체(500㎡)를 그렸습니다. 그는 조각가였고 회화는 잘 모른다고 끝까지 항변했지만, 교황 율리오 2세는 강제로 시켰습니다.
@@ -173,7 +236,7 @@ export const ATTRACTIONS = [
         location: '라파엘로의 방 — Stanza della Segnatura',
         rating: 5,
         type: '프레스코',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Sanzio_01.jpg/640px-Sanzio_01.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/%22The_School_of_Athens%22_by_Raffaello_Sanzio_da_Urbino.jpg/640px-%22The_School_of_Athens%22_by_Raffaello_Sanzio_da_Urbino.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '플라톤·아리스토텔레스를 중심으로 고대 그리스 철학자 21명. 라파엘로는 자신을 끝에 그려 넣었다.',
         longDesc: `라파엘로가 26세에 그린 르네상스 회화의 절정. 시스티나 천장과 같은 시기, 미켈란젤로가 천장을 그리는 동안 라파엘로는 옆 건물에서 〈아테네 학당〉을 그렸습니다.
@@ -198,6 +261,74 @@ export const ATTRACTIONS = [
         ttsScript: '라파엘로의 〈아테네 학당〉. 1509년에서 1511년 작품. 라파엘로가 26세에 그린 르네상스 회화의 절정입니다. 시스티나 천장과 같은 시기, 미켈란젤로가 천장을 그리는 동안 라파엘로는 옆 건물에서 이 그림을 그렸습니다. 중앙의 두 인물을 보세요. 왼쪽에 하늘을 가리키는 사람이 플라톤이고, 오른쪽에 땅을 가리키는 사람이 아리스토텔레스입니다. 플라톤은 이상과 형이상학, 아리스토텔레스는 현실과 실용학을 상징합니다. 그런데 놀라운 사실이 있습니다. 플라톤의 얼굴은 레오나르도 다 빈치의 초상입니다. 라파엘로는 동시대 르네상스 거장들을 고대 철학자로 분장시켜 그렸습니다. 앞 중앙 턱을 괴고 있는 우울한 인물은 헤라클레이토스인데, 그 얼굴은 미켈란젤로입니다. 라파엘로는 처음엔 이 자리를 비워뒀다가, 시스티나 천장 작업을 훔쳐본 후 미켈란젤로의 모습을 그려 넣었습니다. 그리고 오른쪽 끝, 검은 베레모를 쓴 청년이 관객을 바라보고 있습니다. 그게 바로 라파엘로 자신의 자화상입니다.',
       },
       {
+        id: 'laocoon',
+        name: '라오콘 군상',
+        nameLocal: 'Gruppo del Laocoonte',
+        artist: 'Agesandro · Athanadoros · Polydoros (Rhodes)',
+        year: '기원전 2세기경 (1506년 재발견)',
+        location: '바티칸 박물관 — 벨베데레 정원 (Cortile Ottagono)',
+        rating: 5,
+        type: '헬레니즘 대리석 조각',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Laoco%C3%B6n_and_his_sons_group.jpg/640px-Laoco%C3%B6n_and_his_sons_group.jpg',
+        imageCredit: 'Wikimedia Commons / Public Domain',
+        shortDesc: '미켈란젤로가 직접 발굴 현장으로 달려간 헬레니즘 조각의 정점.',
+        longDesc: `1506년 1월 14일, 로마 에스퀼리노 언덕의 한 포도밭에서 농부가 땅을 파다 거대한 대리석 조각이 발견됩니다. 교황 율리오 2세는 즉시 두 사람을 보냈습니다 — **건축가 줄리아노 다 산갈로**와 **미켈란젤로**.
+
+미켈란젤로는 발굴 현장에서 작품을 보고 "예술의 기적"이라 외쳤다고 합니다. 이 작품이 바로 고대 로마 시대 플리니우스가 〈박물지〉에서 "모든 그림과 청동 조각보다 우월한 작품"이라 칭찬했던 〈라오콘 군상〉입니다. 1,400년 동안 사라져 있다가 다시 빛을 본 것입니다.
+
+신화 내용: 트로이의 사제 **라오콘**은 그리스의 목마를 트로이 성에 들이지 말라고 경고했습니다. 하지만 트로이가 멸망하기를 원했던 신들(특히 아테나)이 바다에서 두 마리 거대 뱀을 보내 라오콘과 그의 두 아들을 죽였습니다. 이 작품은 그 죽음의 순간을 포착한 것입니다.
+
+핵심 관찰:
+- **라오콘의 비명** — 그의 입이 비명을 지르려 열려 있습니다. 19세기 미술 평론가 빙켈만은 이를 "고귀한 단순함과 조용한 위대함"으로 해석했고, 레싱은 "회화의 한계와 조각의 한계"라는 논문에서 이 비명을 분석했습니다.
+- **세 인물의 다른 단계** — 큰아들(왼쪽)은 도망치려 함, 작은아들(오른쪽)은 이미 죽어가고 있음, 라오콘 본인은 정점의 고통.
+- **오른팔 논쟁** — 발견 당시 라오콘의 오른팔이 없었습니다. 16세기에 복원되어 팔을 곧게 뻗은 형태로 만들었는데, 1906년 진짜 오른팔이 발견되어 보니 등 뒤로 굽어 있었습니다. 1957년에 진짜 팔로 교체되었습니다.
+
+이 작품이 미켈란젤로의 시스티나 천장과 〈최후의 심판〉에 직접적인 영향을 주었습니다. 라오콘의 비명, 근육의 표현, 인체의 회전 — 모두 미켈란젤로가 차용한 요소들입니다.`,
+        viewingPoints: [
+          { title: '라오콘의 비명', detail: '입이 열린 비명 — 빙켈만과 레싱이 미학 논쟁의 대상으로 삼은 표정' },
+          { title: '굽은 오른팔', detail: '1957년 진짜 팔로 교체. 본래 등 뒤로 굽어 있음 — 자연스러운 자세' },
+          { title: '세 인물의 시간 차이', detail: '큰아들 도망 → 라오콘 정점의 고통 → 작은아들 죽어감' },
+          { title: '뱀의 움직임', detail: '두 마리 뱀이 라오콘과 두 아들을 동시에 감음. 구도의 균형감' },
+        ],
+        funFact: '미켈란젤로가 라오콘을 본 후 시스티나 천장의 미켈란젤로 본인 자화상(노아 패널의 노아)도 라오콘의 표정과 비슷하게 만들었습니다. 그리고 〈최후의 심판〉의 그리스도, 〈모세 상〉 등 미켈란젤로 후기 작품 거의 모두에 라오콘의 영향이 보입니다.',
+        ttsScript: '〈라오콘 군상〉. 기원전 2세기경, 로도스 섬의 세 조각가가 만든 헬레니즘 조각의 정점입니다. 1506년 1월 14일, 로마 에스퀼리노 언덕의 한 포도밭에서 농부가 땅을 파다 거대한 대리석 조각이 발견됩니다. 교황 율리오 2세는 즉시 두 사람을 보냈습니다. 건축가 줄리아노 다 산갈로와 미켈란젤로입니다. 미켈란젤로는 발굴 현장에서 작품을 보고 예술의 기적이라 외쳤다고 합니다. 1,400년 동안 사라져 있다가 다시 빛을 본 것입니다. 신화 내용을 알려드리겠습니다. 트로이의 사제 라오콘은 그리스의 목마를 트로이 성에 들이지 말라고 경고했습니다. 하지만 트로이가 멸망하기를 원했던 신들이 바다에서 두 마리 거대 뱀을 보내 라오콘과 그의 두 아들을 죽였습니다. 이 작품은 그 죽음의 순간을 포착한 것입니다. 라오콘의 비명을 보세요. 그의 입이 비명을 지르려 열려 있습니다. 그리고 세 인물이 각기 다른 시간 단계에 있습니다. 큰아들은 도망치려 하고, 작은아들은 이미 죽어가고 있고, 라오콘 본인은 정점의 고통에 있습니다. 이 작품이 미켈란젤로의 시스티나 천장과 최후의 심판에 직접적인 영향을 주었습니다.',
+      },
+      {
+        id: 'last-judgment',
+        name: '최후의 심판',
+        nameLocal: 'Giudizio Universale',
+        artist: 'Michelangelo Buonarroti',
+        year: '1536–1541',
+        location: '시스티나 성당 — 제단 벽',
+        rating: 5,
+        type: '프레스코',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Last_Judgement_%28Michelangelo%29.jpg/640px-Last_Judgement_%28Michelangelo%29.jpg',
+        imageCredit: 'Wikimedia Commons / Public Domain',
+        shortDesc: '시스티나 천장 25년 후 같은 곳, 60대 미켈란젤로의 두 번째 걸작.',
+        longDesc: `시스티나 천장(1512년 완성) 후 25년이 지나, 미켈란젤로가 60대에 다시 시스티나로 돌아와 그린 그림. 1536년 시작, 1541년 완성. 천장이 "창조"의 그림이라면, 이것은 "끝"의 그림입니다.
+
+중앙에 **그리스도** — 미켈란젤로가 그린 그리스도는 전통적인 자비로운 모습이 아니라 **분노한 심판자**입니다. 오른손은 의로운 자를 끌어올리고, 왼손은 죄인을 지옥으로 던집니다. 옆에는 마리아가 외면하고 있습니다 — 더는 중재할 수 없는 시점.
+
+그림에는 약 **400명의 인물**이 등장합니다. 모두 누드 또는 거의 누드 — 이는 당시 엄청난 논란이 되었습니다.
+
+**숨은 미스터리 세 가지**:
+
+1. **성 바르톨로메오의 살가죽 = 미켈란젤로 자화상**. 그리스도의 발 아래, 바르톨로메오 성인이 자신이 산 채로 벗긴 살가죽(martyrdom의 상징)을 들고 있는데, 그 살가죽의 얼굴이 **미켈란젤로 본인의 자화상**입니다. 죄책감과 자기 처벌의 표현.
+
+2. **비아조 다 체세나의 얼굴이 지옥에**. 교황의 의전관 비아조가 이 작품의 누드를 비난하자, 미켈란젤로는 지옥의 미노스 왕(저승 심판관) 얼굴에 비아조를 그려 넣었습니다. 게다가 뱀이 미노스의 다리를 물고 있는데... 비아조가 교황에게 항의하자 교황이 "지옥에 있는 자는 나도 못 꺼낸다"라고 답했다는 일화.
+
+3. **국부 가리개의 추가**. 1564년 미켈란젤로 사망 직후, 교황 비오 4세는 다니엘레 다 볼테라(미켈란젤로 제자)에게 모든 누드의 국부를 가리도록 명령했습니다. 다니엘레는 "Il Braghettone"(바지 입히는 사람)이라는 별명을 얻었습니다. 1990년대 복원 때 일부는 원상회복되었지만 많은 부분은 여전히 그대로 남아있습니다.`,
+        viewingPoints: [
+          { title: '중앙 그리스도', detail: '분노한 심판자. 오른손 = 구원, 왼손 = 단죄. 마리아도 외면' },
+          { title: '바르톨로메오의 살가죽', detail: '그리스도 발 아래. 살가죽의 얼굴이 미켈란젤로 자화상' },
+          { title: '미노스 왕의 얼굴', detail: '지옥 가장 아래. 비아조 다 체세나에 대한 복수' },
+          { title: '카론의 배', detail: '망자를 지옥으로 실어 나르는 단테 〈신곡〉의 카론' },
+          { title: '국부 가리개', detail: '미켈란젤로 사후 다니엘레 다 볼테라가 추가. "Braghettone"이라는 별명' },
+        ],
+        funFact: '미켈란젤로는 〈최후의 심판〉 작업 중 비계에서 떨어져 다리를 다쳤습니다. 의사를 부르지 않고 혼자 자물쇠를 잠그고 죽으려 했는데, 친구 의사가 강제로 문을 열고 들어가 치료했다고 합니다.',
+        ttsScript: '미켈란젤로의 〈최후의 심판〉. 시스티나 성당 제단 벽에 그려진 1536년에서 1541년 작품. 시스티나 천장 후 25년이 지나, 미켈란젤로가 60대에 다시 시스티나로 돌아와 그린 그림입니다. 천장이 창조의 그림이라면, 이것은 끝의 그림입니다. 중앙의 그리스도를 보세요. 미켈란젤로가 그린 그리스도는 전통적인 자비로운 모습이 아니라 분노한 심판자입니다. 오른손은 의로운 자를 끌어올리고, 왼손은 죄인을 지옥으로 던집니다. 옆에는 마리아가 외면하고 있습니다. 더는 중재할 수 없는 시점입니다. 그림에는 약 400명의 인물이 등장합니다. 모두 누드 또는 거의 누드입니다. 이는 당시 엄청난 논란이 되었습니다. 숨은 미스터리 두 가지를 알려드리겠습니다. 첫째, 그리스도의 발 아래에 성 바르톨로메오가 자신이 산 채로 벗긴 살가죽을 들고 있는데, 그 살가죽의 얼굴이 미켈란젤로 본인의 자화상입니다. 죄책감과 자기 처벌의 표현입니다. 둘째, 지옥 가장 아래의 미노스 왕 얼굴은 교황의 의전관 비아조 다 체세나입니다. 비아조가 이 작품의 누드를 비난하자, 미켈란젤로는 지옥의 미노스 얼굴에 비아조를 그려 넣었습니다. 비아조가 교황에게 항의하자 교황이 지옥에 있는 자는 나도 못 꺼낸다라고 답했다는 일화가 유명합니다.',
+      },
+      {
         id: 'pieta',
         name: '피에타',
         nameLocal: 'Pietà',
@@ -206,7 +337,7 @@ export const ATTRACTIONS = [
         location: '성 베드로 대성당 입구 오른쪽 첫 번째 예배당',
         rating: 5,
         type: '대리석 조각',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Michelangelo%27s_Pieta_5450_cropncleaned.jpg/512px-Michelangelo%27s_Pieta_5450_cropncleaned.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Pieta_de_Michelangelo_-_Vaticano.jpg/640px-Pieta_de_Michelangelo_-_Vaticano.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '죽은 아들을 무릎에 안은 어머니. 미켈란젤로 23세, 그가 서명한 유일한 작품.',
         longDesc: `미켈란젤로가 23세에 만든 작품. 너무 완벽해서 다른 조각가의 작품으로 오해받자, 미켈란젤로는 밤에 몰래 성당에 들어가 마리아의 가슴띠에 자신의 이름을 새겼습니다. **MICHAEL.AGELVS.BONAROTVS.FLORENT.FACIEBAT** — 피렌체의 미켈란젤로 부오나로티가 만들었다. 평생 서명한 유일한 작품입니다. 후에 그는 이 자만을 후회했다고 합니다.
@@ -295,7 +426,7 @@ export const ATTRACTIONS = [
         location: '아레나 바닥 아래 (Arena Floor + Hypogeum 추가 티켓 필요)',
         rating: 5,
         type: '지하 시설',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Roma-Colosseum_hypogeum.jpg/640px-Roma-Colosseum_hypogeum.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Hypogeum_1_%2815005526662%29.jpg/640px-Hypogeum_1_%2815005526662%29.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '검투사·맹수 대기실. 무대 엘리베이터 32개로 동물이 갑자기 아레나로 솟아올랐다.',
         longDesc: `오늘날 우리가 보는 콜로세움의 "바닥"은 사실 텅 빈 공간입니다. 원래는 모래(arena = "모래") 깔린 무대였고, 그 아래는 **2층 지하 미로 구조 (히포게움)** 였습니다.
@@ -320,6 +451,45 @@ export const ATTRACTIONS = [
         ],
         funFact: '엘리베이터 한 대로 사자 한 마리를 동시에 6마리까지 올릴 수 있었습니다. 무대 위 동물의 갑작스러운 등장은 관객을 놀라게 하기 위한 핵심 연출이었습니다.',
         ttsScript: '콜로세움의 히포게움, 지하 세계. 오늘날 우리가 보는 콜로세움의 바닥은 사실 텅 빈 공간입니다. 원래는 모래 깔린 무대였고, 모래는 라틴어로 아레나라고 합니다. 그 아래는 2층 지하 미로 구조였습니다. 이것이 히포게움입니다. 히포게움에는 검투사 대기실, 약 200명 수용 가능했고, 맹수 우리, 사자, 호랑이, 코끼리, 코뿔소까지 아프리카에서 잡혀 와 여기서 굶주린 채로 대기했습니다. 그리고 목재 무대 엘리베이터가 32개 있었습니다. 도르래와 밧줄, 인력으로 작동했고, 동물이나 무대 장식이 아레나 바닥으로 갑자기 솟아올랐습니다. 영화 글래디에이터에서 막시무스가 콜로세움에 들어가는 장면, 그 바로 아래의 공간이 바로 이곳입니다. 검투사들은 콜로세움에 들어오기 전 검투사 학교에서 훈련받았습니다. 콜로세움 동쪽 100미터 지점에 폐허가 남아 있고, 학교에서 콜로세움까지 지하 터널로 연결되었습니다. 평균 검투사의 수명은 22세에서 25세였습니다.',
+      },
+      {
+        id: 'arch-constantine',
+        name: '콘스탄티누스 개선문',
+        nameLocal: 'Arco di Costantino',
+        artist: '익명 (콘스탄티누스 황제 의뢰)',
+        year: 'AD 315',
+        location: '콜로세움 바로 옆 (도보 1분)',
+        rating: 4,
+        type: '개선문',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Arch_of_Constantine_%28Rome%29_-_South_side%2C_from_Via_triumphalis.jpg/640px-Arch_of_Constantine_%28Rome%29_-_South_side%2C_from_Via_triumphalis.jpg',
+        imageCredit: 'Wikimedia Commons / Public Domain',
+        shortDesc: '콜로세움 옆 개선문 — 로마 제국 마지막 위대한 황제의 승리 기념, 그리고 로마 미술 쇠퇴의 증거.',
+        longDesc: `콜로세움을 다 보고 나오면 바로 보이는 거대한 개선문. AD 315년, 콘스탄티누스 황제가 **밀비안 다리 전투(AD 312)** 에서 막센티우스를 이긴 것을 기념하기 위해 세웠습니다. 이 전투는 콘스탄티누스가 기독교를 공인하는 계기가 된 사건입니다 (전투 전 "이 표지로 정복하리라"라는 십자가 환상).
+
+개선문은 **3개의 아치** 구조 — 가운데 큰 아치 + 양 옆 작은 아치. 높이 21m, 폭 25.7m. 로마에 남아있는 개선문 3개 중 가장 큼 (티투스 개선문, 셉티미우스 세베루스 개선문, 콘스탄티누스 개선문).
+
+**미술사적으로 흥미로운 점** — 이 개선문은 "재활용(spolia)"의 정점입니다:
+- **트라야누스 황제 시대 부조** (AD 100년대) — 위쪽
+- **하드리아누스 황제 시대 메달리온** (AD 100-130) — 가운데
+- **마르쿠스 아우렐리우스 시대 패널** (AD 170년대) — 가장 위
+- **콘스탄티누스 시대 자체 부조** (AD 315) — 가장 아래
+
+가장 아래의 콘스탄티누스 시대 부조와 위의 트라야누스 시대 부조를 비교해보세요. **양식의 차이가 명확합니다** — 트라야누스 부조는 인물들이 자연스럽고 비례가 정확하지만, 콘스탄티누스 부조는 인물이 작아지고 평면적이며 비례가 어색합니다. 이는 로마 미술의 쇠퇴를 보여주는 증거로 받아들여집니다. 또는 의도적인 양식 변화 — "이상화된 신성"의 표현 (비잔틴 미술의 시작 신호)이라고도 해석됩니다.
+
+콘스탄티누스가 다른 황제 시대 조각을 재사용한 이유:
+1. **시간 부족** — 새 부조를 모두 만들 시간이 없었습니다
+2. **상징적 연결** — "위대한 황제들의 계승자"라는 메시지 (트라야누스, 하드리아누스, 마르쿠스 아우렐리우스는 5현제)
+3. **자원 부족** — 4세기 로마는 이미 경제적 쇠퇴기
+
+개선문은 콜로세움 바로 옆에 있어서, 콜로세움 관람 후 5분만 추가 투자하면 볼 수 있는 보너스 명소입니다.`,
+        viewingPoints: [
+          { title: '3개 아치 구조', detail: '가운데 대 + 양 옆 소. 후대 개선문(파리 개선문 등)의 원형' },
+          { title: '재활용 부조의 시대 비교', detail: '위쪽 트라야누스(자연스러움) vs 아래 콘스탄티누스(평면적). 미술사의 변화' },
+          { title: '4세기 콘스탄티누스 부조', detail: '아치 바로 위, 가장 아래 띠. 인물이 작고 평면적 — 비잔틴의 예고' },
+          { title: '북쪽 면 (콜로세움 향한) vs 남쪽 면', detail: '두 면이 다른 내용 — 한쪽은 황제의 입장, 다른 쪽은 시민에게 자비' },
+        ],
+        funFact: '나폴레옹이 파리 개선문(Arc de Triomphe)을 만들 때 이 콘스탄티누스 개선문을 모델로 했습니다. 그래서 파리 개선문도 3개 아치 구조입니다.',
+        ttsScript: '〈콘스탄티누스 개선문〉. AD 315년, 콘스탄티누스 황제가 밀비안 다리 전투에서 막센티우스를 이긴 것을 기념하기 위해 세웠습니다. 이 전투는 콘스탄티누스가 기독교를 공인하는 계기가 된 사건입니다. 개선문은 3개의 아치 구조입니다. 가운데 큰 아치와 양 옆 작은 아치. 높이 21미터, 폭 25.7미터. 로마에 남아있는 개선문 3개 중 가장 큽니다. 미술사적으로 흥미로운 점이 있습니다. 이 개선문은 재활용의 정점입니다. 위쪽에는 트라야누스 황제 시대 부조, 가운데는 하드리아누스 황제 시대 메달리온, 가장 아래는 콘스탄티누스 시대 자체 부조가 있습니다. 가장 아래의 콘스탄티누스 시대 부조와 위의 트라야누스 시대 부조를 비교해보세요. 양식의 차이가 명확합니다. 트라야누스 부조는 인물들이 자연스럽고 비례가 정확하지만, 콘스탄티누스 부조는 인물이 작아지고 평면적이며 비례가 어색합니다. 이는 로마 미술의 쇠퇴를 보여주는 증거로 받아들여집니다. 또는 의도적인 양식 변화, 이상화된 신성의 표현이라고도 해석됩니다. 비잔틴 미술의 시작 신호입니다. 콜로세움 바로 옆에 있어서, 콜로세움 관람 후 5분만 추가 투자하면 볼 수 있는 보너스 명소입니다.',
       },
     ],
   },
@@ -352,7 +522,7 @@ export const ATTRACTIONS = [
         location: '판테온 내부 — 천장',
         rating: 5,
         type: '건축',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Roma-Pantheon-Innen2.jpg/512px-Roma-Pantheon-Innen2.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Interior_oculus_of_the_Rome_Pantheon.jpg/640px-Interior_oculus_of_the_Rome_Pantheon.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '직경 43.3m의 돔, 한가운데 9m 구멍. 비가 오면 그대로 들어온다.',
         longDesc: `판테온의 돔은 직경 43.3m, 높이도 정확히 43.3m. **완벽한 구가 내부에 들어갈 수 있습니다**. 하드리아누스의 설계자는 우주의 완벽함을 표현하려 했습니다. 1,800년 동안 세계에서 가장 큰 돔이었고, 1881년 미국 워싱턴 D.C.의 국회의사당 돔이 만들어질 때까지 깨지지 않았습니다. **무철근 콘크리트 돔으로는 여전히 세계 최대**입니다.
@@ -386,7 +556,7 @@ export const ATTRACTIONS = [
         location: '판테온 내부 — 왼쪽 두 번째 예배당',
         rating: 4,
         type: '무덤',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Tomba_di_Raffaello_-_Pantheon_-_Roma.jpg/512px-Tomba_di_Raffaello_-_Pantheon_-_Roma.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Rome_Pantheon_2020_P07_Raphael%27s_grave.jpg/640px-Rome_Pantheon_2020_P07_Raphael%27s_grave.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '37세에 요절한 천재 화가. 판테온에 묻히길 원한 마지막 소망.',
         longDesc: `라파엘로는 1520년 4월 6일, 37세 생일 직후 사망했습니다. 사인은 명확하지 않지만 열병(말라리아 또는 폐렴)이라 추정됩니다. 그는 자신의 무덤이 판테온에 만들어지길 유언으로 남겼고, 받아들여졌습니다.
@@ -441,7 +611,7 @@ export const ATTRACTIONS = [
         location: '분수 중앙 (정면 응시)',
         rating: 5,
         type: '바로크 조각',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Trevi_Fountain%2C_Rome%2C_Italy_2_-_May_2007.jpg/640px-Trevi_Fountain%2C_Rome%2C_Italy_2_-_May_2007.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Rome_%28IT%29%2C_Trevi-Brunnen_--_2013_--_3593.jpg/640px-Rome_%28IT%29%2C_Trevi-Brunnen_--_2013_--_3593.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '오케아노스(바다의 신, 흔히 넵튠으로 오해됨)를 중심으로 한 바로크의 정점.',
         longDesc: `트레비 분수의 중심 인물은 **넵튠(Neptune)이 아닌 오케아노스(Oceanus)**입니다. 흔한 오해 — 넵튠은 바다·강·호수의 모든 신이지만, 오케아노스는 그보다 더 큰 개념 — **모든 물의 원초적 신**, 세계를 둘러싼 거대한 바다 그 자체입니다.
@@ -474,7 +644,7 @@ export const ATTRACTIONS = [
         location: '분수 앞 — 등을 분수에 향하고',
         rating: 3,
         type: '전통',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Lancio_della_moneta_nella_Fontana_di_Trevi.jpg/512px-Lancio_della_moneta_nella_Fontana_di_Trevi.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/5/50/Aaron_Sommers_Throwing_Coin_in_Trevi_Fountain.JPG',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '오른손으로 왼쪽 어깨 너머, 세 번의 약속.',
         longDesc: `동전 던지기 의식은 사실 **고대 전통이 아닙니다**. 20세기 중반에 만들어진 비교적 새로운 전통입니다.
