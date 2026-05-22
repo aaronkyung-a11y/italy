@@ -2,8 +2,33 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   ChevronRight, ArrowLeft, Play, Pause, Volume2, VolumeX,
   Clock, Info, MapPin, Star, Headphones, BookOpen, Eye, Sparkles, Quote,
+  Camera, Image as ImageIcon, Loader2, AlertCircle, RefreshCw, WifiOff, Search,
 } from 'lucide-react';
 import { ATTRACTIONS, findAttraction, findPoint, TOTAL_POINTS } from './data/attractions.js';
+
+// ─────────────────────────────────────────────────────────
+// Image compression for Vision API uploads
+// ─────────────────────────────────────────────────────────
+function compressImage(file, maxDim = 1280) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      try { URL.revokeObjectURL(img.src); } catch { /* ignore */ }
+      const ratio = Math.min(maxDim / img.width, maxDim / img.height, 1);
+      const w = Math.round(img.width * ratio);
+      const h = Math.round(img.height * ratio);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      const base64 = dataUrl.split(',')[1];
+      resolve({ dataUrl, base64, mimeType: 'image/jpeg', width: w, height: h });
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
 
 // ─────────────────────────────────────────────────────────
 // View stack with browser history sync
@@ -120,6 +145,9 @@ export default function App() {
           audio={audio}
         />
       )}
+      {view.current.name === 'scan' && (
+        <ScanView pop={view.pop} push={view.push} />
+      )}
 
       <Footer />
     </div>
@@ -130,6 +158,19 @@ export default function App() {
 // Home — list of 5 attractions
 // ─────────────────────────────────────────────────────────
 function HomeView({ push }) {
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  useEffect(() => {
+    const onOnline = () => setIsOffline(false);
+    const onOffline = () => setIsOffline(true);
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', onOffline);
+    return () => {
+      window.removeEventListener('online', onOnline);
+      window.removeEventListener('offline', onOffline);
+    };
+  }, []);
+
   return (
     <div className="dc-home">
       <header className="dc-hero">
@@ -140,8 +181,27 @@ function HomeView({ push }) {
           <span><Headphones size={11} /> {TOTAL_POINTS} 포인트</span>
           <span>·</span>
           <span>{ATTRACTIONS.length} 명소</span>
+          {isOffline && (
+            <>
+              <span>·</span>
+              <span style={{ color: 'var(--terracotta)' }}>
+                <WifiOff size={11} /> 오프라인 모드
+              </span>
+            </>
+          )}
         </div>
       </header>
+
+      <button className="dc-scan-cta" onClick={() => push({ name: 'scan' })}>
+        <div className="dc-scan-cta-icon">
+          <Camera size={20} />
+        </div>
+        <div className="dc-scan-cta-body">
+          <div className="dc-scan-cta-title">작품 사진으로 찾기</div>
+          <div className="dc-scan-cta-sub">카메라로 비추면 어떤 작품인지 자동 식별</div>
+        </div>
+        <ChevronRight size={16} className="dc-scan-cta-chev" />
+      </button>
 
       <div className="dc-attractions">
         {ATTRACTIONS.map((a) => (
@@ -365,14 +425,266 @@ function PointView({ attractionId, pointId, pop, audio }) {
 }
 
 // ─────────────────────────────────────────────────────────
+// ScanView — 카메라로 작품 식별 (Claude Vision)
+// ─────────────────────────────────────────────────────────
+function ScanView({ pop, push }) {
+  const [analyzing, setAnalyzing] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const cameraRef = useRef(null);
+  const galleryRef = useRef(null);
+
+  async function handleFile(file) {
+    if (!file) return;
+    setAnalyzing(true);
+    setError(null);
+    setResult(null);
+    try {
+      const compressed = await compressImage(file, 1280);
+      setImagePreview(compressed.dataUrl);
+
+      // 카탈로그 구축 — Claude가 식별할 후보 리스트
+      const catalogStr = ATTRACTIONS.flatMap((a) =>
+        a.points.map(
+          (p) =>
+            `- ${a.id}/${p.id}: ${p.artist} 〈${p.name}〉 (${p.type}, ${p.year}, ${p.location})`
+        )
+      ).join('\n');
+
+      const resp = await fetch('/api/claude', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          max_tokens: 600,
+          messages: [
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'image',
+                  source: {
+                    type: 'base64',
+                    media_type: compressed.mimeType,
+                    data: compressed.base64,
+                  },
+                },
+                {
+                  type: 'text',
+                  text: `이 사진은 로마의 미술관·역사 명소에서 찍은 작품 또는 건축의 일부입니다.
+
+아래 카탈로그 중 어느 것에 가장 가깝게 일치하는지 식별해주세요:
+
+${catalogStr}
+
+JSON만 출력 (코드블록·다른 텍스트 금지):
+{
+  "matched": "attractionId/pointId" 형식 (예: "borghese/apollo-daphne"), 또는 어느 것도 아닐 경우 null,
+  "confidence": "high" | "medium" | "low",
+  "reasoning": "왜 그렇게 판단했는지 한국어로 1-2문장",
+  "alternates": ["다른 후보 attractionId/pointId 형식", ...]  // confidence가 medium 이하일 때 최대 2개
+}`,
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}));
+        throw new Error(errData.error || `API ${resp.status}`);
+      }
+
+      const data = await resp.json();
+      const text = data.content?.[0]?.text || '';
+      const cleaned = text.replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(cleaned);
+      setResult(parsed);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setAnalyzing(false);
+    }
+  }
+
+  function navigateToMatch(matchKey) {
+    if (!matchKey || !matchKey.includes('/')) return;
+    const [attractionId, pointId] = matchKey.split('/');
+    if (findPoint(attractionId, pointId)) {
+      push({ name: 'point', attractionId, pointId });
+    }
+  }
+
+  function reset() {
+    setResult(null);
+    setError(null);
+    setImagePreview(null);
+  }
+
+  // Lookup matched point details for display
+  const matchedPoint = result?.matched
+    ? (() => {
+        const [aId, pId] = result.matched.split('/');
+        const a = findAttraction(aId);
+        const p = findPoint(aId, pId);
+        return a && p ? { attraction: a, point: p, attractionId: aId, pointId: pId } : null;
+      })()
+    : null;
+
+  return (
+    <div className="dc-subview dc-scan-view">
+      <button className="dc-back" onClick={pop}>
+        <ArrowLeft size={14} /> 뒤로
+      </button>
+
+      <h2 className="dc-h1">작품 사진으로 찾기</h2>
+      <div className="dc-h1-sub">📷 사진 한 장이면 어떤 작품인지 알려드려요</div>
+
+      {!imagePreview && !analyzing && (
+        <div className="dc-scan-pick">
+          <button className="dc-primary-btn" onClick={() => cameraRef.current?.click()}>
+            <Camera size={18} /> 카메라로 찍기
+          </button>
+          <button className="dc-secondary-btn" onClick={() => galleryRef.current?.click()}>
+            <ImageIcon size={16} /> 갤러리에서 선택
+          </button>
+          <div className="dc-scan-hint">
+            <Info size={11} /> 17점 카탈로그 중에서 인식합니다. 보르게세·바티칸·콜로세움·판테온·트레비.
+          </div>
+        </div>
+      )}
+
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        style={{ display: 'none' }}
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) {
+            handleFile(f);
+            e.target.value = '';
+          }
+        }}
+      />
+      <input
+        ref={galleryRef}
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) {
+            handleFile(f);
+            e.target.value = '';
+          }
+        }}
+      />
+
+      {imagePreview && (
+        <div className="dc-scan-preview">
+          <img src={imagePreview} alt="찍은 사진" />
+        </div>
+      )}
+
+      {analyzing && (
+        <div className="dc-scan-loading">
+          <Loader2 size={26} className="dc-spin" />
+          <div>작품을 분석하고 있어요…</div>
+          <div className="dc-scan-loading-sub">Claude Vision으로 17점 카탈로그와 비교 중</div>
+        </div>
+      )}
+
+      {error && (
+        <div className="dc-error">
+          <AlertCircle size={16} />
+          <div>분석 오류: {error}</div>
+        </div>
+      )}
+
+      {result && !analyzing && (
+        <>
+          {matchedPoint ? (
+            <div className="dc-scan-match">
+              <div className="dc-scan-match-badge" data-confidence={result.confidence}>
+                {result.confidence === 'high'
+                  ? '🎯 확실'
+                  : result.confidence === 'medium'
+                  ? '👍 일치 가능'
+                  : '🤔 비슷'}
+              </div>
+              <button
+                className="dc-scan-match-card"
+                onClick={() => navigateToMatch(result.matched)}
+              >
+                <img src={matchedPoint.point.image} alt={matchedPoint.point.name} />
+                <div className="dc-scan-match-body">
+                  <div className="dc-scan-match-attraction">
+                    {matchedPoint.attraction.emoji} {matchedPoint.attraction.name}
+                  </div>
+                  <h3>{matchedPoint.point.name}</h3>
+                  <div className="dc-scan-match-artist">
+                    {matchedPoint.point.artist} · {matchedPoint.point.year}
+                  </div>
+                  <div className="dc-scan-match-cta">
+                    <Headphones size={11} /> 도슨트 듣기 →
+                  </div>
+                </div>
+              </button>
+              {result.reasoning && (
+                <div className="dc-scan-reasoning">
+                  <Sparkles size={11} /> {result.reasoning}
+                </div>
+              )}
+              {result.alternates && result.alternates.length > 0 && (
+                <div className="dc-scan-alternates">
+                  <div className="dc-scan-alternates-label">다른 후보:</div>
+                  {result.alternates.map((alt) => {
+                    const [aId, pId] = alt.split('/');
+                    const p = findPoint(aId, pId);
+                    if (!p) return null;
+                    return (
+                      <button
+                        key={alt}
+                        className="dc-scan-alternate-item"
+                        onClick={() => navigateToMatch(alt)}
+                      >
+                        {p.name} <span>· {p.artist}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="dc-scan-no-match">
+              <Search size={20} />
+              <div className="dc-scan-no-match-title">카탈로그에 없는 작품 같아요</div>
+              <div className="dc-scan-no-match-sub">{result.reasoning || '다른 사진으로 다시 시도해보세요.'}</div>
+            </div>
+          )}
+
+          <button className="dc-secondary-btn" onClick={reset} style={{ marginTop: 16 }}>
+            <RefreshCw size={14} /> 다른 사진 찾기
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
 // Footer
 // ─────────────────────────────────────────────────────────
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.3</div>
+      <div>도슨트 · Docent v0.4</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
+      <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
     </footer>
   );
 }
