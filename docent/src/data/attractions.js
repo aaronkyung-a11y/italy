@@ -34,7 +34,7 @@ export const ATTRACTIONS = [
         location: '방 III',
         rating: 5,
         type: '대리석 조각',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Apollo_and_Daphne_%28Bernini%29_%28cropped%29.jpg/640px-Apollo_and_Daphne_%28Bernini%29_%28cropped%29.jpg',
+        image: 'https://[0px-Apollo_and_Daphne_%28Bernini%29_%28cropped%29.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '아폴로가 다프네를 잡는 순간, 그녀는 월계수로 변하기 시작한다. 베르니니 25세 작.',
         longDesc: `오비디우스의 〈변신 이야기〉를 한 덩어리의 대리석으로 옮긴 베르니니의 마법. 사랑의 신 큐피드가 두 화살을 쏘았다 — 아폴로에겐 사랑의 화살, 강의 요정 다프네에겐 거부의 화살. 아폴로가 추격해 잡으려는 바로 그 순간, 다프네는 아버지에게 도와달라 외치고 그녀의 몸이 월계수로 변한다.
@@ -62,7 +62,7 @@ export const ATTRACTIONS = [
         location: '방 II',
         rating: 5,
         type: '대리석 조각',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Bernini%27s_David_02.jpg/640px-Bernini%27s_David_02.jpg',
+        image: 'https://[0px-Bernini%27s_David_02.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '돌을 던지기 직전, 골리앗을 노려보는 다비드. 베르니니의 자화상이라는 얼굴.',
         longDesc: `미켈란젤로의 다비드(피렌체)가 "전투 전의 완벽한 청년"이라면, 베르니니의 다비드는 "전투 한가운데의 인간"입니다. 미켈란젤로가 정적인 영웅상을 깎았다면, 베르니니는 동적인 순간을 포착했습니다.
@@ -90,7 +90,7 @@ export const ATTRACTIONS = [
         location: '방 IV',
         rating: 5,
         type: '대리석 조각',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Rape_of_Prosepina_September_2015-3a.jpg/640px-Rape_of_Prosepina_September_2015-3a.jpg',
+        image: 'https://[0px-Rape_of_Prosepina_September_2015-3a.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '플루토의 손가락이 프로세르피나의 허벅지를 누르는 디테일 — 대리석에서 살을 느끼게 한 베르니니의 마법.',
         longDesc: `베르니니가 23살에 만든 작품으로, 〈아폴로와 다프네〉보다 1년 먼저 만들어진 자매작입니다. 지하 세계의 신 플루토(하데스)가 풍요의 여신 데메테르의 딸 프로세르피나를 납치하는 신화 장면.
@@ -121,7 +121,7 @@ export const ATTRACTIONS = [
         location: '방 I (입구)',
         rating: 5,
         type: '대리석 조각',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Paolina_Borghese_%28Canova%29.jpg/640px-Paolina_Borghese_%28Canova%29.jpg',
+        image: 'https://[0px-Paolina_Borghese_%28Canova%29.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '나폴레옹의 누이, 누드로 비너스가 된 도발. 신고전주의의 정점.',
         longDesc: `미술관 입구 첫 번째 방의 작품. 일반인은 이 작품을 처음 보고 충격을 받습니다 — **상반신이 완전 누드인 19세기 여인의 실제 초상**.
@@ -153,7 +153,7 @@ export const ATTRACTIONS = [
         location: '방 8 (Sala VIII)',
         rating: 5,
         type: '회화 (캔버스에 유채)',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/David_with_the_Head_of_Goliath-Caravaggio_%281610%29.jpg/640px-David_with_the_Head_of_Goliath-Caravaggio_%281610%29.jpg',
+        image: 'https://[0px-David_with_the_Head_of_Goliath-Caravaggio_%281610%29.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '잘린 머리는 카라바조 자신의 자화상. 살인범이 된 화가가 그린 마지막 자백.',
         longDesc: `1606년 카라바조는 로마에서 한 남자를 살해했습니다. 사형 선고를 받고 도망쳤고, 4년 동안 나폴리·말타·시칠리아를 떠돌았습니다. 1610년, 교황의 사면을 기대하며 로마로 돌아오던 중 38세에 사망합니다. 이 작품은 그가 마지막 시기에 그린 것 중 하나이고, 사면을 위해 시피오네 보르게세 추기경에게 보낸 것으로 추정됩니다.
@@ -206,7 +206,7 @@ export const ATTRACTIONS = [
         location: '시스티나 성당 (천장 중앙)',
         rating: 5,
         type: '프레스코',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Sistine_Chapel_ceiling_02_%28brightened%29.jpg/640px-Sistine_Chapel_ceiling_02_%28brightened%29.jpg',
+        image: 'https://[0px-Sistine_Chapel_ceiling_02_%28brightened%29.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '신과 아담의 손가락이 닿기 직전. 르네상스 최정점.',
         longDesc: `시스티나 성당 천장의 9개 창세기 패널 중 4번째, 가장 유명한 장면입니다. 미켈란젤로는 1508년부터 1512년까지 4년간 거의 혼자 천장 전체(500㎡)를 그렸습니다. 그는 조각가였고 회화는 잘 모른다고 끝까지 항변했지만, 교황 율리오 2세는 강제로 시켰습니다.
@@ -236,7 +236,7 @@ export const ATTRACTIONS = [
         location: '라파엘로의 방 — Stanza della Segnatura',
         rating: 5,
         type: '프레스코',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/%22The_School_of_Athens%22_by_Raffaello_Sanzio_da_Urbino.jpg/640px-%22The_School_of_Athens%22_by_Raffaello_Sanzio_da_Urbino.jpg',
+        image: 'https://[0px-%22The_School_of_Athens%22_by_Raffaello_Sanzio_da_Urbino.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '플라톤·아리스토텔레스를 중심으로 고대 그리스 철학자 21명. 라파엘로는 자신을 끝에 그려 넣었다.',
         longDesc: `라파엘로가 26세에 그린 르네상스 회화의 절정. 시스티나 천장과 같은 시기, 미켈란젤로가 천장을 그리는 동안 라파엘로는 옆 건물에서 〈아테네 학당〉을 그렸습니다.
@@ -269,7 +269,7 @@ export const ATTRACTIONS = [
         location: '바티칸 박물관 — 벨베데레 정원 (Cortile Ottagono)',
         rating: 5,
         type: '헬레니즘 대리석 조각',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Laoco%C3%B6n_and_his_sons_group.jpg/640px-Laoco%C3%B6n_and_his_sons_group.jpg',
+        image: 'https://[0px-Laoco%C3%B6n_and_his_sons_group.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '미켈란젤로가 직접 발굴 현장으로 달려간 헬레니즘 조각의 정점.',
         longDesc: `1506년 1월 14일, 로마 에스퀼리노 언덕의 한 포도밭에서 농부가 땅을 파다 거대한 대리석 조각이 발견됩니다. 교황 율리오 2세는 즉시 두 사람을 보냈습니다 — **건축가 줄리아노 다 산갈로**와 **미켈란젤로**.
@@ -302,7 +302,7 @@ export const ATTRACTIONS = [
         location: '시스티나 성당 — 제단 벽',
         rating: 5,
         type: '프레스코',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Last_Judgement_%28Michelangelo%29.jpg/640px-Last_Judgement_%28Michelangelo%29.jpg',
+        image: 'https://[0px-Last_Judgement_%28Michelangelo%29.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '시스티나 천장 25년 후 같은 곳, 60대 미켈란젤로의 두 번째 걸작.',
         longDesc: `시스티나 천장(1512년 완성) 후 25년이 지나, 미켈란젤로가 60대에 다시 시스티나로 돌아와 그린 그림. 1536년 시작, 1541년 완성. 천장이 "창조"의 그림이라면, 이것은 "끝"의 그림입니다.
@@ -337,7 +337,7 @@ export const ATTRACTIONS = [
         location: '성 베드로 대성당 입구 오른쪽 첫 번째 예배당',
         rating: 5,
         type: '대리석 조각',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Pieta_de_Michelangelo_-_Vaticano.jpg/640px-Pieta_de_Michelangelo_-_Vaticano.jpg',
+        image: 'https://[0px-Pieta_de_Michelangelo_-_Vaticano.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '죽은 아들을 무릎에 안은 어머니. 미켈란젤로 23세, 그가 서명한 유일한 작품.',
         longDesc: `미켈란젤로가 23세에 만든 작품. 너무 완벽해서 다른 조각가의 작품으로 오해받자, 미켈란젤로는 밤에 몰래 성당에 들어가 마리아의 가슴띠에 자신의 이름을 새겼습니다. **MICHAEL.AGELVS.BONAROTVS.FLORENT.FACIEBAT** — 피렌체의 미켈란젤로 부오나로티가 만들었다. 평생 서명한 유일한 작품입니다. 후에 그는 이 자만을 후회했다고 합니다.
@@ -393,7 +393,7 @@ export const ATTRACTIONS = [
         location: '콜로세움 외부 (북쪽 입구에서 가장 잘 보임)',
         rating: 4,
         type: '건축',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Colosseo_2020.jpg/640px-Colosseo_2020.jpg',
+        image: 'https://[0px-Colosseo_2020.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '1층 도리아·2층 이오니아·3층 코린트. 그리스 3대 양식을 한 건물에 쌓아 올린 로마의 자기 선언.',
         longDesc: `콜로세움 외관은 4층 구조이고, 각 층의 기둥(공식적으로는 "부조 기둥" — engaged columns)이 다른 양식입니다.
@@ -426,7 +426,7 @@ export const ATTRACTIONS = [
         location: '아레나 바닥 아래 (Arena Floor + Hypogeum 추가 티켓 필요)',
         rating: 5,
         type: '지하 시설',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Hypogeum_1_%2815005526662%29.jpg/640px-Hypogeum_1_%2815005526662%29.jpg',
+        image: 'https://[0px-Hypogeum_1_%2815005526662%29.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '검투사·맹수 대기실. 무대 엘리베이터 32개로 동물이 갑자기 아레나로 솟아올랐다.',
         longDesc: `오늘날 우리가 보는 콜로세움의 "바닥"은 사실 텅 빈 공간입니다. 원래는 모래(arena = "모래") 깔린 무대였고, 그 아래는 **2층 지하 미로 구조 (히포게움)** 였습니다.
@@ -461,7 +461,7 @@ export const ATTRACTIONS = [
         location: '콜로세움 바로 옆 (도보 1분)',
         rating: 4,
         type: '개선문',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Arch_of_Constantine_%28Rome%29_-_South_side%2C_from_Via_triumphalis.jpg/640px-Arch_of_Constantine_%28Rome%29_-_South_side%2C_from_Via_triumphalis.jpg',
+        image: 'https://[0px-Arch_of_Constantine_%28Rome%29_-_South_side%2C_from_Via_triumphalis.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '콜로세움 옆 개선문 — 로마 제국 마지막 위대한 황제의 승리 기념, 그리고 로마 미술 쇠퇴의 증거.',
         longDesc: `콜로세움을 다 보고 나오면 바로 보이는 거대한 개선문. AD 315년, 콘스탄티누스 황제가 **밀비안 다리 전투(AD 312)** 에서 막센티우스를 이긴 것을 기념하기 위해 세웠습니다. 이 전투는 콘스탄티누스가 기독교를 공인하는 계기가 된 사건입니다 (전투 전 "이 표지로 정복하리라"라는 십자가 환상).
@@ -522,7 +522,7 @@ export const ATTRACTIONS = [
         location: '판테온 내부 — 천장',
         rating: 5,
         type: '건축',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fc/Interior_oculus_of_the_Rome_Pantheon.jpg/640px-Interior_oculus_of_the_Rome_Pantheon.jpg',
+        image: 'https://[0px-Interior_oculus_of_the_Rome_Pantheon.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '직경 43.3m의 돔, 한가운데 9m 구멍. 비가 오면 그대로 들어온다.',
         longDesc: `판테온의 돔은 직경 43.3m, 높이도 정확히 43.3m. **완벽한 구가 내부에 들어갈 수 있습니다**. 하드리아누스의 설계자는 우주의 완벽함을 표현하려 했습니다. 1,800년 동안 세계에서 가장 큰 돔이었고, 1881년 미국 워싱턴 D.C.의 국회의사당 돔이 만들어질 때까지 깨지지 않았습니다. **무철근 콘크리트 돔으로는 여전히 세계 최대**입니다.
@@ -556,7 +556,7 @@ export const ATTRACTIONS = [
         location: '판테온 내부 — 왼쪽 두 번째 예배당',
         rating: 4,
         type: '무덤',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Rome_Pantheon_2020_P07_Raphael%27s_grave.jpg/640px-Rome_Pantheon_2020_P07_Raphael%27s_grave.jpg',
+        image: 'https://[0px-Rome_Pantheon_2020_P07_Raphael%27s_grave.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '37세에 요절한 천재 화가. 판테온에 묻히길 원한 마지막 소망.',
         longDesc: `라파엘로는 1520년 4월 6일, 37세 생일 직후 사망했습니다. 사인은 명확하지 않지만 열병(말라리아 또는 폐렴)이라 추정됩니다. 그는 자신의 무덤이 판테온에 만들어지길 유언으로 남겼고, 받아들여졌습니다.
@@ -611,7 +611,7 @@ export const ATTRACTIONS = [
         location: '분수 중앙 (정면 응시)',
         rating: 5,
         type: '바로크 조각',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Rome_%28IT%29%2C_Trevi-Brunnen_--_2013_--_3593.jpg/640px-Rome_%28IT%29%2C_Trevi-Brunnen_--_2013_--_3593.jpg',
+        image: 'https://[0px-Rome_%28IT%29%2C_Trevi-Brunnen_--_2013_--_3593.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '오케아노스(바다의 신, 흔히 넵튠으로 오해됨)를 중심으로 한 바로크의 정점.',
         longDesc: `트레비 분수의 중심 인물은 **넵튠(Neptune)이 아닌 오케아노스(Oceanus)**입니다. 흔한 오해 — 넵튠은 바다·강·호수의 모든 신이지만, 오케아노스는 그보다 더 큰 개념 — **모든 물의 원초적 신**, 세계를 둘러싼 거대한 바다 그 자체입니다.
