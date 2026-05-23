@@ -96,7 +96,7 @@ export const ATTRACTIONS = [
         location: '방 6 (Sala VI, 아이네아스 방)',
         rating: 5,
         type: '대리석 조각 (실물 크기 군상)',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Museo_borghese%2C_sala_del_gladiatore%2C_gian_lorenzo_bernini_%28e_pietro_bernini%29%2C_enea_anchise_e_ascanio%2C_1618-20.jpg/330px-Museo_borghese%2C_sala_del_gladiatore%2C_gian_lorenzo_bernini_%28e_pietro_bernini%29%2C_enea_anchise_e_ascanio%2C_1618-20.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Aeneas%2C_Anchises%2C_and_Ascanius_by_Bernini%2C_1618-1620%2C_marble%2C_view_1_-_Galleria_Borghese_-_Rome%2C_Italy_-_DSC04797.jpg/330px-Aeneas%2C_Anchises%2C_and_Ascanius_by_Bernini%2C_1618-1620%2C_marble%2C_view_1_-_Galleria_Borghese_-_Rome%2C_Italy_-_DSC04797.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '베르니니 20세 데뷔작. 트로이가 불타는 밤, 아이네아스가 아버지를 업고 아들이 불을 들고 따른다.',
         longDesc: `베르니니의 **첫 번째 대형 의뢰작**. 단 20세, 시피오네 보르게세 추기경에게 능력을 증명해야 했던 작품. 이 한 작품으로 베르니니는 17세기 로마 최고 조각가 자리를 시작했습니다.
