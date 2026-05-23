@@ -104,6 +104,8 @@ function useViewStack(initial = { name: 'home' }) {
   const push = useCallback((v) => {
     setStack((s) => [...s, v]);
     window.history.pushState({}, '');
+    // 뷰 전환 시 스크롤 최상단으로 — 새 화면이 중간부터 보이는 문제 방지
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
   const pop = useCallback(() => {
     if (stack.length > 1) window.history.back();
