@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import { ATTRACTIONS, findAttraction, findPoint, TOTAL_POINTS } from './data/attractions.js';
 
-// v0.12 — rebuild trigger 2026-05-23
 // ─────────────────────────────────────────────────────────
 // Image compression for Vision API uploads
 // ─────────────────────────────────────────────────────────
@@ -1507,8 +1506,7 @@ function ScanView({ pop, push }) {
           (p) =>
             `- ${a.id}/${p.id}: ${p.artist} 〈${p.name}〉 (${p.type}, ${p.year}, ${p.location})`
         )
-      ).join('
-');
+      ).join('\n');
 
       const resp = await fetch('/api/claude', {
         method: 'POST',
