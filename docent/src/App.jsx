@@ -269,6 +269,9 @@ export default function App() {
       {view.current.name === 'favorites' && (
         <FavoritesView pop={view.pop} push={view.push} favorites={favorites} />
       )}
+      {view.current.name === 'search' && (
+        <SearchView pop={view.pop} push={view.push} />
+      )}
 
       <Footer />
     </div>
@@ -373,6 +376,11 @@ function HomeView({ push, favorites }) {
           </button>
         </div>
       )}
+
+      <button className="dc-search-bar" onClick={() => push({ name: 'search' })}>
+        <Search size={16} className="dc-search-bar-icon" />
+        <span className="dc-search-bar-placeholder">작품·작가 이름으로 검색</span>
+      </button>
 
       <button className="dc-scan-cta" onClick={() => push({ name: 'scan' })}>
         <div className="dc-scan-cta-icon">
@@ -1724,12 +1732,119 @@ JSON만 출력 (코드블록·다른 텍스트 금지):
 }
 
 // ─────────────────────────────────────────────────────────
+// SearchView — 작품·작가 이름 검색
+// ─────────────────────────────────────────────────────────
+function SearchView({ pop, push }) {
+  const [query, setQuery] = useState('');
+  const inputRef = useRef(null);
+
+  // Autofocus on mount
+  useEffect(() => {
+    const t = setTimeout(() => inputRef.current?.focus(), 100);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Build searchable index once
+  const allPoints = [];
+  ATTRACTIONS.forEach((a) => {
+    a.points.forEach((p, idx) => {
+      allPoints.push({
+        ...p,
+        attractionId: a.id,
+        attractionName: a.name,
+        attractionEmoji: a.emoji,
+        attractionAccent: a.coverHue,
+        idx: idx + 1,
+      });
+    });
+  });
+
+  // Filter
+  const q = query.trim().toLowerCase();
+  const results = q
+    ? allPoints.filter((p) => {
+        const haystack = `${p.name} ${p.nameLocal || ''} ${p.artist || ''} ${p.attractionName}`.toLowerCase();
+        return haystack.includes(q);
+      })
+    : [];
+
+  return (
+    <div className="dc-subview">
+      <div className="dc-search-header">
+        <button className="dc-search-back" onClick={pop} aria-label="뒤로">
+          <ArrowLeft size={16} />
+        </button>
+        <div className="dc-search-input-wrap">
+          <Search size={14} className="dc-search-input-icon" />
+          <input
+            ref={inputRef}
+            type="text"
+            inputMode="search"
+            placeholder="모세, 카라바조, 라파엘로, 콜로세움..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="dc-search-input"
+          />
+          {query && (
+            <button className="dc-search-clear" onClick={() => setQuery('')} aria-label="지우기">
+              <X size={14} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {!q && (
+        <div className="dc-search-hint">
+          <div className="dc-search-hint-title">전체 {TOTAL_POINTS}점 · {ATTRACTIONS.length}명소에서 검색</div>
+          <div className="dc-search-hint-sub">한글 이름, 이탈리아어 원문, 작가 이름 모두 검색돼요</div>
+        </div>
+      )}
+
+      {q && results.length === 0 && (
+        <div className="dc-search-empty">
+          <Search size={28} />
+          <div className="dc-search-empty-title">"{query}"에 대한 결과 없음</div>
+          <div className="dc-search-empty-sub">다른 키워드로 시도해보세요</div>
+        </div>
+      )}
+
+      {q && results.length > 0 && (
+        <>
+          <div className="dc-search-count">{results.length}점 발견</div>
+          <div className="dc-search-results">
+            {results.map((p) => (
+              <button
+                key={`${p.attractionId}-${p.id}`}
+                className="dc-search-item"
+                style={{ '--accent': p.attractionAccent }}
+                onClick={() => push({ name: 'point', attractionId: p.attractionId, pointId: p.id })}
+              >
+                <img src={p.image} alt={p.name} loading="lazy" />
+                <div className="dc-search-item-body">
+                  <div className="dc-search-item-name">{p.name}</div>
+                  {p.artist && <div className="dc-search-item-artist">{p.artist}</div>}
+                  <div className="dc-search-item-attr">
+                    <span>{p.attractionEmoji}</span>
+                    <span>{p.attractionName}</span>
+                  </div>
+                </div>
+                <ChevronRight size={14} className="dc-search-item-chev" />
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
 // Footer
 // ─────────────────────────────────────────────────────────
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.11</div>
+      <div>도슨트 · Docent v0.12</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>

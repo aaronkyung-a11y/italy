@@ -2566,3 +2566,208 @@ img {
   border-color: var(--terracotta);
   color: var(--terracotta);
 }
+
+/* ───────── Search ───────── */
+.dc-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  margin: 12px 0 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--text-faint);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+.dc-search-bar:hover, .dc-search-bar:active {
+  border-color: var(--line-2);
+  background: var(--surface-2);
+}
+.dc-search-bar-icon {
+  color: var(--gold-soft);
+  flex-shrink: 0;
+}
+.dc-search-bar-placeholder {
+  flex: 1;
+  color: var(--text-faint);
+}
+
+.dc-search-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0 14px;
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 10;
+}
+.dc-search-back {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+}
+.dc-search-input-wrap {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--gold-soft);
+  border-radius: 10px;
+  padding: 0 10px;
+}
+.dc-search-input-icon {
+  color: var(--gold);
+  flex-shrink: 0;
+}
+.dc-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 14px;
+  padding: 10px 8px;
+}
+.dc-search-input::placeholder {
+  color: var(--text-faint);
+  font-size: 13px;
+}
+.dc-search-clear {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dc-search-clear:hover {
+  color: var(--text);
+}
+
+.dc-search-hint {
+  text-align: center;
+  padding: 36px 16px;
+  color: var(--text-faint);
+}
+.dc-search-hint-title {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px;
+  color: var(--text-soft);
+  margin-bottom: 6px;
+}
+.dc-search-hint-sub {
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.dc-search-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 16px;
+  color: var(--text-faint);
+}
+.dc-search-empty-title {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px;
+  color: var(--text-soft);
+  margin-top: 8px;
+}
+.dc-search-empty-sub {
+  font-size: 11px;
+}
+
+.dc-search-count {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  color: var(--text-faint);
+  padding: 8px 4px 12px;
+  letter-spacing: 0.5px;
+}
+.dc-search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dc-search-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent, var(--gold));
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+}
+.dc-search-item:hover, .dc-search-item:active {
+  background: var(--surface-2);
+  border-color: var(--line-2);
+  border-left-color: var(--accent, var(--gold));
+}
+.dc-search-item img {
+  width: 52px;
+  height: 52px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.dc-search-item-body {
+  flex: 1;
+  min-width: 0;
+}
+.dc-search-item-name {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+.dc-search-item-artist {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  color: var(--text-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+.dc-search-item-attr {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 10px;
+  color: var(--text-faint);
+}
+.dc-search-item-chev {
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
