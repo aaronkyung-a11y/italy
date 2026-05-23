@@ -4,6 +4,7 @@ import {
   Clock, Info, MapPin, Star, Headphones, BookOpen, Eye, Sparkles, Quote,
   Camera, Image as ImageIcon, Loader2, AlertCircle, RefreshCw, WifiOff, Search,
   Download, Smartphone, X,
+  MessageCircle, Send, Map,
 } from 'lucide-react';
 import { ATTRACTIONS, findAttraction, findPoint, TOTAL_POINTS } from './data/attractions.js';
 
@@ -359,9 +360,11 @@ function AttractionCard({ attraction, onClick }) {
 // ─────────────────────────────────────────────────────────
 function AttractionView({ attractionId, push, pop }) {
   const attraction = findAttraction(attractionId);
+  const [view, setView] = useState('list'); // 'list' | 'floorplan'
   if (!attraction) return <div>명소를 찾을 수 없습니다.</div>;
 
   const accent = attraction.coverHue;
+  const hasFloorPlan = attractionId === 'borghese';
 
   return (
     <div className="dc-subview">
@@ -391,24 +394,165 @@ function AttractionView({ attractionId, push, pop }) {
       </section>
 
       <section className="dc-section">
-        <h3 className="dc-section-h">
-          <Headphones size={13} /> 오디오 가이드 ({attraction.points.length}점)
-        </h3>
-        <div className="dc-points">
-          {attraction.points.map((p, idx) => (
-            <PointCard
-              key={p.id}
-              point={p}
-              idx={idx + 1}
-              accent={accent}
-              onClick={() => push({ name: 'point', attractionId, pointId: p.id })}
-            />
-          ))}
+        <div className="dc-section-h-row">
+          <h3 className="dc-section-h">
+            <Headphones size={13} /> 오디오 가이드 ({attraction.points.length}점)
+          </h3>
+          {hasFloorPlan && (
+            <div className="dc-view-toggle">
+              <button
+                className={`dc-view-toggle-btn ${view === 'list' ? 'active' : ''}`}
+                onClick={() => setView('list')}
+              >
+                리스트
+              </button>
+              <button
+                className={`dc-view-toggle-btn ${view === 'floorplan' ? 'active' : ''}`}
+                onClick={() => setView('floorplan')}
+              >
+                <Map size={11} /> 평면도
+              </button>
+            </div>
+          )}
         </div>
-      </section>
 
-      <div className="dc-coming-soon">
-        <Sparkles size={11} /> 더 많은 포인트가 곧 추가됩니다 (v0.2~)
+        {view === 'list' ? (
+          <div className="dc-points">
+            {attraction.points.map((p, idx) => (
+              <PointCard
+                key={p.id}
+                point={p}
+                idx={idx + 1}
+                accent={accent}
+                onClick={() => push({ name: 'point', attractionId, pointId: p.id })}
+              />
+            ))}
+          </div>
+        ) : (
+          <BorgheseFloorPlan
+            points={attraction.points}
+            accent={accent}
+            onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
+          />
+        )}
+      </section>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// BorgheseFloorPlan — 방별 작품 위치 평면도
+// ─────────────────────────────────────────────────────────
+function BorgheseFloorPlan({ points, accent, onPointClick }) {
+  const [floor, setFloor] = useState('ground');
+
+  // Map each point ID to its room and floor (approximated from museum layout)
+  const ROOMS = {
+    ground: {
+      label: '1층 — 조각 (Pian Terreno)',
+      sub: '베르니니, 카노바, 카라바조 등 — 보르게세 컬렉션의 출발점',
+      // Rooms in approximate visit order, with their points
+      rows: [
+        // First row: rooms IV, III, II (going right)
+        [
+          { name: 'Sala IV', sub: '엠퍼러의 방', pointIds: ['proserpina'] },
+          { name: 'Sala III', sub: '아폴로와 다프네의 방', pointIds: ['apollo-daphne', 'aeneas-anchises'] },
+          { name: 'Sala II', sub: '검투사의 방', pointIds: ['david'] },
+        ],
+        // Center: entry hall (Sala I)
+        [
+          { name: 'Sala I', sub: '입구·카노바의 방', pointIds: ['pauline-bonaparte'], wide: true },
+        ],
+        // Bottom row: VI, VII, VIII
+        [
+          { name: 'Sala VI', sub: '아이네아스의 방', pointIds: [] },
+          { name: 'Sala VII', sub: '이집트의 방', pointIds: ['truth-unveiled', 'caravaggio-jerome'] },
+          { name: 'Sala VIII', sub: '실레노스의 방 — 카라바조', pointIds: ['david-goliath', 'madonna-palafrenieri', 'sick-bacchus'] },
+        ],
+      ],
+    },
+    first: {
+      label: '2층 — 회화 (Pinacoteca)',
+      sub: '라파엘로, 티치아노, 코레조 — 16세기 이탈리아 회화의 집결',
+      rows: [
+        [
+          { name: 'Sala IX', sub: '라파엘로의 방', pointIds: ['raphael-entombment'] },
+          { name: 'Sala X', sub: '매너리즘의 방', pointIds: ['correggio-danae'] },
+          { name: 'Sala XX', sub: '베네치아 화파', pointIds: ['sacred-profane-love'] },
+        ],
+        [
+          { name: 'Sala XIV', sub: '오로라의 방', pointIds: ['scipione-bust'], wide: true },
+        ],
+      ],
+    },
+  };
+
+  // Build point lookup with index numbers (from original list)
+  const pointMap = {};
+  points.forEach((p, i) => { pointMap[p.id] = { ...p, idx: i + 1 }; });
+
+  const current = ROOMS[floor];
+
+  return (
+    <div className="dc-floorplan" style={{ '--accent': accent }}>
+      <div className="dc-floor-toggle">
+        <button
+          className={`dc-floor-btn ${floor === 'ground' ? 'active' : ''}`}
+          onClick={() => setFloor('ground')}
+        >
+          1층 · 조각
+        </button>
+        <button
+          className={`dc-floor-btn ${floor === 'first' ? 'active' : ''}`}
+          onClick={() => setFloor('first')}
+        >
+          2층 · 회화
+        </button>
+      </div>
+
+      <div className="dc-floor-label">
+        <div className="dc-floor-label-title">{current.label}</div>
+        <div className="dc-floor-label-sub">{current.sub}</div>
+      </div>
+
+      <div className="dc-floorplan-grid">
+        {current.rows.map((row, rowIdx) => (
+          <div className={`dc-floorplan-row dc-floorplan-row-${row.length}`} key={rowIdx}>
+            {row.map((room) => (
+              <div
+                className={`dc-floorplan-room ${room.wide ? 'wide' : ''} ${room.pointIds.length === 0 ? 'empty' : ''}`}
+                key={room.name}
+              >
+                <div className="dc-floorplan-room-name">{room.name}</div>
+                <div className="dc-floorplan-room-sub">{room.sub}</div>
+                {room.pointIds.length === 0 ? (
+                  <div className="dc-floorplan-empty">소개 작품 없음</div>
+                ) : (
+                  <div className="dc-floorplan-points">
+                    {room.pointIds.map((pid) => {
+                      const p = pointMap[pid];
+                      if (!p) return null;
+                      return (
+                        <button
+                          key={pid}
+                          className="dc-floorplan-point"
+                          onClick={() => onPointClick(pid)}
+                        >
+                          <span className="dc-floorplan-point-num">{String(p.idx).padStart(2, '0')}</span>
+                          <span className="dc-floorplan-point-name">{p.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      <div className="dc-floorplan-note">
+        <Info size={10} /> 방 배치는 단순화된 도식. 실제 동선은 입장 시 받는 지도를 참고하세요.
       </div>
     </div>
   );
@@ -538,7 +682,221 @@ function PointView({ attractionId, pointId, pop, audio }) {
           <p className="dc-prose">{point.funFact}</p>
         </section>
       )}
+
+      <QASection point={point} attraction={attraction} />
     </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// QASection — Claude API로 작품에 대해 질문하기
+// ─────────────────────────────────────────────────────────
+function QASection({ point, attraction }) {
+  const storageKey = `qa-${attraction.id}-${point.id}`;
+  const [isOpen, setIsOpen] = useState(false);
+  const [conversation, setConversation] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem(storageKey);
+      return stored ? JSON.parse(stored) : [];
+    } catch { return []; }
+  });
+  const [question, setQuestion] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const scrollRef = useRef(null);
+
+  // Persist conversation in session
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(storageKey, JSON.stringify(conversation));
+    } catch { /* ignore quota */ }
+  }, [conversation, storageKey]);
+
+  // Auto-scroll to bottom on new message
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [conversation, loading]);
+
+  const suggestedQuestions = [
+    '이 작품의 가장 중요한 디테일은?',
+    '비슷한 시기 다른 화가는 어떻게 그렸나요?',
+    '제 자녀에게 어떻게 설명하면 좋을까요?',
+    '근처에 함께 봐야 할 작품은?',
+  ];
+
+  async function ask(text) {
+    const q = (text || question).trim();
+    if (!q || loading) return;
+
+    setQuestion('');
+    setError(null);
+    setLoading(true);
+
+    const newConv = [...conversation, { role: 'user', content: q }];
+    setConversation(newConv);
+
+    const systemPrompt = `당신은 로마 미술에 정통한 한국어 도슨트입니다. 사용자가 ${attraction.name}(${attraction.nameLocal})의 작품 〈${point.name}〉에 대해 질문하고 있습니다.
+
+작품 정보:
+- 작가: ${point.artist}
+- 연도: ${point.year}
+- 위치: ${point.location}
+- 종류: ${point.type}
+- 간단 설명: ${point.shortDesc}
+
+상세 정보:
+${point.longDesc}
+
+답변 가이드:
+1. 한국어로 친근하지만 정확하게 답변
+2. 위 정보 + 미술사 일반 지식 활용
+3. 모르는 것은 솔직히 모른다고 명시
+4. 답변은 2-4 문단 정도로 간결하게
+5. 너무 학술적이지 않고 일반 관람객이 이해할 수 있게`;
+
+    try {
+      const r = await fetch('/api/claude', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system: systemPrompt,
+          max_tokens: 800,
+          messages: newConv.map((m) => ({ role: m.role, content: m.content })),
+        }),
+      });
+      if (!r.ok) {
+        const errData = await r.json().catch(() => ({}));
+        throw new Error(errData.error || `API ${r.status}`);
+      }
+      const data = await r.json();
+      const answer = data.content?.[0]?.text || '답변이 비어있습니다.';
+      setConversation([...newConv, { role: 'assistant', content: answer }]);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function clearConversation() {
+    if (!confirm('이 작품의 대화 기록을 모두 지우시겠어요?')) return;
+    setConversation([]);
+    setError(null);
+    try { sessionStorage.removeItem(storageKey); } catch {}
+  }
+
+  return (
+    <section className="dc-section dc-qa">
+      {!isOpen ? (
+        <button className="dc-qa-toggle" onClick={() => setIsOpen(true)}>
+          <MessageCircle size={16} />
+          <div className="dc-qa-toggle-body">
+            <div className="dc-qa-toggle-title">작품에 대해 질문하기</div>
+            <div className="dc-qa-toggle-sub">
+              {conversation.length > 0
+                ? `이전 대화 ${Math.floor(conversation.length / 2)}건 있음`
+                : 'Claude에게 무엇이든 물어보세요'}
+            </div>
+          </div>
+          <ChevronRight size={14} />
+        </button>
+      ) : (
+        <div className="dc-qa-panel">
+          <div className="dc-qa-header">
+            <h3 className="dc-section-h">
+              <MessageCircle size={13} /> 작품에 대해 질문하기
+            </h3>
+            <div className="dc-qa-header-actions">
+              {conversation.length > 0 && (
+                <button className="dc-qa-clear" onClick={clearConversation} title="대화 지우기">
+                  <X size={12} /> 지우기
+                </button>
+              )}
+              <button className="dc-qa-close" onClick={() => setIsOpen(false)}>
+                접기
+              </button>
+            </div>
+          </div>
+
+          <div className="dc-qa-conversation" ref={scrollRef}>
+            {conversation.length === 0 && !loading && (
+              <div className="dc-qa-suggestions">
+                <div className="dc-qa-suggestions-label">예시 질문:</div>
+                {suggestedQuestions.map((sq) => (
+                  <button
+                    key={sq}
+                    className="dc-qa-suggestion"
+                    onClick={() => ask(sq)}
+                  >
+                    {sq}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {conversation.map((msg, i) => (
+              <div
+                key={i}
+                className={`dc-qa-msg ${msg.role === 'user' ? 'dc-qa-msg-user' : 'dc-qa-msg-claude'}`}
+              >
+                {msg.role === 'assistant' && (
+                  <div className="dc-qa-msg-label">Claude</div>
+                )}
+                <div className="dc-qa-msg-body">{msg.content}</div>
+              </div>
+            ))}
+
+            {loading && (
+              <div className="dc-qa-msg dc-qa-msg-claude">
+                <div className="dc-qa-msg-label">Claude</div>
+                <div className="dc-qa-msg-body dc-qa-loading">
+                  <Loader2 size={14} className="dc-spin" /> 답변 작성 중...
+                </div>
+              </div>
+            )}
+
+            {error && (
+              <div className="dc-error" style={{ margin: '8px 0' }}>
+                <AlertCircle size={14} /> 오류: {error}
+              </div>
+            )}
+          </div>
+
+          <form
+            className="dc-qa-input-row"
+            onSubmit={(e) => {
+              e.preventDefault();
+              ask();
+            }}
+          >
+            <textarea
+              className="dc-qa-input"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder="이 작품에 대해 궁금한 것을 적어주세요..."
+              rows={2}
+              disabled={loading}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  ask();
+                }
+              }}
+            />
+            <button
+              type="submit"
+              className="dc-qa-send"
+              disabled={!question.trim() || loading}
+              aria-label="질문 보내기"
+            >
+              <Send size={16} />
+            </button>
+          </form>
+        </div>
+      )}
+    </section>
   );
 }
 
