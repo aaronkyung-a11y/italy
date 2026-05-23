@@ -2901,7 +2901,7 @@ export const ATTRACTIONS = [
         location: '분수 앞 — 등을 분수에 향하고',
         rating: 3,
         type: '전통',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/5/50/Aaron_Sommers_Throwing_Coin_in_Trevi_Fountain.JPG',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Aaron_Sommers_Throwing_Coin_in_Trevi_Fountain.JPG/330px-Aaron_Sommers_Throwing_Coin_in_Trevi_Fountain.JPG',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '오른손으로 왼쪽 어깨 너머, 세 번의 약속.',
         longDesc: `동전 던지기 의식은 사실 **고대 전통이 아닙니다**. 20세기 중반에 만들어진 비교적 새로운 전통입니다.
@@ -4251,7 +4251,7 @@ export const ATTRACTIONS = [
         location: '팔라티노 언덕 (포로 로마노 위)',
         rating: 5,
         type: '황궁 유적',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Ruins_of_the_Domus_Augustana_on_Palatine_Hill_in_Rome%2C_Italy.jpg/330px-Ruins_of_the_Domus_Augustana_on_Palatine_Hill_in_Rome%2C_Italy.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Ruins_of_the_Domus_Augustana_on_Palatine_Hill..jpg/330px-Ruins_of_the_Domus_Augustana_on_Palatine_Hill..jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '로물루스가 로마를 건국한 언덕. 그 후 황제들이 거대 궁전을 지음.',
         longDesc: `로마의 7 언덕 중 하나 — 그러나 **가장 신성한 언덕**. 두 가지 의미가 있습니다.
@@ -4590,7 +4590,7 @@ export const ATTRACTIONS = [
         location: '산타 마리아 델 포폴로 — 체라시 예배당',
         rating: 5,
         type: '제단화 (캔버스에 유채)',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Conversion_on_the_Way_to_Damascus-Caravaggio_%28c.1600-1%29.jpg/330px-Conversion_on_the_Way_to_Damascus-Caravaggio_%28c.1600-1%29.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/The_Conversion_of_Saint_Paul-Caravaggio_%28c._1600-1%29.jpg/330px-The_Conversion_of_Saint_Paul-Caravaggio_%28c._1600-1%29.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '말에서 떨어진 바울, 빛에 눈먼 채 누워있음. 그리스도의 음성이 들리는 순간.',
         longDesc: `**체라시 예배당**의 두 번째 카라바조 — 〈베드로의 십자가형〉 맞은편 오른쪽 벽.
@@ -4730,7 +4730,7 @@ export const ATTRACTIONS = [
         location: '포폴로 광장 동쪽 — 도시 북쪽 입구',
         rating: 3,
         type: '르네상스 + 바로크 성당',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Santa_Maria_del_Popolo.jpg/330px-Santa_Maria_del_Popolo.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Santa_maria_del_popolo_F.jpg/330px-Santa_maria_del_popolo_F.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '도시 북쪽 입구의 작은 르네상스 성당. 베르니니가 후에 개조.',
         longDesc: `**포폴로 광장 동쪽** — 로마의 북쪽 입구(포르타 델 포폴로) 바로 옆 작은 성당. 외관은 단순하지만 16-17세기 르네상스·바로크 미술의 보물 창고.
@@ -4809,7 +4809,7 @@ export const ATTRACTIONS = [
         location: '카피톨리노 언덕 정상',
         rating: 5,
         type: '광장 + 도시 설계',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Piazza_del_Campidoglio_-_panoramio_%283%29.jpg/330px-Piazza_del_Campidoglio_-_panoramio_%283%29.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Piazza_del_Campidoglio_%28Rome%29_%282%29.jpg/330px-Piazza_del_Campidoglio_%28Rome%29_%282%29.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '미켈란젤로가 60대에 설계한 도시 광장. 르네상스 도시 설계의 절정.',
         longDesc: `카피톨리노 박물관에 들어가기 전 통과하는 **광장 자체가 미켈란젤로의 걸작**. 1536년 교황 파울로 3세가 카를 5세 황제의 로마 방문을 앞두고 \"카피톨리노 언덕을 위엄있게 만들어 달라\"고 미켈란젤로에게 의뢰.
@@ -4868,7 +4868,7 @@ export const ATTRACTIONS = [
         location: '팔라초 데이 콘세르바토리 — 유리 안뜰',
         rating: 5,
         type: '청동 황제상',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Equestrian_Statue_of_Marcus_Aurelius_-_Capitoline_Museum_-_Musei_Capitolini_-_Rome_-_Italy_2015.jpg/330px-Equestrian_Statue_of_Marcus_Aurelius_-_Capitoline_Museum_-_Musei_Capitolini_-_Rome_-_Italy_2015.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Marcus_Aurelius_Capitoline_Hill_September_2015-1.jpg/330px-Marcus_Aurelius_Capitoline_Hill_September_2015-1.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '서양 미술사의 표준 기마상. 1500년 동안 살아남은 유일한 로마 황제 청동 기마상.',
         longDesc: `로마 황제 **마르쿠스 아우렐리우스 (재위 161-180)**의 청동 기마상. **고대 로마 황제 청동 기마상 중 유일하게 살아남은 작품**.
@@ -5001,7 +5001,7 @@ export const ATTRACTIONS = [
         location: '팔라초 데이 콘세르바토리 — 안뜰',
         rating: 5,
         type: '대리석 거상 (조각 일부)',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Colossus_of_Constantine_-_Musei_Capitolini.jpg/330px-Colossus_of_Constantine_-_Musei_Capitolini.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Head_of_Colossus_of_Constantine%2C_Aug_24_2021.jpg/330px-Head_of_Colossus_of_Constantine%2C_Aug_24_2021.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '높이 12m였던 황제 거상의 잔재. 머리·손·발만 남아 — 그러나 머리만 2.5m.',
         longDesc: `**콘스탄티누스 1세 (재위 306-337)** — 첫 기독교 황제 — 의 거대 조각상. 원래 **높이 12m** (4층 건물)였으나 현재는 **머리·손·발 등 일부만** 박물관 안뜰에 전시.
@@ -5067,7 +5067,7 @@ export const ATTRACTIONS = [
         location: '팔라초 누오보 — 갈리아의 방',
         rating: 5,
         type: '대리석 조각 (로마 복제)',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/0_Galata_Morente_-_Musei_Capitolini_%281%29.jpg/330px-0_Galata_Morente_-_Musei_Capitolini_%281%29.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/0_Galata_Morente_-_Musei_Capitolini_%281%29.jpg/330px-0_Galata_Morente_-_Musei_Capitolini_%281%29.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '헬레니즘 조각의 정점. 적의 죽음을 인간적으로 그린 최초의 작품.',
         longDesc: `**헬레니즘 조각의 정점** — 죽어가는 갈리아 전사를 사실적·동정적으로 표현한 대리석 조각. **적을 인간적으로 그린 미술사 최초의 작품 중 하나**.
