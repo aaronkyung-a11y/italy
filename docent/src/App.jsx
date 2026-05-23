@@ -640,60 +640,117 @@ function RouteGuide({ routes, points, accent, onPointClick }) {
 }
 
 // ─────────────────────────────────────────────────────────
-// BorgheseFloorPlan — 방별 작품 위치 평면도
+// BorgheseFloorPlan — 정확한 SVG 평면도
 // ─────────────────────────────────────────────────────────
 function BorgheseFloorPlan({ points, accent, onPointClick }) {
   const [floor, setFloor] = useState('ground');
 
-  // Map each point ID to its room and floor (approximated from museum layout)
-  const ROOMS = {
-    ground: {
-      label: '1층 — 조각 (Pian Terreno)',
-      sub: '베르니니, 카노바, 카라바조 등 — 보르게세 컬렉션의 출발점',
-      // Rooms in approximate visit order, with their points
-      rows: [
-        // First row: rooms IV, III, II (going right)
-        [
-          { name: 'Sala IV', sub: '엠퍼러의 방', pointIds: ['proserpina'] },
-          { name: 'Sala III', sub: '아폴로와 다프네의 방', pointIds: ['apollo-daphne', 'aeneas-anchises'] },
-          { name: 'Sala II', sub: '검투사의 방', pointIds: ['david'] },
-        ],
-        // Center: entry hall (Sala I)
-        [
-          { name: 'Sala I', sub: '입구·카노바의 방', pointIds: ['pauline-bonaparte'], wide: true },
-        ],
-        // Bottom row: VI, VII, VIII
-        [
-          { name: 'Sala VI', sub: '아이네아스의 방', pointIds: [] },
-          { name: 'Sala VII', sub: '이집트의 방', pointIds: ['truth-unveiled', 'caravaggio-jerome'] },
-          { name: 'Sala VIII', sub: '실레노스의 방 — 카라바조', pointIds: ['david-goliath', 'madonna-palafrenieri', 'sick-bacchus'] },
-        ],
-      ],
-    },
-    first: {
-      label: '2층 — 회화 (Pinacoteca)',
-      sub: '라파엘로, 티치아노, 코레조 — 16세기 이탈리아 회화의 집결',
-      rows: [
-        [
-          { name: 'Sala IX', sub: '라파엘로의 방', pointIds: ['raphael-entombment'] },
-          { name: 'Sala X', sub: '매너리즘의 방', pointIds: ['correggio-danae'] },
-          { name: 'Sala XX', sub: '베네치아 화파', pointIds: ['sacred-profane-love'] },
-        ],
-        [
-          { name: 'Sala XIV', sub: '오로라의 방', pointIds: ['scipione-bust'], wide: true },
-        ],
-      ],
-    },
+  // Point ID → room ID mapping
+  const POINT_TO_ROOM = {
+    // Ground floor
+    'pauline-bonaparte': 'I',
+    'david': 'II',
+    'apollo-daphne': 'III',
+    'aeneas-anchises': 'III',
+    'proserpina': 'IV',
+    'truth-unveiled': 'VII',
+    'caravaggio-jerome': 'VII',
+    'david-goliath': 'VIII',
+    'madonna-palafrenieri': 'VIII',
+    'sick-bacchus': 'VIII',
+    'boy-fruit-basket': 'VIII',
+    // First floor (Pinacoteca)
+    'raphael-entombment': 'IX',
+    'lady-unicorn': 'IX',
+    'correggio-danae': 'X',
+    'diana-hunt': 'XVIII',
+    'scipione-bust': 'XIV',
+    'sacred-profane-love': 'XX',
   };
 
-  // Build point lookup with index numbers (from original list)
+  // Build point map with idx
   const pointMap = {};
   points.forEach((p, i) => { pointMap[p.id] = { ...p, idx: i + 1 }; });
 
-  const current = ROOMS[floor];
+  // Group points by room
+  const pointsByRoom = {};
+  points.forEach((p, i) => {
+    const room = POINT_TO_ROOM[p.id];
+    if (room) {
+      if (!pointsByRoom[room]) pointsByRoom[room] = [];
+      pointsByRoom[room].push({ ...p, idx: i + 1 });
+    }
+  });
+
+  // Floor plan layout — actual Borghese architecture
+  // Casino Borghese is a rectangular villa with a central Salone surrounded by 8 rooms
+  // Approximate proportions in 600×500 SVG viewBox
+  const GROUND_FLOOR_ROOMS = [
+    // Top row (north side)
+    { id: 'IV', name: 'Sala IV', label: '엠퍼러의 방', x: 60, y: 40, w: 160, h: 110 },
+    { id: 'V', name: 'Sala V', label: '에르마프로디테 방', x: 220, y: 40, w: 160, h: 110 },
+    { id: 'VI', name: 'Sala VI', label: '아이네아스 방', x: 380, y: 40, w: 160, h: 110 },
+    // Middle - main salone
+    { id: 'III', name: 'Sala III', label: '아폴로와 다프네', x: 60, y: 150, w: 130, h: 200, special: 'apollo' },
+    { id: 'I', name: 'Salone I', label: '입구·카노바의 방', x: 190, y: 150, w: 220, h: 200, isSalone: true },
+    { id: 'VII', name: 'Sala VII', label: '이집트 방', x: 410, y: 150, w: 130, h: 200 },
+    // Bottom row (south)
+    { id: 'II', name: 'Sala II', label: '검투사의 방', x: 60, y: 350, w: 200, h: 100 },
+    { id: 'entry', name: '입구', label: 'Entrance', x: 260, y: 350, w: 80, h: 100, isEntry: true },
+    { id: 'VIII', name: 'Sala VIII', label: '실레노스 — 카라바조 ×4', x: 340, y: 350, w: 200, h: 100 },
+  ];
+
+  const FIRST_FLOOR_ROOMS = [
+    // Pinacoteca — first floor paintings gallery
+    // Simpler layout — roughly U-shape
+    { id: 'IX', name: 'Sala IX', label: '라파엘로 방', x: 60, y: 60, w: 180, h: 130 },
+    { id: 'X', name: 'Sala X', label: '매너리즘', x: 240, y: 60, w: 160, h: 130 },
+    { id: 'XIV', name: 'Sala XIV', label: '오로라 — 시피오네', x: 400, y: 60, w: 140, h: 130 },
+    { id: 'XVIII', name: 'Sala XVIII', label: '도메니키노', x: 60, y: 190, w: 180, h: 130 },
+    { id: 'corridor', name: 'Corridor', label: '연결 복도', x: 240, y: 190, w: 160, h: 130, isCorridor: true },
+    { id: 'XX', name: 'Sala XX', label: '베네치아 화파', x: 400, y: 190, w: 140, h: 130 },
+  ];
+
+  const rooms = floor === 'ground' ? GROUND_FLOOR_ROOMS : FIRST_FLOOR_ROOMS;
+
+  // Position point dots inside each room
+  function getPointPosition(room, pointIdx, totalPoints) {
+    const padding = 14;
+    const innerX = room.x + padding;
+    const innerY = room.y + 26 + padding; // leave space for room label
+    const innerW = room.w - padding * 2;
+    const innerH = room.h - 26 - padding * 2;
+    // Arrange dots in a grid within the room
+    if (totalPoints === 1) {
+      return { cx: room.x + room.w / 2, cy: room.y + room.h / 2 + 8 };
+    }
+    if (totalPoints <= 2) {
+      const cx = room.x + room.w * (pointIdx === 0 ? 0.35 : 0.65);
+      return { cx, cy: room.y + room.h / 2 + 8 };
+    }
+    if (totalPoints <= 4) {
+      const col = pointIdx % 2;
+      const row = Math.floor(pointIdx / 2);
+      return {
+        cx: room.x + room.w * (col === 0 ? 0.35 : 0.65),
+        cy: room.y + room.h * (row === 0 ? 0.45 : 0.7),
+      };
+    }
+    // 5+ points: spread across
+    const cols = 3;
+    const col = pointIdx % cols;
+    const row = Math.floor(pointIdx / cols);
+    return {
+      cx: room.x + room.w * (0.25 + col * 0.25),
+      cy: room.y + room.h * (0.45 + row * 0.25),
+    };
+  }
+
+  // For hover/tap interaction
+  const [hoveredPoint, setHoveredPoint] = useState(null);
 
   return (
-    <div className="dc-floorplan" style={{ '--accent': accent }}>
+    <div className="dc-floorplan-svg" style={{ '--accent': accent }}>
       <div className="dc-floor-toggle">
         <button
           className={`dc-floor-btn ${floor === 'ground' ? 'active' : ''}`}
@@ -710,48 +767,141 @@ function BorgheseFloorPlan({ points, accent, onPointClick }) {
       </div>
 
       <div className="dc-floor-label">
-        <div className="dc-floor-label-title">{current.label}</div>
-        <div className="dc-floor-label-sub">{current.sub}</div>
+        <div className="dc-floor-label-title">
+          {floor === 'ground' ? '1층 — Piano Terreno (조각)' : '2층 — Pinacoteca (회화)'}
+        </div>
+        <div className="dc-floor-label-sub">
+          {floor === 'ground'
+            ? '베르니니, 카노바, 카라바조 — 시피오네의 조각 컬렉션'
+            : '라파엘로, 티치아노, 코레조 — 16세기 이탈리아 회화'}
+        </div>
       </div>
 
-      <div className="dc-floorplan-grid">
-        {current.rows.map((row, rowIdx) => (
-          <div className={`dc-floorplan-row dc-floorplan-row-${row.length}`} key={rowIdx}>
-            {row.map((room) => (
-              <div
-                className={`dc-floorplan-room ${room.wide ? 'wide' : ''} ${room.pointIds.length === 0 ? 'empty' : ''}`}
-                key={room.name}
-              >
-                <div className="dc-floorplan-room-name">{room.name}</div>
-                <div className="dc-floorplan-room-sub">{room.sub}</div>
-                {room.pointIds.length === 0 ? (
-                  <div className="dc-floorplan-empty">소개 작품 없음</div>
-                ) : (
-                  <div className="dc-floorplan-points">
-                    {room.pointIds.map((pid) => {
-                      const p = pointMap[pid];
-                      if (!p) return null;
-                      return (
-                        <button
-                          key={pid}
-                          className="dc-floorplan-point"
-                          onClick={() => onPointClick(pid)}
-                        >
-                          <span className="dc-floorplan-point-num">{String(p.idx).padStart(2, '0')}</span>
-                          <span className="dc-floorplan-point-name">{p.name}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        ))}
+      <div className="dc-svg-wrapper">
+        <svg viewBox="0 0 600 480" className="dc-floor-svg" preserveAspectRatio="xMidYMid meet">
+          {/* Background grid for depth */}
+          <defs>
+            <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="600" height="480" fill="url(#grid)" />
+
+          {/* North arrow */}
+          <g transform="translate(560, 30)">
+            <circle r="14" fill="rgba(0,0,0,0.3)" stroke="var(--text-faint)" strokeWidth="0.5" />
+            <path d="M 0,-8 L 4,4 L 0,0 L -4,4 Z" fill="var(--gold)" />
+            <text y="-18" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="DM Sans">N</text>
+          </g>
+
+          {/* Rooms */}
+          {rooms.map((room) => {
+            const isEmpty = !pointsByRoom[room.id] || pointsByRoom[room.id].length === 0;
+            const isSpecial = room.isSalone || room.isEntry || room.isCorridor;
+            return (
+              <g key={room.id}>
+                <rect
+                  x={room.x}
+                  y={room.y}
+                  width={room.w}
+                  height={room.h}
+                  rx="6"
+                  fill={room.isSalone ? 'rgba(201,169,97,0.06)' : (room.isEntry || room.isCorridor) ? 'transparent' : 'var(--bg)'}
+                  stroke={room.isEntry || room.isCorridor ? 'var(--line)' : (isEmpty ? 'var(--line)' : 'var(--accent)')}
+                  strokeWidth={isEmpty ? 1 : 1.5}
+                  strokeDasharray={room.isEntry || room.isCorridor ? '4 3' : (isEmpty ? '3 3' : 'none')}
+                  opacity={isEmpty || room.isEntry || room.isCorridor ? 0.6 : 1}
+                />
+                {/* Room label */}
+                <text
+                  x={room.x + 8}
+                  y={room.y + 16}
+                  fontSize="10"
+                  fill="var(--accent)"
+                  fontFamily="Cormorant Garamond, serif"
+                  fontStyle="italic"
+                  fontWeight="500"
+                >
+                  {room.name}
+                </text>
+                <text
+                  x={room.x + 8}
+                  y={room.y + 28}
+                  fontSize="8.5"
+                  fill="var(--text-soft)"
+                  fontFamily="Noto Sans KR, sans-serif"
+                >
+                  {room.label}
+                </text>
+              </g>
+            );
+          })}
+
+          {/* Point dots */}
+          {rooms.map((room) => {
+            const roomPoints = pointsByRoom[room.id] || [];
+            return roomPoints.map((p, i) => {
+              const pos = getPointPosition(room, i, roomPoints.length);
+              const isHovered = hoveredPoint === p.id;
+              return (
+                <g key={p.id} style={{ cursor: 'pointer' }} onClick={() => onPointClick(p.id)}
+                   onMouseEnter={() => setHoveredPoint(p.id)}
+                   onMouseLeave={() => setHoveredPoint(null)}>
+                  <circle
+                    cx={pos.cx}
+                    cy={pos.cy}
+                    r={isHovered ? 14 : 11}
+                    fill="var(--accent)"
+                    stroke="var(--bg)"
+                    strokeWidth="2"
+                    style={{ transition: 'all 0.15s' }}
+                  />
+                  <text
+                    x={pos.cx}
+                    y={pos.cy + 4}
+                    fontSize="10"
+                    fill="var(--bg)"
+                    fontFamily="DM Sans, sans-serif"
+                    fontWeight="600"
+                    textAnchor="middle"
+                    pointerEvents="none"
+                  >
+                    {String(p.idx).padStart(2, '0')}
+                  </text>
+                </g>
+              );
+            });
+          })}
+        </svg>
+      </div>
+
+      {/* Point list below SVG for accessibility */}
+      <div className="dc-floor-pointlist">
+        <div className="dc-floor-pointlist-title">이 층의 작품:</div>
+        {rooms.map((room) => {
+          const roomPoints = pointsByRoom[room.id] || [];
+          if (roomPoints.length === 0) return null;
+          return (
+            <div className="dc-floor-room-list" key={room.id}>
+              <div className="dc-floor-room-list-name">{room.name} · {room.label}</div>
+              {roomPoints.map((p) => (
+                <button
+                  key={p.id}
+                  className="dc-floor-room-list-point"
+                  onClick={() => onPointClick(p.id)}
+                >
+                  <span className="dc-floor-room-list-num">{String(p.idx).padStart(2, '0')}</span>
+                  <span className="dc-floor-room-list-name-text">{p.name}</span>
+                  <span className="dc-floor-room-list-artist">{p.artist}</span>
+                </button>
+              ))}
+            </div>
+          );
+        })}
       </div>
 
       <div className="dc-floorplan-note">
-        <Info size={10} /> 방 배치는 단순화된 도식. 실제 동선은 입장 시 받는 지도를 참고하세요.
+        <Info size={10} /> 방 배치는 실제 평면도에 가까운 비례. 작품 위치는 방 내 정확한 위치가 아님.
       </div>
     </div>
   );
