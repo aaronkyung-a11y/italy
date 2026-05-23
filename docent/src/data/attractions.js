@@ -24,6 +24,40 @@ export const ATTRACTIONS = [
       ],
       summary: '시피오네 보르게세 추기경이 17세기 초 만든 사적 컬렉션이 그대로 미술관이 된 곳. 한정된 공간(20개 방)에 베르니니의 조각 6점, 카라바조의 회화 6점이 밀집해 있어 "양보다 질"의 정수. 2시간만 머물 수 있어 오히려 모든 작품에 시간을 줄 수 있습니다.',
     },
+    routes: [
+      {
+        id: 'essential',
+        name: '핵심 60분 코스',
+        sub: '시간 부족할 때 — 보르게세의 5대 걸작',
+        duration_min: 60,
+        pointIds: ['apollo-daphne', 'david', 'pauline-bonaparte', 'david-goliath', 'sacred-profane-love'],
+        note: '2시간 입장권이지만 빠르게 핵심만 보고 싶을 때',
+      },
+      {
+        id: 'full',
+        name: '완전 120분 코스',
+        sub: '2시간 입장권을 알차게 — 14점 모두 + 동선',
+        duration_min: 120,
+        pointIds: ['pauline-bonaparte', 'david', 'apollo-daphne', 'aeneas-anchises', 'proserpina', 'truth-unveiled', 'caravaggio-jerome', 'sick-bacchus', 'david-goliath', 'madonna-palafrenieri', 'raphael-entombment', 'correggio-danae', 'sacred-profane-love', 'scipione-bust'],
+        note: '1층 조각 → 2층 회화. 자연스러운 관람 순서',
+      },
+      {
+        id: 'bernini',
+        name: '베르니니 마스터 코스',
+        sub: '20세 데뷔부터 만년의 진리까지 — 거장의 진화',
+        duration_min: 75,
+        pointIds: ['aeneas-anchises', 'proserpina', 'apollo-daphne', 'david', 'truth-unveiled', 'scipione-bust'],
+        note: '1618년 〈아이네아스〉 → 1632년 〈시피오네 흉상〉. 14년의 양식 진화',
+      },
+      {
+        id: 'caravaggio',
+        name: '카라바조 4점 코스',
+        sub: '시피오네 추기경의 카라바조 사랑',
+        duration_min: 40,
+        pointIds: ['sick-bacchus', 'caravaggio-jerome', 'david-goliath', 'madonna-palafrenieri'],
+        note: '초기 자화상 → 만년의 충격작. 도발의 화가가 시대를 통과',
+      },
+    ],
     points: [
       {
         id: 'apollo-daphne',
@@ -615,6 +649,40 @@ export const ATTRACTIONS = [
       ],
       summary: '바티칸 박물관은 28개 컬렉션 + 1,400여 개 방의 거대한 복합체. 핵심은 라파엘로의 방 4실, 그리고 시스티나 성당의 미켈란젤로 천장화·〈최후의 심판〉. 도슨트 v0.1에선 가장 중요한 3-5점만 큐레이션. 시스티나는 사진 금지지만 미리 사진과 설명을 보고 들어가면 그 자리에서 도슨트만 들어도 충분히 깊이 봅니다.',
     },
+    routes: [
+      {
+        id: 'essential',
+        name: '필수 3시간 코스',
+        sub: '시간 압박 — 시스티나 + 라파엘로 + 베드로 핵심',
+        duration_min: 180,
+        pointIds: ['gallery-maps', 'school-of-athens', 'disputation-sacrament', 'sistine-ceiling', 'last-judgment', 'pieta', 'baldacchino'],
+        note: '벨베데레 정원 스킵, 핵심 7점만',
+      },
+      {
+        id: 'full',
+        name: '완전 4시간 코스',
+        sub: '벨베데레 정원부터 베드로 대성당까지',
+        duration_min: 240,
+        pointIds: ['belvedere-torso', 'belvedere-apollo', 'laocoon', 'gallery-maps', 'school-of-athens', 'disputation-sacrament', 'sistine-ceiling', 'last-judgment', 'pieta', 'baldacchino'],
+        note: '바티칸 박물관 전체 + 베드로 대성당. 체력·시간 충분할 때',
+      },
+      {
+        id: 'art-history',
+        name: '미술사 흐름 코스',
+        sub: '고대 → 르네상스 → 바로크의 발전',
+        duration_min: 200,
+        pointIds: ['belvedere-torso', 'belvedere-apollo', 'laocoon', 'school-of-athens', 'sistine-ceiling', 'last-judgment', 'baldacchino'],
+        note: '시간 흐름 따라 보기 — 미술사 수업처럼',
+      },
+      {
+        id: 'sistine-rush',
+        name: '시스티나 직행 (90분)',
+        sub: '인파 피하고 시스티나만 빠르게',
+        duration_min: 90,
+        pointIds: ['sistine-ceiling', 'last-judgment', 'pieta'],
+        note: '오후 늦게 입장 + 시스티나로 거의 직행',
+      },
+    ],
     points: [
       {
         id: 'sistine-ceiling',

@@ -360,11 +360,12 @@ function AttractionCard({ attraction, onClick }) {
 // ─────────────────────────────────────────────────────────
 function AttractionView({ attractionId, push, pop }) {
   const attraction = findAttraction(attractionId);
-  const [view, setView] = useState('list'); // 'list' | 'floorplan'
+  const [view, setView] = useState('list'); // 'list' | 'floorplan' | 'routes'
   if (!attraction) return <div>명소를 찾을 수 없습니다.</div>;
 
   const accent = attraction.coverHue;
-  const hasFloorPlan = attractionId === 'borghese';
+  const hasFloorPlan = attractionId === 'borghese' || attractionId === 'vatican';
+  const hasRoutes = !!attraction.routes && attraction.routes.length > 0;
 
   return (
     <div className="dc-subview">
@@ -398,7 +399,7 @@ function AttractionView({ attractionId, push, pop }) {
           <h3 className="dc-section-h">
             <Headphones size={13} /> 오디오 가이드 ({attraction.points.length}점)
           </h3>
-          {hasFloorPlan && (
+          {(hasFloorPlan || hasRoutes) && (
             <div className="dc-view-toggle">
               <button
                 className={`dc-view-toggle-btn ${view === 'list' ? 'active' : ''}`}
@@ -406,17 +407,27 @@ function AttractionView({ attractionId, push, pop }) {
               >
                 리스트
               </button>
-              <button
-                className={`dc-view-toggle-btn ${view === 'floorplan' ? 'active' : ''}`}
-                onClick={() => setView('floorplan')}
-              >
-                <Map size={11} /> 평면도
-              </button>
+              {hasRoutes && (
+                <button
+                  className={`dc-view-toggle-btn ${view === 'routes' ? 'active' : ''}`}
+                  onClick={() => setView('routes')}
+                >
+                  <Clock size={11} /> 동선
+                </button>
+              )}
+              {hasFloorPlan && (
+                <button
+                  className={`dc-view-toggle-btn ${view === 'floorplan' ? 'active' : ''}`}
+                  onClick={() => setView('floorplan')}
+                >
+                  <Map size={11} /> 평면도
+                </button>
+              )}
             </div>
           )}
         </div>
 
-        {view === 'list' ? (
+        {view === 'list' && (
           <div className="dc-points">
             {attraction.points.map((p, idx) => (
               <PointCard
@@ -428,14 +439,202 @@ function AttractionView({ attractionId, push, pop }) {
               />
             ))}
           </div>
-        ) : (
+        )}
+
+        {view === 'floorplan' && attractionId === 'borghese' && (
           <BorgheseFloorPlan
             points={attraction.points}
             accent={accent}
             onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
           />
         )}
+
+        {view === 'floorplan' && attractionId === 'vatican' && (
+          <VaticanFlowPlan
+            points={attraction.points}
+            accent={accent}
+            onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
+          />
+        )}
+
+        {view === 'routes' && hasRoutes && (
+          <RouteGuide
+            routes={attraction.routes}
+            points={attraction.points}
+            accent={accent}
+            onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
+          />
+        )}
       </section>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// VaticanFlowPlan — 바티칸 박물관 동선 (수직 흐름)
+// ─────────────────────────────────────────────────────────
+function VaticanFlowPlan({ points, accent, onPointClick }) {
+  // Vatican has a defined visit sequence — show as vertical flow with arrows
+  const ZONES = [
+    {
+      id: 'pio-clementine',
+      name: 'Pio-Clementine 박물관',
+      sub: '벨베데레 정원 — 고대 그리스·로마 조각',
+      pointIds: ['belvedere-torso', 'belvedere-apollo', 'laocoon'],
+    },
+    {
+      id: 'maps-gallery',
+      name: 'Galleria delle Carte Geografiche',
+      sub: '120m 황금 천장 복도 — 시스티나 직전 마지막 충격',
+      pointIds: ['gallery-maps'],
+    },
+    {
+      id: 'raphael-rooms',
+      name: 'Stanze di Raffaello',
+      sub: '라파엘로의 4개 방 — 르네상스 인본주의의 정수',
+      pointIds: ['school-of-athens', 'disputation-sacrament'],
+    },
+    {
+      id: 'sistine',
+      name: 'Cappella Sistina',
+      sub: '미켈란젤로의 천장과 〈최후의 심판〉',
+      pointIds: ['sistine-ceiling', 'last-judgment'],
+    },
+    {
+      id: 'st-peters',
+      name: 'Basilica di San Pietro',
+      sub: '바티칸의 영적 중심 — 시스티나 출구로 직결',
+      pointIds: ['pieta', 'baldacchino'],
+    },
+  ];
+
+  const pointMap = {};
+  points.forEach((p, i) => { pointMap[p.id] = { ...p, idx: i + 1 }; });
+
+  return (
+    <div className="dc-flowplan" style={{ '--accent': accent }}>
+      <div className="dc-flowplan-header">
+        <div className="dc-flowplan-title">바티칸 박물관 → 베드로 대성당</div>
+        <div className="dc-flowplan-sub">관람 순서를 따라 5개 구역으로 흐릅니다. 출구는 시스티나에서 베드로 대성당으로.</div>
+      </div>
+
+      <div className="dc-flowplan-zones">
+        {ZONES.map((zone, zoneIdx) => (
+          <div className="dc-flowplan-zone-wrap" key={zone.id}>
+            <div className="dc-flowplan-zone">
+              <div className="dc-flowplan-zone-num">{zoneIdx + 1}</div>
+              <div className="dc-flowplan-zone-body">
+                <div className="dc-flowplan-zone-name">{zone.name}</div>
+                <div className="dc-flowplan-zone-sub">{zone.sub}</div>
+                <div className="dc-flowplan-zone-points">
+                  {zone.pointIds.map((pid) => {
+                    const p = pointMap[pid];
+                    if (!p) return null;
+                    return (
+                      <button
+                        key={pid}
+                        className="dc-flowplan-point"
+                        onClick={() => onPointClick(pid)}
+                      >
+                        <span className="dc-flowplan-point-num">{String(p.idx).padStart(2, '0')}</span>
+                        <span className="dc-flowplan-point-name">{p.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+            {zoneIdx < ZONES.length - 1 && (
+              <div className="dc-flowplan-arrow">↓</div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="dc-floorplan-note">
+        <Info size={10} /> 실제 박물관은 구역 사이에 추가 갤러리·복도가 있음. 위는 오디오 가이드 작품 기준 단순화.
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// RouteGuide — 동선 코스 추천 (시간별 / 테마별)
+// ─────────────────────────────────────────────────────────
+function RouteGuide({ routes, points, accent, onPointClick }) {
+  const [selectedRouteId, setSelectedRouteId] = useState(routes[0].id);
+  const route = routes.find((r) => r.id === selectedRouteId);
+
+  const pointMap = {};
+  points.forEach((p, i) => { pointMap[p.id] = { ...p, idx: i + 1 }; });
+
+  if (!route) return null;
+
+  return (
+    <div className="dc-routes" style={{ '--accent': accent }}>
+      <div className="dc-route-selector">
+        {routes.map((r) => (
+          <button
+            key={r.id}
+            className={`dc-route-tab ${r.id === selectedRouteId ? 'active' : ''}`}
+            onClick={() => setSelectedRouteId(r.id)}
+          >
+            <div className="dc-route-tab-name">{r.name}</div>
+            <div className="dc-route-tab-time">
+              <Clock size={9} /> {r.duration_min}분
+            </div>
+          </button>
+        ))}
+      </div>
+
+      <div className="dc-route-detail">
+        <div className="dc-route-header">
+          <div className="dc-route-name">{route.name}</div>
+          <div className="dc-route-sub">{route.sub}</div>
+          <div className="dc-route-meta">
+            <span><Clock size={11} /> 약 {route.duration_min}분</span>
+            <span>·</span>
+            <span><Headphones size={11} /> {route.pointIds.length}점</span>
+            <span>·</span>
+            <span>작품당 평균 {Math.round(route.duration_min / route.pointIds.length)}분</span>
+          </div>
+          {route.note && (
+            <div className="dc-route-note">
+              <Info size={11} /> {route.note}
+            </div>
+          )}
+        </div>
+
+        <ol className="dc-route-steps">
+          {route.pointIds.map((pid, i) => {
+            const p = pointMap[pid];
+            if (!p) return null;
+            return (
+              <li className="dc-route-step" key={pid}>
+                <div className="dc-route-step-num">{i + 1}</div>
+                <button
+                  className="dc-route-step-card"
+                  onClick={() => onPointClick(pid)}
+                >
+                  <img src={p.image} alt={p.name} loading="lazy" />
+                  <div className="dc-route-step-body">
+                    <div className="dc-route-step-name">{p.name}</div>
+                    <div className="dc-route-step-artist">{p.artist}</div>
+                    <div className="dc-route-step-loc">
+                      <MapPin size={9} /> {p.location}
+                    </div>
+                  </div>
+                  <ChevronRight size={14} className="dc-route-step-chev" />
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+
+        <div className="dc-floorplan-note">
+          <Info size={10} /> 시간은 평균치 기준 추정 — 작품에 따라 더 머무를 가치가 있을 수 있습니다
+        </div>
+      </div>
     </div>
   );
 }
