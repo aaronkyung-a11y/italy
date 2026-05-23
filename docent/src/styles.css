@@ -2276,3 +2276,293 @@ img {
     font-size: 38px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Favorites — heart/check buttons + FavoritesView
+   ═══════════════════════════════════════════════════════════ */
+
+.dc-favorites-cta {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px;
+  background: linear-gradient(135deg, rgba(184, 91, 63, 0.12) 0%, rgba(201, 169, 97, 0.06) 100%);
+  border: 1px solid var(--terracotta);
+  border-radius: 12px;
+  margin-bottom: 14px;
+  color: var(--text);
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.dc-favorites-cta:hover {
+  background: linear-gradient(135deg, rgba(184, 91, 63, 0.18) 0%, rgba(201, 169, 97, 0.1) 100%);
+}
+
+.dc-favorites-cta-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: var(--terracotta);
+  color: var(--bg);
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+
+.dc-favorites-cta-body { flex: 1; min-width: 0; }
+.dc-favorites-cta-title {
+  font-size: 13px; font-weight: 500; margin-bottom: 2px;
+}
+.dc-favorites-cta-sub {
+  font-size: 11px; color: var(--text-soft);
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* Heart/Check badges on PointCard */
+.dc-point-fav-badges {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+}
+.dc-point-fav-badges > svg {
+  background: rgba(0,0,0,0.55);
+  border-radius: 50%;
+  padding: 4px;
+  color: var(--terracotta);
+  width: 22px; height: 22px;
+  backdrop-filter: blur(4px);
+}
+.dc-point-fav-badges > svg:nth-child(2) {
+  color: var(--sage);
+}
+
+/* Fav buttons on PointView */
+.dc-point-fav-row {
+  display: flex;
+  gap: 8px;
+  padding: 10px 0;
+  margin-bottom: 8px;
+}
+.dc-fav-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-soft);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.dc-fav-btn:hover {
+  border-color: var(--text-soft);
+}
+.dc-fav-btn.active.want {
+  background: var(--terracotta);
+  border-color: var(--terracotta);
+  color: var(--bg);
+  font-weight: 500;
+}
+.dc-fav-btn.active.seen {
+  background: var(--sage);
+  border-color: var(--sage);
+  color: var(--bg);
+  font-weight: 500;
+}
+
+/* FavoritesView */
+.dc-favorites-hero {
+  text-align: center;
+  padding: 20px 16px 16px;
+}
+.dc-favorites-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 56px; height: 56px;
+  background: linear-gradient(135deg, var(--terracotta), var(--gold));
+  border-radius: 50%;
+  color: var(--bg);
+  margin-bottom: 12px;
+}
+.dc-favorites-title {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--text);
+  margin: 0 0 4px;
+}
+.dc-favorites-sub {
+  font-size: 11px;
+  color: var(--text-soft);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.dc-fav-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  margin: 0 16px 16px;
+}
+.dc-fav-tab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--text-soft);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.dc-fav-tab.active {
+  background: var(--terracotta);
+  color: var(--bg);
+  font-weight: 500;
+}
+.dc-fav-tab:nth-child(2).active {
+  background: var(--sage);
+}
+
+.dc-fav-empty {
+  text-align: center;
+  padding: 60px 24px;
+  color: var(--text-soft);
+}
+.dc-fav-empty-icon {
+  margin-bottom: 12px;
+  color: var(--text-faint);
+}
+.dc-fav-empty-title {
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+.dc-fav-empty-sub {
+  font-size: 11px;
+  color: var(--text-soft);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.dc-fav-list {
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.dc-fav-group {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+}
+.dc-fav-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.dc-fav-group-emoji { font-size: 16px; }
+.dc-fav-group-name {
+  flex: 1;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--accent);
+  font-weight: 500;
+}
+.dc-fav-group-count {
+  font-size: 10px;
+  color: var(--text-soft);
+  font-family: 'DM Sans', sans-serif;
+}
+.dc-fav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  margin-bottom: 6px;
+  transition: all 0.15s;
+}
+.dc-fav-item:hover {
+  border-color: var(--accent);
+}
+.dc-fav-item img {
+  width: 50px; height: 50px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.dc-fav-item-body { flex: 1; min-width: 0; }
+.dc-fav-item-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dc-fav-item-artist {
+  font-size: 10px;
+  color: var(--text-soft);
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  margin: 2px 0;
+}
+.dc-fav-item-loc {
+  font-size: 9px;
+  color: var(--text-faint);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: 'DM Sans', sans-serif;
+}
+.dc-fav-item-chev {
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+
+.dc-fav-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin: 24px auto 16px;
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-faint);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  cursor: pointer;
+}
+.dc-fav-clear:hover {
+  border-color: var(--terracotta);
+  color: var(--terracotta);
+}

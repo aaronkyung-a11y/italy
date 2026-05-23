@@ -5,6 +5,7 @@ import {
   Camera, Image as ImageIcon, Loader2, AlertCircle, RefreshCw, WifiOff, Search,
   Download, Smartphone, X,
   MessageCircle, Send, Map,
+  Heart, BookmarkCheck, Check, Trash2,
 } from 'lucide-react';
 import { ATTRACTIONS, findAttraction, findPoint, TOTAL_POINTS } from './data/attractions.js';
 
@@ -113,6 +114,60 @@ function useViewStack(initial = { name: 'home' }) {
 }
 
 // ─────────────────────────────────────────────────────────
+// useFavorites — localStorage 기반 즐겨찾기 & 본 작품 체크리스트
+// ─────────────────────────────────────────────────────────
+function useFavorites() {
+  const WANT_KEY = 'docent-favorites-want';   // 가고 싶은 작품
+  const SEEN_KEY = 'docent-favorites-seen';   // 본 작품
+
+  const [wantSet, setWantSet] = useState(() => {
+    try {
+      const stored = localStorage.getItem(WANT_KEY);
+      return new Set(stored ? JSON.parse(stored) : []);
+    } catch { return new Set(); }
+  });
+  const [seenSet, setSeenSet] = useState(() => {
+    try {
+      const stored = localStorage.getItem(SEEN_KEY);
+      return new Set(stored ? JSON.parse(stored) : []);
+    } catch { return new Set(); }
+  });
+
+  function persistWant(s) {
+    try { localStorage.setItem(WANT_KEY, JSON.stringify([...s])); } catch {}
+  }
+  function persistSeen(s) {
+    try { localStorage.setItem(SEEN_KEY, JSON.stringify([...s])); } catch {}
+  }
+
+  function toggleWant(pointId) {
+    setWantSet((prev) => {
+      const next = new Set(prev);
+      if (next.has(pointId)) next.delete(pointId);
+      else next.add(pointId);
+      persistWant(next);
+      return next;
+    });
+  }
+  function toggleSeen(pointId) {
+    setSeenSet((prev) => {
+      const next = new Set(prev);
+      if (next.has(pointId)) next.delete(pointId);
+      else next.add(pointId);
+      persistSeen(next);
+      return next;
+    });
+  }
+  function clearAll() {
+    setWantSet(new Set());
+    setSeenSet(new Set());
+    persistWant(new Set());
+    persistSeen(new Set());
+  }
+  return { wantSet, seenSet, toggleWant, toggleSeen, clearAll };
+}
+
+// ─────────────────────────────────────────────────────────
 // MP3 audio player (v0.3 — replaces Web Speech with pre-generated MP3)
 // Audio files at /audio/{attractionId}/{pointId}.mp3
 // Generated via Microsoft Edge TTS (ko-KR-SunHiNeural voice)
@@ -181,18 +236,20 @@ function useAudio() {
 export default function App() {
   const view = useViewStack();
   const audio = useAudio();
+  const favorites = useFavorites();
 
   // Stop audio on view change
   useEffect(() => { audio.stop(); }, [view.current.name]);
 
   return (
     <div className="dc-app">
-      {view.current.name === 'home' && <HomeView push={view.push} />}
+      {view.current.name === 'home' && <HomeView push={view.push} favorites={favorites} />}
       {view.current.name === 'attraction' && (
         <AttractionView
           attractionId={view.current.attractionId}
           push={view.push}
           pop={view.pop}
+          favorites={favorites}
         />
       )}
       {view.current.name === 'point' && (
@@ -201,10 +258,14 @@ export default function App() {
           pointId={view.current.pointId}
           pop={view.pop}
           audio={audio}
+          favorites={favorites}
         />
       )}
       {view.current.name === 'scan' && (
         <ScanView pop={view.pop} push={view.push} />
+      )}
+      {view.current.name === 'favorites' && (
+        <FavoritesView pop={view.pop} push={view.push} favorites={favorites} />
       )}
 
       <Footer />
@@ -215,7 +276,7 @@ export default function App() {
 // ─────────────────────────────────────────────────────────
 // Home — list of 5 attractions
 // ─────────────────────────────────────────────────────────
-function HomeView({ push }) {
+function HomeView({ push, favorites }) {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const installer = useInstallPrompt();
   const [iosGuideOpen, setIosGuideOpen] = useState(false);
@@ -322,6 +383,24 @@ function HomeView({ push }) {
         <ChevronRight size={16} className="dc-scan-cta-chev" />
       </button>
 
+      {favorites && (favorites.wantSet.size > 0 || favorites.seenSet.size > 0) && (
+        <button
+          className="dc-favorites-cta"
+          onClick={() => push({ name: 'favorites' })}
+        >
+          <div className="dc-favorites-cta-icon">
+            <Heart size={18} fill="currentColor" />
+          </div>
+          <div className="dc-favorites-cta-body">
+            <div className="dc-favorites-cta-title">내가 찜한 작품</div>
+            <div className="dc-favorites-cta-sub">
+              가고 싶은 {favorites.wantSet.size}점 · 본 작품 {favorites.seenSet.size}점
+            </div>
+          </div>
+          <ChevronRight size={16} className="dc-scan-cta-chev" />
+        </button>
+      )}
+
       <div className="dc-attractions">
         {ATTRACTIONS.map((a) => (
           <AttractionCard
@@ -358,7 +437,7 @@ function AttractionCard({ attraction, onClick }) {
 // ─────────────────────────────────────────────────────────
 // Attraction — overview + point list
 // ─────────────────────────────────────────────────────────
-function AttractionView({ attractionId, push, pop }) {
+function AttractionView({ attractionId, push, pop, favorites }) {
   const attraction = findAttraction(attractionId);
   const [view, setView] = useState('list'); // 'list' | 'floorplan' | 'routes'
   if (!attraction) return <div>명소를 찾을 수 없습니다.</div>;
@@ -436,6 +515,7 @@ function AttractionView({ attractionId, push, pop }) {
                 idx={idx + 1}
                 accent={accent}
                 onClick={() => push({ name: 'point', attractionId, pointId: p.id })}
+                favorites={favorites}
               />
             ))}
           </div>
@@ -907,12 +987,20 @@ function BorgheseFloorPlan({ points, accent, onPointClick }) {
   );
 }
 
-function PointCard({ point, idx, accent, onClick }) {
+function PointCard({ point, idx, accent, onClick, favorites }) {
+  const isWanted = favorites?.wantSet.has(point.id);
+  const isSeen = favorites?.seenSet.has(point.id);
   return (
     <button className="dc-point-card" onClick={onClick} style={{ '--accent': accent }}>
       <div className="dc-point-thumb">
         <img src={point.image} alt={point.name} loading="lazy" />
         <div className="dc-point-num">{String(idx).padStart(2, '0')}</div>
+        {(isWanted || isSeen) && (
+          <div className="dc-point-fav-badges">
+            {isWanted && <Heart size={12} fill="currentColor" />}
+            {isSeen && <Check size={12} strokeWidth={3} />}
+          </div>
+        )}
       </div>
       <div className="dc-point-body">
         <h4>{point.name}</h4>
@@ -931,11 +1019,13 @@ function PointCard({ point, idx, accent, onClick }) {
 // ─────────────────────────────────────────────────────────
 // Point detail — image, audio player, viewing points, fun fact
 // ─────────────────────────────────────────────────────────
-function PointView({ attractionId, pointId, pop, audio }) {
+function PointView({ attractionId, pointId, pop, audio, favorites }) {
   const point = findPoint(attractionId, pointId);
   const attraction = findAttraction(attractionId);
   const isPlaying = audio.playing === pointId;
   const audioUrl = `/audio/${attractionId}/${pointId}.mp3`;
+  const isWanted = favorites?.wantSet.has(pointId);
+  const isSeen = favorites?.seenSet.has(pointId);
 
   if (!point) return <div>포인트를 찾을 수 없습니다.</div>;
 
@@ -956,6 +1046,25 @@ function PointView({ attractionId, pointId, pop, audio }) {
         <img src={point.image} alt={point.name} />
         <div className="dc-point-credit">📷 {point.imageCredit}</div>
       </div>
+
+      {favorites && (
+        <div className="dc-point-fav-row">
+          <button
+            className={`dc-fav-btn ${isWanted ? 'active want' : ''}`}
+            onClick={() => favorites.toggleWant(pointId)}
+          >
+            <Heart size={13} fill={isWanted ? 'currentColor' : 'none'} />
+            <span>{isWanted ? '가고 싶음' : '가고 싶어요'}</span>
+          </button>
+          <button
+            className={`dc-fav-btn ${isSeen ? 'active seen' : ''}`}
+            onClick={() => favorites.toggleSeen(pointId)}
+          >
+            <Check size={13} strokeWidth={isSeen ? 3 : 2} />
+            <span>{isSeen ? '봤어요' : '본 작품'}</span>
+          </button>
+        </div>
+      )}
 
       <div className="dc-point-header">
         <h1>{point.name}</h1>
@@ -1246,6 +1355,118 @@ ${point.longDesc}
         </div>
       )}
     </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// FavoritesView — 가고 싶은 작품 + 본 작품 목록
+// ─────────────────────────────────────────────────────────
+function FavoritesView({ pop, push, favorites }) {
+  const [tab, setTab] = useState('want'); // 'want' | 'seen'
+
+  // Gather all points across attractions, filter by favorites
+  const allPoints = [];
+  ATTRACTIONS.forEach((a) => {
+    a.points.forEach((p, idx) => {
+      allPoints.push({ ...p, attractionId: a.id, attractionName: a.name, attractionEmoji: a.emoji, attractionAccent: a.coverHue, attractionIdx: idx + 1 });
+    });
+  });
+
+  const wantPoints = allPoints.filter((p) => favorites.wantSet.has(p.id));
+  const seenPoints = allPoints.filter((p) => favorites.seenSet.has(p.id));
+  const currentList = tab === 'want' ? wantPoints : seenPoints;
+
+  // Group by attraction
+  const grouped = {};
+  currentList.forEach((p) => {
+    if (!grouped[p.attractionId]) grouped[p.attractionId] = { name: p.attractionName, emoji: p.attractionEmoji, accent: p.attractionAccent, points: [] };
+    grouped[p.attractionId].points.push(p);
+  });
+
+  function handleClear() {
+    if (!confirm('찜한 작품과 본 작품을 모두 지우시겠어요? 되돌릴 수 없습니다.')) return;
+    favorites.clearAll();
+  }
+
+  return (
+    <div className="dc-subview">
+      <button className="dc-back" onClick={pop}>
+        <ArrowLeft size={14} /> 뒤로
+      </button>
+
+      <div className="dc-favorites-hero">
+        <div className="dc-favorites-icon"><Heart size={26} fill="currentColor" /></div>
+        <h1 className="dc-favorites-title">내가 찜한 작품</h1>
+        <div className="dc-favorites-sub">
+          가고 싶은 {favorites.wantSet.size}점 · 본 작품 {favorites.seenSet.size}점
+        </div>
+      </div>
+
+      <div className="dc-fav-tabs">
+        <button
+          className={`dc-fav-tab ${tab === 'want' ? 'active' : ''}`}
+          onClick={() => setTab('want')}
+        >
+          <Heart size={12} fill={tab === 'want' ? 'currentColor' : 'none'} />
+          가고 싶은 ({favorites.wantSet.size})
+        </button>
+        <button
+          className={`dc-fav-tab ${tab === 'seen' ? 'active' : ''}`}
+          onClick={() => setTab('seen')}
+        >
+          <Check size={12} strokeWidth={tab === 'seen' ? 3 : 2} />
+          본 작품 ({favorites.seenSet.size})
+        </button>
+      </div>
+
+      {currentList.length === 0 ? (
+        <div className="dc-fav-empty">
+          <div className="dc-fav-empty-icon">
+            {tab === 'want' ? <Heart size={32} /> : <Check size={32} />}
+          </div>
+          <div className="dc-fav-empty-title">
+            {tab === 'want' ? '아직 찜한 작품이 없어요' : '아직 본 작품이 없어요'}
+          </div>
+          <div className="dc-fav-empty-sub">
+            작품 페이지에서 {tab === 'want' ? '하트' : '체크'}를 눌러 추가하세요
+          </div>
+        </div>
+      ) : (
+        <div className="dc-fav-list">
+          {Object.entries(grouped).map(([attrId, group]) => (
+            <div className="dc-fav-group" key={attrId}>
+              <div className="dc-fav-group-header" style={{ '--accent': group.accent }}>
+                <span className="dc-fav-group-emoji">{group.emoji}</span>
+                <span className="dc-fav-group-name">{group.name}</span>
+                <span className="dc-fav-group-count">{group.points.length}점</span>
+              </div>
+              {group.points.map((p) => (
+                <button
+                  key={p.id}
+                  className="dc-fav-item"
+                  style={{ '--accent': group.accent }}
+                  onClick={() => push({ name: 'point', attractionId: p.attractionId, pointId: p.id })}
+                >
+                  <img src={p.image} alt={p.name} loading="lazy" />
+                  <div className="dc-fav-item-body">
+                    <div className="dc-fav-item-name">{p.name}</div>
+                    <div className="dc-fav-item-artist">{p.artist}</div>
+                    <div className="dc-fav-item-loc"><MapPin size={9} /> {p.location}</div>
+                  </div>
+                  <ChevronRight size={14} className="dc-fav-item-chev" />
+                </button>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {(favorites.wantSet.size > 0 || favorites.seenSet.size > 0) && (
+        <button className="dc-fav-clear" onClick={handleClear}>
+          <Trash2 size={12} /> 전체 비우기
+        </button>
+      )}
+    </div>
   );
 }
 
