@@ -693,7 +693,7 @@ export const ATTRACTIONS = [
         location: '방 18 (Sala XVIII)',
         rating: 4,
         type: '회화 (캔버스에 유채)',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Diana%27s_Hunt_by_Domenichino_%28Domenico_Zampieri%29%2C_1616-1617%2C_oil_on_canvas_-_Galleria_Borghese_-_Rome%2C_Italy_-_DSC04877.jpg/330px-Diana%27s_Hunt_by_Domenichino_%28Domenico_Zampieri%29%2C_1616-1617%2C_oil_on_canvas_-_Galleria_Borghese_-_Rome%2C_Italy_-_DSC04877.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Domenichino_-_La_caccia_di_Diana_%28Galleria_Borghese%29.jpg/330px-Domenichino_-_La_caccia_di_Diana_%28Galleria_Borghese%29.jpg',
         imageCredit: 'Wikimedia Commons / Public Domain',
         shortDesc: '여신 디아나와 그녀의 님프들이 활쏘기 시합. 한 명이 옷을 벗고 자유롭게 — 그 시기 가장 도발적 장면.',
         longDesc: `**도메니키노** (본명 도메니코 잠피에리, 1581-1641). 볼로냐 화파, 안니발레 카라치의 제자. 17세기 초 로마에서 카라바조와 동시대 활동.

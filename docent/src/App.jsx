@@ -1596,7 +1596,7 @@ JSON만 출력 (코드블록·다른 텍스트 금지):
             <ImageIcon size={16} /> 갤러리에서 선택
           </button>
           <div className="dc-scan-hint">
-            <Info size={11} /> 17점 카탈로그 중에서 인식합니다. 보르게세·바티칸·콜로세움·판테온·트레비.
+            <Info size={11} /> {ATTRACTIONS.reduce((s, a) => s + a.points.length, 0)}점 카탈로그 중에서 인식합니다 ({ATTRACTIONS.length}개 명소: 보르게세·바티칸·콜로세움·판테온·트레비·산탄젤로·나보나·스페인광장).
           </div>
         </div>
       )}
@@ -1639,7 +1639,7 @@ JSON만 출력 (코드블록·다른 텍스트 금지):
         <div className="dc-scan-loading">
           <Loader2 size={26} className="dc-spin" />
           <div>작품을 분석하고 있어요…</div>
-          <div className="dc-scan-loading-sub">Claude Vision으로 17점 카탈로그와 비교 중</div>
+          <div className="dc-scan-loading-sub">Claude Vision으로 {ATTRACTIONS.reduce((s, a) => s + a.points.length, 0)}점 카탈로그와 비교 중</div>
         </div>
       )}
 
@@ -1727,7 +1727,7 @@ JSON만 출력 (코드블록·다른 텍스트 금지):
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.4</div>
+      <div>도슨트 · Docent v0.11</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
