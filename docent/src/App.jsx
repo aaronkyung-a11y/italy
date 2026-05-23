@@ -7,7 +7,7 @@ import {
   MessageCircle, Send, Map,
   Heart, BookmarkCheck, Check, Trash2,
 } from 'lucide-react';
-import { ATTRACTIONS, findAttraction, findPoint, TOTAL_POINTS } from './data/attractions.js';
+import { CITIES, ATTRACTIONS, findAttraction, findPoint, TOTAL_POINTS } from './data/attractions.js';
 
 // ─────────────────────────────────────────────────────────
 // Image compression for Vision API uploads
@@ -246,6 +246,9 @@ export default function App() {
   return (
     <div className="dc-app">
       {view.current.name === 'home' && <HomeView push={view.push} favorites={favorites} />}
+      {view.current.name === 'city' && (
+        <CityView cityId={view.current.cityId} push={view.push} pop={view.pop} />
+      )}
       {view.current.name === 'attraction' && (
         <AttractionView
           attractionId={view.current.attractionId}
@@ -324,11 +327,11 @@ function HomeView({ push, favorites }) {
       <header className="dc-hero">
         <div className="dc-hero-mark">DOCENT</div>
         <h1 className="dc-hero-title">도슨트</h1>
-        <p className="dc-hero-sub">로마 핵심 명소 5곳 · 한국어 오디오 가이드</p>
+        <p className="dc-hero-sub">이탈리아 핵심 도시 · 한국어 오디오 가이드</p>
         <div className="dc-hero-stats">
           <span><Headphones size={11} /> {TOTAL_POINTS} 포인트</span>
           <span>·</span>
-          <span>{ATTRACTIONS.length} 명소</span>
+          <span>{ATTRACTIONS.length} 명소 · {CITIES.filter(c => !c.comingSoon).length} 도시</span>
           {isOffline && (
             <>
               <span>·</span>
@@ -411,8 +414,93 @@ function HomeView({ push, favorites }) {
         </button>
       )}
 
+      <div className="dc-cities">
+        {CITIES.map((c) => {
+          const attrs = ATTRACTIONS.filter((a) => a.city === c.id);
+          const pts = attrs.reduce((s, a) => s + a.points.length, 0);
+          return (
+            <CityCard
+              key={c.id}
+              city={c}
+              attractionCount={attrs.length}
+              pointCount={pts}
+              onClick={() => !c.comingSoon && push({ name: 'city', cityId: c.id })}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function CityCard({ city, attractionCount, pointCount, onClick }) {
+  return (
+    <button
+      className={`dc-city-card ${city.comingSoon ? 'dc-city-card-disabled' : ''}`}
+      onClick={onClick}
+      style={{ '--accent': city.coverHue }}
+    >
+      <div className="dc-city-card-img">
+        <img src={city.image} alt={city.name} loading="lazy" />
+        <div className="dc-city-card-overlay" />
+        <div className="dc-city-card-emoji">{city.emoji}</div>
+      </div>
+      <div className="dc-city-card-body">
+        <div className="dc-city-card-head">
+          <h2>{city.name}</h2>
+          <span className="dc-city-card-local">{city.nameLocal}</span>
+        </div>
+        <p className="dc-city-card-tagline">{city.tagline}</p>
+        {city.comingSoon ? (
+          <div className="dc-city-card-meta dc-city-card-coming">
+            <Clock size={11} /> 컨텐츠 준비 중
+          </div>
+        ) : (
+          <div className="dc-city-card-meta">
+            <span>{attractionCount} 명소</span>
+            <span>·</span>
+            <span><Headphones size={11} /> {pointCount} 포인트</span>
+          </div>
+        )}
+      </div>
+      {!city.comingSoon && <ChevronRight size={18} className="dc-city-card-chev" />}
+    </button>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// CityView — list of attractions for a given city
+// ─────────────────────────────────────────────────────────
+function CityView({ cityId, push, pop }) {
+  const city = CITIES.find((c) => c.id === cityId);
+  const attractions = ATTRACTIONS.filter((a) => a.city === cityId);
+  const totalPoints = attractions.reduce((s, a) => s + a.points.length, 0);
+
+  if (!city) return <div className="dc-subview">도시를 찾을 수 없음</div>;
+
+  return (
+    <div className="dc-subview dc-city-view">
+      <div className="dc-city-header" style={{ '--accent': city.coverHue }}>
+        <button className="dc-city-back" onClick={pop} aria-label="뒤로">
+          <ArrowLeft size={16} />
+        </button>
+        <div className="dc-city-header-content">
+          <div className="dc-city-header-emoji">{city.emoji}</div>
+          <div>
+            <h1>{city.name}</h1>
+            <div className="dc-city-header-local">{city.nameLocal}</div>
+          </div>
+        </div>
+        <p className="dc-city-header-tagline">{city.tagline}</p>
+        <div className="dc-city-header-stats">
+          <span>{attractions.length} 명소</span>
+          <span>·</span>
+          <span><Headphones size={11} /> {totalPoints} 포인트</span>
+        </div>
+      </div>
+
       <div className="dc-attractions">
-        {ATTRACTIONS.map((a) => (
+        {attractions.map((a) => (
           <AttractionCard
             key={a.id}
             attraction={a}
@@ -1844,7 +1932,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.12.1</div>
+      <div>도슨트 · Docent v0.13</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
