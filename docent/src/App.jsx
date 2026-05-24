@@ -480,22 +480,27 @@ function CityView({ cityId, push, pop }) {
 
   return (
     <div className="dc-subview dc-city-view">
-      <div className="dc-city-header" style={{ '--accent': city.coverHue }}>
-        <button className="dc-city-back" onClick={pop} aria-label="뒤로">
-          <ArrowLeft size={16} />
+      <div className="dc-city-hero" style={{ '--accent': city.coverHue }}>
+        <img
+          className="dc-city-hero-img"
+          src={city.image ? city.image.replace(/\/330px-/, '/500px-') : ''}
+          alt={city.name}
+          loading="eager"
+        />
+        <div className="dc-city-hero-overlay" />
+        <button className="dc-city-hero-back" onClick={pop} aria-label="뒤로">
+          <ArrowLeft size={18} />
         </button>
-        <div className="dc-city-header-content">
-          <div className="dc-city-header-emoji">{city.emoji}</div>
-          <div>
-            <h1>{city.name}</h1>
-            <div className="dc-city-header-local">{city.nameLocal}</div>
+        <div className="dc-city-hero-emoji">{city.emoji}</div>
+        <div className="dc-city-hero-body">
+          <h1 className="dc-city-hero-title">{city.name}</h1>
+          <div className="dc-city-hero-local">{city.nameLocal}</div>
+          <p className="dc-city-hero-tagline">{city.tagline}</p>
+          <div className="dc-city-hero-stats">
+            <span>{attractions.length} 명소</span>
+            <span>·</span>
+            <span><Headphones size={11} /> {totalPoints} 포인트</span>
           </div>
-        </div>
-        <p className="dc-city-header-tagline">{city.tagline}</p>
-        <div className="dc-city-header-stats">
-          <span>{attractions.length} 명소</span>
-          <span>·</span>
-          <span><Headphones size={11} /> {totalPoints} 포인트</span>
         </div>
       </div>
 
@@ -1932,7 +1937,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.15</div>
+      <div>도슨트 · Docent v0.16</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>

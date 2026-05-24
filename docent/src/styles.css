@@ -252,70 +252,106 @@ img {
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
 }
 
-/* CityView (sub-page) */
-.dc-city-header {
-  padding: 16px 14px 18px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 14%, var(--bg-2)) 0%, var(--bg-2) 100%);
-  border-bottom: 1px solid var(--line);
-  margin: 0 -14px 18px;
-  padding-left: 14px;
-  padding-right: 14px;
+/* CityView Hero Banner */
+.dc-city-hero {
   position: relative;
+  margin: -20px -20px 18px;
+  height: 220px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
 }
 
-.dc-city-back {
-  background: transparent;
-  border: none;
-  color: var(--text);
-  padding: 6px;
-  margin-left: -6px;
+.dc-city-hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.dc-city-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    rgba(15, 20, 25, 0.25) 0%,
+    rgba(15, 20, 25, 0.5) 45%,
+    rgba(15, 20, 25, 0.92) 100%);
+}
+
+.dc-city-hero-back {
+  position: absolute;
+  top: 14px;
+  left: 12px;
+  background: rgba(15, 20, 25, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   cursor: pointer;
+  padding: 0;
+  z-index: 2;
 }
 
-.dc-city-header-content {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-top: 8px;
+.dc-city-hero-emoji {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  font-size: 28px;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+  z-index: 2;
 }
 
-.dc-city-header-emoji {
-  font-size: 48px;
+.dc-city-hero-body {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px 18px 16px;
+  z-index: 2;
 }
 
-.dc-city-header-content h1 {
+.dc-city-hero-title {
   font-family: 'Noto Sans KR', sans-serif;
-  font-size: 26px;
-  font-weight: 600;
+  font-size: 30px;
+  font-weight: 700;
   margin: 0;
-  color: var(--text);
+  color: #fff;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+  letter-spacing: -0.5px;
 }
 
-.dc-city-header-local {
+.dc-city-hero-local {
   font-family: 'Cormorant Garamond', serif;
   font-style: italic;
-  font-size: 16px;
+  font-size: 17px;
   color: var(--accent);
   margin-top: 2px;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
 }
 
-.dc-city-header-tagline {
-  font-size: 14px;
-  color: var(--text-2);
-  margin: 10px 0 8px;
-  line-height: 1.5;
+.dc-city-hero-tagline {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.92);
+  margin: 10px 0 6px;
+  line-height: 1.45;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
 }
 
-.dc-city-header-stats {
+.dc-city-hero-stats {
   display: flex;
   gap: 6px;
   font-size: 12px;
-  color: var(--text-3);
+  color: rgba(255, 255, 255, 0.78);
 }
 
-.dc-city-header-stats span {
+.dc-city-hero-stats span {
   display: inline-flex;
   align-items: center;
   gap: 3px;
