@@ -546,7 +546,7 @@ function AttractionView({ attractionId, push, pop, favorites }) {
   if (!attraction) return <div>명소를 찾을 수 없습니다.</div>;
 
   const accent = attraction.coverHue;
-  const hasFloorPlan = attractionId === 'borghese' || attractionId === 'vatican' || attractionId === 'uffizi';
+  const hasFloorPlan = attractionId === 'borghese' || attractionId === 'vatican' || attractionId === 'uffizi' || attractionId === 'foro';
   const hasRoutes = !!attraction.routes && attraction.routes.length > 0;
 
   return (
@@ -642,6 +642,14 @@ function AttractionView({ attractionId, push, pop, favorites }) {
 
         {view === 'floorplan' && attractionId === 'uffizi' && (
           <UffiziFloorPlan
+            points={attraction.points}
+            accent={accent}
+            onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
+          />
+        )}
+
+        {view === 'floorplan' && attractionId === 'foro' && (
+          <ForoFloorPlan
             points={attraction.points}
             accent={accent}
             onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
@@ -831,6 +839,242 @@ function RouteGuide({ routes, points, accent, onPointClick }) {
 }
 
 // ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────
+// ForoFloorPlan — 야외 유적 지도 (포로 로마노 + 팔라티노 언덕)
+// ─────────────────────────────────────────────────────────
+function ForoFloorPlan({ points, accent, onPointClick }) {
+  const POINT_TO_AREA = {
+    'foro-overview': 'capitoline',
+    'arco-severo': 'severo',
+    'curia-iulia': 'curia',
+    'tempio-vesta': 'vesta',
+    'palatino-augustana': 'palatine',
+    'arco-tito': 'tito',
+  };
+
+  const pointMap = {};
+  points.forEach((p, i) => { pointMap[p.id] = { ...p, idx: i + 1 }; });
+
+  const pointsByArea = {};
+  points.forEach((p, i) => {
+    const a = POINT_TO_AREA[p.id];
+    if (a) {
+      if (!pointsByArea[a]) pointsByArea[a] = [];
+      pointsByArea[a].push({ ...p, idx: i + 1 });
+    }
+  });
+
+  // viewBox 600x500 — single outdoor map view
+  const AREAS = [
+    // West entry — Capitoline Hill
+    { id: 'capitoline', name: '캄피돌리오 언덕', label: '입구 · 전망대', x: 30, y: 90, w: 100, h: 100, isEntry: true },
+    // North side of Forum (top)
+    { id: 'severo', name: 'Arco di Settimio Severo', label: '셉티미우스 세베루스 개선문', x: 145, y: 95, w: 110, h: 50 },
+    { id: 'curia', name: 'Curia Iulia', label: '원로원 (쿠리아)', x: 270, y: 60, w: 110, h: 50 },
+    // Middle — Via Sacra path indicator
+    { id: 'via_sacra', name: 'Via Sacra', label: '비아 사크라 (성스러운 길)', x: 145, y: 155, w: 405, h: 30, isCorridor: true },
+    // South side of Forum
+    { id: 'vesta', name: 'Tempio di Vesta', label: '베스타 신전 + 처녀들의 집', x: 305, y: 195, w: 145, h: 55 },
+    // East — Arch of Titus → Colosseum
+    { id: 'tito', name: 'Arco di Tito', label: '티투스 개선문', x: 465, y: 95, w: 105, h: 50 },
+    // Palatine Hill (south, separated)
+    { id: 'palatine', name: 'Palatino', label: '팔라티노 언덕 · 도무스 아우구스타나', x: 180, y: 320, w: 320, h: 130 },
+  ];
+
+  function getPointPosition(area, pointIdx, totalPoints) {
+    if (totalPoints === 1) {
+      return { cx: area.x + area.w / 2, cy: area.y + area.h / 2 + 6 };
+    }
+    const cols = Math.min(totalPoints, 3);
+    const col = pointIdx % cols;
+    const row = Math.floor(pointIdx / cols);
+    return {
+      cx: area.x + area.w * (0.25 + (col / cols) * 0.5),
+      cy: area.y + area.h * (0.55 + row * 0.25),
+    };
+  }
+
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+
+  return (
+    <div className="dc-floorplan-svg" style={{ '--accent': accent }}>
+      <div className="dc-floor-label">
+        <div className="dc-floor-label-title">
+          포로 로마노 + 팔라티노 언덕 지도
+        </div>
+        <div className="dc-floor-label-sub">
+          서쪽 캄피돌리오 입구 → Via Sacra 따라 → 동쪽 콜로세움 출구. 팔라티노는 남쪽
+        </div>
+      </div>
+
+      <div className="dc-svg-wrapper">
+        <svg viewBox="0 0 600 500" className="dc-floor-svg" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <pattern id="foro-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="600" height="500" fill="url(#foro-grid)" />
+
+          {/* North arrow */}
+          <g transform="translate(560, 30)">
+            <circle r="14" fill="rgba(0,0,0,0.3)" stroke="var(--text-faint)" strokeWidth="0.5" />
+            <path d="M 0,-8 L 4,4 L 0,0 L -4,4 Z" fill="var(--gold)" />
+            <text y="-18" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="DM Sans">N</text>
+          </g>
+
+          {/* Colosseum hint (east, off-map) */}
+          <g transform="translate(570, 110)">
+            <text textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="Noto Sans KR">→</text>
+            <text y="14" textAnchor="middle" fontSize="8.5" fill="var(--text-soft)" fontFamily="Noto Sans KR">콜로</text>
+            <text y="25" textAnchor="middle" fontSize="8.5" fill="var(--text-soft)" fontFamily="Noto Sans KR">세움</text>
+          </g>
+
+          {/* Forum valley outline (visual context) */}
+          <rect
+            x="135" y="50" width="445" height="220"
+            rx="14"
+            fill="rgba(184,91,63,0.04)"
+            stroke="var(--line)"
+            strokeWidth="1"
+            strokeDasharray="2 4"
+            opacity="0.5"
+          />
+          <text
+            x="357" y="290"
+            textAnchor="middle"
+            fontSize="8.5"
+            fill="var(--text-faint)"
+            fontFamily="Cormorant Garamond, serif"
+            fontStyle="italic"
+            opacity="0.7"
+          >
+            Foro Romano (포로 로마노 계곡)
+          </text>
+
+          {/* Areas */}
+          {AREAS.map((area) => {
+            const isEmpty = !pointsByArea[area.id] || pointsByArea[area.id].length === 0;
+            return (
+              <g key={area.id}>
+                <rect
+                  x={area.x}
+                  y={area.y}
+                  width={area.w}
+                  height={area.h}
+                  rx="6"
+                  fill={
+                    area.isEntry ? 'rgba(201,169,97,0.06)'
+                    : area.isCorridor ? 'transparent'
+                    : 'var(--bg)'
+                  }
+                  stroke={
+                    area.isCorridor ? 'var(--line)'
+                    : (isEmpty ? 'var(--line)' : 'var(--accent)')
+                  }
+                  strokeWidth={isEmpty ? 1 : 1.5}
+                  strokeDasharray={area.isCorridor ? '4 3' : 'none'}
+                  opacity={area.isCorridor ? 0.6 : 1}
+                />
+                <text
+                  x={area.x + 8}
+                  y={area.y + 14}
+                  fontSize="9.5"
+                  fill={area.isCorridor ? 'var(--text-soft)' : 'var(--accent)'}
+                  fontFamily="Cormorant Garamond, serif"
+                  fontStyle="italic"
+                  fontWeight="500"
+                >
+                  {area.name}
+                </text>
+                {area.label && (
+                  <text
+                    x={area.x + 8}
+                    y={area.y + 26}
+                    fontSize="8.5"
+                    fill="var(--text-soft)"
+                    fontFamily="Noto Sans KR, sans-serif"
+                  >
+                    {area.label}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+
+          {/* Point dots */}
+          {AREAS.map((area) => {
+            const areaPoints = pointsByArea[area.id] || [];
+            return areaPoints.map((p, i) => {
+              const pos = getPointPosition(area, i, areaPoints.length);
+              const isHovered = hoveredPoint === p.id;
+              return (
+                <g
+                  key={p.id}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => onPointClick(p.id)}
+                  onMouseEnter={() => setHoveredPoint(p.id)}
+                  onMouseLeave={() => setHoveredPoint(null)}
+                >
+                  <circle
+                    cx={pos.cx}
+                    cy={pos.cy}
+                    r={isHovered ? 14 : 11}
+                    fill="var(--accent)"
+                    stroke="var(--bg)"
+                    strokeWidth="2"
+                    style={{ transition: 'all 0.15s' }}
+                  />
+                  <text
+                    x={pos.cx}
+                    y={pos.cy + 4}
+                    fontSize="10"
+                    fill="var(--bg)"
+                    fontFamily="DM Sans, sans-serif"
+                    fontWeight="600"
+                    textAnchor="middle"
+                    pointerEvents="none"
+                  >
+                    {String(p.idx).padStart(2, '0')}
+                  </text>
+                </g>
+              );
+            });
+          })}
+        </svg>
+      </div>
+
+      <div className="dc-floorplan-note">
+        야외 유적 — 번호 탭하면 작품 상세로 이동
+      </div>
+
+      <div className="dc-floor-pointlist">
+        <div className="dc-floor-pointlist-title">유적 목록:</div>
+        {AREAS.map((area) => {
+          const areaPoints = pointsByArea[area.id] || [];
+          if (areaPoints.length === 0) return null;
+          return (
+            <div className="dc-floor-room-list" key={area.id}>
+              <div className="dc-floor-room-list-name">{area.name} · {area.label}</div>
+              {areaPoints.map((p) => (
+                <button
+                  key={p.id}
+                  className="dc-floor-room-list-point"
+                  onClick={() => onPointClick(p.id)}
+                >
+                  <span className="dc-floor-room-list-num">{String(p.idx).padStart(2, '0')}</span>
+                  <span className="dc-floor-room-list-name-text">{p.name}</span>
+                  <span className="dc-floor-room-list-artist">{p.artist}</span>
+                </button>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────
 // UffiziFloorPlan — U자형 평면도 (위층 13-16c · 아래층 16-17c)
 // ─────────────────────────────────────────────────────────
@@ -2243,7 +2487,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.17</div>
+      <div>도슨트 · Docent v0.18</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
