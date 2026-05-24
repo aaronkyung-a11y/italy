@@ -546,7 +546,7 @@ function AttractionView({ attractionId, push, pop, favorites }) {
   if (!attraction) return <div>명소를 찾을 수 없습니다.</div>;
 
   const accent = attraction.coverHue;
-  const hasFloorPlan = attractionId === 'borghese' || attractionId === 'vatican';
+  const hasFloorPlan = attractionId === 'borghese' || attractionId === 'vatican' || attractionId === 'uffizi';
   const hasRoutes = !!attraction.routes && attraction.routes.length > 0;
 
   return (
@@ -634,6 +634,14 @@ function AttractionView({ attractionId, push, pop, favorites }) {
 
         {view === 'floorplan' && attractionId === 'vatican' && (
           <VaticanFlowPlan
+            points={attraction.points}
+            accent={accent}
+            onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
+          />
+        )}
+
+        {view === 'floorplan' && attractionId === 'uffizi' && (
+          <UffiziFloorPlan
             points={attraction.points}
             accent={accent}
             onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
@@ -823,6 +831,304 @@ function RouteGuide({ routes, points, accent, onPointClick }) {
 }
 
 // ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────
+// UffiziFloorPlan — U자형 평면도 (위층 13-16c · 아래층 16-17c)
+// ─────────────────────────────────────────────────────────
+function UffiziFloorPlan({ points, accent, onPointClick }) {
+  const [floor, setFloor] = useState('upper');
+
+  const POINT_TO_ROOM = {
+    // Upper floor (Secondo Piano · 13-16c)
+    'giotto-ognissanti-madonna': 'sala2',
+    'simone-martini-annunciation': 'sala3',
+    'gentile-da-fabriano-adoration': 'sala56',
+    'piero-montefeltro-diptych': 'sala78',
+    'uccello-battle-san-romano': 'sala78',
+    'filippo-lippi-madonna-angels': 'sala78',
+    'botticelli-primavera': 'sala1014',
+    'botticelli-venus-birth': 'sala1014',
+    'botticelli-adoration-magi': 'sala1014',
+    'botticelli-pallas-centaur': 'sala1014',
+    'leonardo-annunciation': 'sala15',
+    'leonardo-adoration': 'sala15',
+    'medici-venus': 'tribuna',
+    'michelangelo-doni-tondo': 'sala35',
+    'raphael-goldfinch-madonna': 'sala26',
+    'raphael-leo-x': 'sala26',
+    // Lower floor (Primo Piano · 16-17c)
+    'titian-venus-urbino': 'sala83',
+    'titian-flora': 'sala83',
+    'parmigianino-long-neck': 'sala74',
+    'bronzino-eleonora': 'sala65',
+    'caravaggio-bacchus': 'sala96',
+    'caravaggio-medusa': 'sala96',
+    'caravaggio-isaac': 'sala96',
+    'artemisia-judith': 'sala90',
+  };
+
+  // Point index map
+  const pointMap = {};
+  points.forEach((p, i) => { pointMap[p.id] = { ...p, idx: i + 1 }; });
+
+  const pointsByRoom = {};
+  points.forEach((p, i) => {
+    const room = POINT_TO_ROOM[p.id];
+    if (room) {
+      if (!pointsByRoom[room]) pointsByRoom[room] = [];
+      pointsByRoom[room].push({ ...p, idx: i + 1 });
+    }
+  });
+
+  // Upper floor — U-shape: east wing (left) + cross corridor (south) + west wing (right)
+  // viewBox 600×500
+  const UPPER_ROOMS = [
+    // East wing (left, north to south)
+    { id: 'sala2', name: 'Sala 2', label: '지오토 · 치마부에', x: 70, y: 70, w: 130, h: 52 },
+    { id: 'sala3', name: 'Sala 3', label: '시모네 마르티니', x: 70, y: 124, w: 130, h: 48 },
+    { id: 'sala56', name: 'Sala 5-6', label: '국제 고딕', x: 70, y: 174, w: 130, h: 48 },
+    { id: 'sala78', name: 'Sala 7-8', label: '피에로 · 우첼로 · 리피', x: 70, y: 224, w: 130, h: 70 },
+    { id: 'sala1014', name: 'Sala 10-14', label: '보티첼리 룸', x: 70, y: 296, w: 130, h: 70 },
+    { id: 'sala15', name: 'Sala 15', label: '레오나르도', x: 70, y: 368, w: 130, h: 50 },
+    // Cross corridor (south, along Arno) — labels only
+    { id: 'tribuna', name: 'Sala 18', label: '트리부나 — 메디치 비너스', x: 240, y: 380, w: 120, h: 58, isTribuna: true },
+    // West wing (right, south to north — return path)
+    { id: 'sala35', name: 'Sala 35', label: '미켈란젤로 도니 톤도', x: 400, y: 368, w: 130, h: 50 },
+    { id: 'sala26', name: 'Sala 26', label: '라파엘로', x: 400, y: 296, w: 130, h: 70 },
+    { id: 'sala25_empty', name: 'Sala 19-25', label: '뒤러 · 베네치아', x: 400, y: 224, w: 130, h: 70, isEmpty: true },
+    { id: 'sala24_empty', name: 'Sala 17-23', label: '북유럽 르네상스', x: 400, y: 174, w: 130, h: 48, isEmpty: true },
+    { id: 'sala16_empty', name: '복도', x: 400, y: 124, w: 130, h: 48, isCorridor: true },
+    { id: 'exit', name: '출구', label: '아래층으로', x: 400, y: 70, w: 130, h: 52, isEntry: true },
+    // North entry hall
+    { id: 'entry', name: '입구', label: '계단 위층', x: 240, y: 70, w: 120, h: 52, isEntry: true },
+  ];
+
+  // Lower floor — U-shape continues, 16-17c
+  const LOWER_ROOMS = [
+    // East wing (left)
+    { id: 'sala65', name: 'Sala 65', label: '브론치노', x: 70, y: 80, w: 130, h: 58 },
+    { id: 'sala74', name: 'Sala 74', label: '파르미자니노 · 매너리즘', x: 70, y: 140, w: 130, h: 60 },
+    { id: 'sala83', name: 'Sala 83', label: '티치아노', x: 70, y: 202, w: 130, h: 70 },
+    // Middle / cross area  
+    { id: 'corridor_mid', name: '복도', label: '베네치아 회화', x: 240, y: 202, w: 120, h: 70, isCorridor: true },
+    // West wing (right) — Caravaggio cluster
+    { id: 'sala90', name: 'Sala 90', label: '아르테미시아 젠틸레스키', x: 400, y: 140, w: 130, h: 60 },
+    { id: 'sala96', name: 'Sala 96-97', label: '카라바조 (3점)', x: 400, y: 202, w: 130, h: 80 },
+    // South - exit
+    { id: 'exit_lower', name: '출구', label: '본 건물', x: 240, y: 320, w: 120, h: 50, isEntry: true },
+  ];
+
+  const rooms = floor === 'upper' ? UPPER_ROOMS : LOWER_ROOMS;
+
+  function getPointPosition(room, pointIdx, totalPoints) {
+    if (totalPoints === 1) {
+      return { cx: room.x + room.w / 2, cy: room.y + room.h / 2 + 6 };
+    }
+    if (totalPoints === 2) {
+      return {
+        cx: room.x + room.w * (pointIdx === 0 ? 0.32 : 0.68),
+        cy: room.y + room.h / 2 + 8,
+      };
+    }
+    if (totalPoints === 3) {
+      const positions = [
+        { cx: room.x + room.w * 0.25, cy: room.y + room.h * 0.55 },
+        { cx: room.x + room.w * 0.5, cy: room.y + room.h * 0.55 },
+        { cx: room.x + room.w * 0.75, cy: room.y + room.h * 0.55 },
+      ];
+      return positions[pointIdx];
+    }
+    // 4+ points: 2x2 grid
+    const col = pointIdx % 2;
+    const row = Math.floor(pointIdx / 2);
+    return {
+      cx: room.x + room.w * (col === 0 ? 0.3 : 0.7),
+      cy: room.y + room.h * (row === 0 ? 0.5 : 0.78),
+    };
+  }
+
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+
+  return (
+    <div className="dc-floorplan-svg" style={{ '--accent': accent }}>
+      <div className="dc-floor-toggle">
+        <button
+          className={`dc-floor-btn ${floor === 'upper' ? 'active' : ''}`}
+          onClick={() => setFloor('upper')}
+        >
+          위층 · 13-16c
+        </button>
+        <button
+          className={`dc-floor-btn ${floor === 'lower' ? 'active' : ''}`}
+          onClick={() => setFloor('lower')}
+        >
+          아래층 · 16-17c
+        </button>
+      </div>
+
+      <div className="dc-floor-label">
+        <div className="dc-floor-label-title">
+          {floor === 'upper' ? '위층 — Secondo Piano (초기·전성기 르네상스)' : '아래층 — Primo Piano (매너리즘·바로크)'}
+        </div>
+        <div className="dc-floor-label-sub">
+          {floor === 'upper'
+            ? '지오토 → 보티첼리 → 레오나르도 → 미켈란젤로 → 라파엘로 — U자형 회랑'
+            : '티치아노 · 파르미자니노 · 브론치노 · 카라바조 · 아르테미시아'}
+        </div>
+      </div>
+
+      <div className="dc-svg-wrapper">
+        <svg viewBox="0 0 600 500" className="dc-floor-svg" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <pattern id="uffizi-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="600" height="500" fill="url(#uffizi-grid)" />
+
+          {/* Cardinal directions */}
+          <text x="300" y="22" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="DM Sans">
+            ▲ 시뇨리아 광장 (북·입구)
+          </text>
+          <text x="300" y="490" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="DM Sans">
+            아르노 강 (남) ▼
+          </text>
+
+          {/* U-shape connecting corridor outline (visual hint) */}
+          {floor === 'upper' && (
+            <path
+              d="M 200 96 L 240 96 L 240 122 L 360 122 L 360 96 L 400 96 M 200 393 L 240 393 M 360 393 L 400 393"
+              stroke="var(--line)"
+              strokeWidth="1"
+              fill="none"
+              strokeDasharray="3 3"
+              opacity="0.4"
+            />
+          )}
+
+          {/* Rooms */}
+          {rooms.map((room) => {
+            const isEmpty = !pointsByRoom[room.id] || pointsByRoom[room.id].length === 0;
+            return (
+              <g key={room.id}>
+                <rect
+                  x={room.x}
+                  y={room.y}
+                  width={room.w}
+                  height={room.h}
+                  rx="6"
+                  fill={
+                    room.isTribuna ? 'rgba(201,169,97,0.08)'
+                    : (room.isEntry || room.isCorridor) ? 'transparent'
+                    : 'var(--bg)'
+                  }
+                  stroke={
+                    room.isEntry || room.isCorridor ? 'var(--line)'
+                    : (isEmpty ? 'var(--line)' : 'var(--accent)')
+                  }
+                  strokeWidth={isEmpty ? 1 : 1.5}
+                  strokeDasharray={room.isEntry || room.isCorridor || room.isEmpty ? '4 3' : 'none'}
+                  opacity={room.isEntry || room.isCorridor || room.isEmpty ? 0.6 : 1}
+                />
+                <text
+                  x={room.x + 8}
+                  y={room.y + 14}
+                  fontSize="9.5"
+                  fill="var(--accent)"
+                  fontFamily="Cormorant Garamond, serif"
+                  fontStyle="italic"
+                  fontWeight="500"
+                >
+                  {room.name}
+                </text>
+                {room.label && (
+                  <text
+                    x={room.x + 8}
+                    y={room.y + 26}
+                    fontSize="8.5"
+                    fill="var(--text-soft)"
+                    fontFamily="Noto Sans KR, sans-serif"
+                  >
+                    {room.label}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+
+          {/* Point dots */}
+          {rooms.map((room) => {
+            const roomPoints = pointsByRoom[room.id] || [];
+            return roomPoints.map((p, i) => {
+              const pos = getPointPosition(room, i, roomPoints.length);
+              const isHovered = hoveredPoint === p.id;
+              return (
+                <g
+                  key={p.id}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => onPointClick(p.id)}
+                  onMouseEnter={() => setHoveredPoint(p.id)}
+                  onMouseLeave={() => setHoveredPoint(null)}
+                >
+                  <circle
+                    cx={pos.cx}
+                    cy={pos.cy}
+                    r={isHovered ? 13 : 10.5}
+                    fill="var(--accent)"
+                    stroke="var(--bg)"
+                    strokeWidth="2"
+                    style={{ transition: 'all 0.15s' }}
+                  />
+                  <text
+                    x={pos.cx}
+                    y={pos.cy + 3.5}
+                    fontSize="9.5"
+                    fill="var(--bg)"
+                    fontFamily="DM Sans, sans-serif"
+                    fontWeight="600"
+                    textAnchor="middle"
+                    pointerEvents="none"
+                  >
+                    {String(p.idx).padStart(2, '0')}
+                  </text>
+                </g>
+              );
+            });
+          })}
+        </svg>
+      </div>
+
+      <div className="dc-floorplan-note">
+        번호를 탭하면 작품 상세로 이동
+      </div>
+
+      {/* Point list below SVG */}
+      <div className="dc-floor-pointlist">
+        <div className="dc-floor-pointlist-title">이 층의 작품:</div>
+        {rooms.map((room) => {
+          const roomPoints = pointsByRoom[room.id] || [];
+          if (roomPoints.length === 0) return null;
+          return (
+            <div className="dc-floor-room-list" key={room.id}>
+              <div className="dc-floor-room-list-name">{room.name} · {room.label}</div>
+              {roomPoints.map((p) => (
+                <button
+                  key={p.id}
+                  className="dc-floor-room-list-point"
+                  onClick={() => onPointClick(p.id)}
+                >
+                  <span className="dc-floor-room-list-num">{String(p.idx).padStart(2, '0')}</span>
+                  <span className="dc-floor-room-list-name-text">{p.name}</span>
+                  <span className="dc-floor-room-list-artist">{p.artist}</span>
+                </button>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // BorgheseFloorPlan — 정확한 SVG 평면도
 // ─────────────────────────────────────────────────────────
 function BorgheseFloorPlan({ points, accent, onPointClick }) {
@@ -1937,7 +2243,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.16</div>
+      <div>도슨트 · Docent v0.17</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>

@@ -5585,6 +5585,48 @@ export const ATTRACTIONS = [
       ],
       summary: '메디치 가문 3대(코시모 1세 → 프란체스코 1세 → 페르디난도 1세)가 100년간 모은 컬렉션. 1581년 우피치 건물(Vasari 설계, 원래 메디치 정부 사무실 "uffizi") 최상층에 회화 전시 개시 → 1737년 메디치 마지막 후손 안나 마리아 루이자가 〈피렌체에서 절대 이동하지 말 것〉 조건으로 시에 기증. 그래서 작품들이 단 한 점도 외부 대여를 안 합니다.',
     },
+    routes: [
+      {
+        id: 'essential',
+        name: '핵심 90분 코스',
+        sub: '시간 부족할 때 — 우피치의 10대 걸작',
+        duration_min: 90,
+        pointIds: ['giotto-ognissanti-madonna', 'gentile-da-fabriano-adoration', 'piero-montefeltro-diptych', 'botticelli-primavera', 'botticelli-venus-birth', 'leonardo-annunciation', 'medici-venus', 'michelangelo-doni-tondo', 'raphael-leo-x', 'caravaggio-medusa'],
+        note: '입구 위층 → 중앙 트리부나 → 아래층 카라바조. 동선 끊김 없음',
+      },
+      {
+        id: 'full',
+        name: '완전 3.5시간 코스',
+        sub: '24점 전부 + 건물 — 시대순 우피치 종주',
+        duration_min: 210,
+        pointIds: ['uffizi-exterior', 'giotto-ognissanti-madonna', 'simone-martini-annunciation', 'gentile-da-fabriano-adoration', 'piero-montefeltro-diptych', 'uccello-battle-san-romano', 'filippo-lippi-madonna-angels', 'botticelli-primavera', 'botticelli-venus-birth', 'botticelli-adoration-magi', 'botticelli-pallas-centaur', 'leonardo-annunciation', 'leonardo-adoration', 'medici-venus', 'michelangelo-doni-tondo', 'raphael-goldfinch-madonna', 'raphael-leo-x', 'titian-venus-urbino', 'titian-flora', 'parmigianino-long-neck', 'bronzino-eleonora', 'caravaggio-bacchus', 'caravaggio-medusa', 'caravaggio-isaac', 'artemisia-judith'],
+        note: '건물 외관 먼저 → 위층 시대순 → 트리부나 → 아래층 카라바조',
+      },
+      {
+        id: 'botticelli',
+        name: '보티첼리 4점 코스',
+        sub: '15세기 신화화의 정점 — 메디치의 화가',
+        duration_min: 40,
+        pointIds: ['botticelli-primavera', 'botticelli-venus-birth', 'botticelli-adoration-magi', 'botticelli-pallas-centaur'],
+        note: '같은 방(보티첼리 룸)에 4점 집중 — 한 자리에서 비교 관람',
+      },
+      {
+        id: 'medici',
+        name: '메디치 가문 코스',
+        sub: '메디치가 발주·수집한 작품으로 본 가문의 권력',
+        duration_min: 75,
+        pointIds: ['botticelli-adoration-magi', 'leonardo-annunciation', 'medici-venus', 'michelangelo-doni-tondo', 'raphael-leo-x', 'bronzino-eleonora'],
+        note: '코시모 → 로렌초 → 레오 10세 → 코시모 1세 — 300년 메디치 시각화',
+      },
+      {
+        id: 'caravaggio',
+        name: '카라바조 + 바로크 코스',
+        sub: '키아로스쿠로의 시작과 그 후예들',
+        duration_min: 50,
+        pointIds: ['caravaggio-bacchus', 'caravaggio-medusa', 'caravaggio-isaac', 'artemisia-judith', 'titian-venus-urbino'],
+        note: '아래층 카라바조 3점 + 아르테미시아 → 위로 올라가 티치아노 비교',
+      },
+    ],
     points: [
       {
         id: 'uffizi-exterior',
