@@ -546,7 +546,7 @@ function AttractionView({ attractionId, push, pop, favorites }) {
   if (!attraction) return <div>명소를 찾을 수 없습니다.</div>;
 
   const accent = attraction.coverHue;
-  const hasFloorPlan = attractionId === 'borghese' || attractionId === 'vatican' || attractionId === 'uffizi' || attractionId === 'foro';
+  const hasFloorPlan = attractionId === 'borghese' || attractionId === 'vatican' || attractionId === 'uffizi' || attractionId === 'foro' || attractionId === 'colosseum';
   const hasRoutes = !!attraction.routes && attraction.routes.length > 0;
 
   return (
@@ -650,6 +650,14 @@ function AttractionView({ attractionId, push, pop, favorites }) {
 
         {view === 'floorplan' && attractionId === 'foro' && (
           <ForoFloorPlan
+            points={attraction.points}
+            accent={accent}
+            onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
+          />
+        )}
+
+        {view === 'floorplan' && attractionId === 'colosseum' && (
+          <ColosseumFloorPlan
             points={attraction.points}
             accent={accent}
             onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
@@ -1368,6 +1376,335 @@ function UffiziFloorPlan({ points, accent, onPointClick }) {
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// ColosseumFloorPlan — 타원형 + 하이포지움 단면 (다층 구조)
+// ─────────────────────────────────────────────────────────
+function ColosseumFloorPlan({ points, accent, onPointClick }) {
+  const [view, setView] = useState('top');  // 'top' or 'section'
+
+  const POINT_TO_AREA = {
+    // Top view
+    'exterior-arches': 'outer-ring',
+    'colosseum-cavea': 'cavea',
+    'velarium-awning': 'awning',
+    'gladiator-types': 'arena',
+    'arch-constantine': 'arch-constantine',
+    'ludus-magnus': 'ludus-magnus',
+    // Section view (hypogeum)
+    'hypogeum': 'hypogeum-section',
+  };
+
+  const pointMap = {};
+  points.forEach((p, i) => { pointMap[p.id] = { ...p, idx: i + 1 }; });
+
+  const pointsByArea = {};
+  points.forEach((p, i) => {
+    const a = POINT_TO_AREA[p.id];
+    if (a) {
+      if (!pointsByArea[a]) pointsByArea[a] = [];
+      pointsByArea[a].push({ ...p, idx: i + 1 });
+    }
+  });
+
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+
+  // viewBox 600x500
+  return (
+    <div className="dc-floorplan-svg" style={{ '--accent': accent }}>
+      <div className="dc-floor-toggle">
+        <button
+          className={`dc-floor-btn ${view === 'top' ? 'active' : ''}`}
+          onClick={() => setView('top')}
+        >
+          평면도 (위에서)
+        </button>
+        <button
+          className={`dc-floor-btn ${view === 'section' ? 'active' : ''}`}
+          onClick={() => setView('section')}
+        >
+          단면도 (하이포지움)
+        </button>
+      </div>
+
+      <div className="dc-floor-label">
+        <div className="dc-floor-label-title">
+          {view === 'top' ? '콜로세움 + 주변 — 위에서 본 모습' : '콜로세움 단면 — 지하 하이포지움'}
+        </div>
+        <div className="dc-floor-label-sub">
+          {view === 'top'
+            ? '타원 188m × 156m · 콘스탄티누스 개선문(서쪽) · 루두스 마그누스(동쪽)'
+            : '아레나 바닥 아래 2층 지하 — 검투사·맹수 대기 + 엘리베이터 32대'}
+        </div>
+      </div>
+
+      <div className="dc-svg-wrapper">
+        <svg viewBox="0 0 600 500" className="dc-floor-svg" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <pattern id="colosseum-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="600" height="500" fill="url(#colosseum-grid)" />
+
+          {/* North arrow */}
+          <g transform="translate(560, 30)">
+            <circle r="14" fill="rgba(0,0,0,0.3)" stroke="var(--text-faint)" strokeWidth="0.5" />
+            <path d="M 0,-8 L 4,4 L 0,0 L -4,4 Z" fill="var(--gold)" />
+            <text y="-18" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="DM Sans">N</text>
+          </g>
+
+          {view === 'top' && (
+            <>
+              {/* Arch of Constantine (west side) */}
+              <g>
+                <rect
+                  x="40" y="220" width="80" height="60" rx="4"
+                  fill="var(--bg)"
+                  stroke={pointsByArea['arch-constantine'] ? 'var(--accent)' : 'var(--line)'}
+                  strokeWidth={pointsByArea['arch-constantine'] ? 1.5 : 1}
+                />
+                <text x="48" y="240" fontSize="9" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic">
+                  Arco di Costantino
+                </text>
+                <text x="48" y="252" fontSize="8" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                  콘스탄티누스 개선문
+                </text>
+                <text x="48" y="262" fontSize="7.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                  315 AD
+                </text>
+              </g>
+
+              {/* Colosseum — outer ellipse */}
+              <g>
+                <ellipse
+                  cx="320" cy="250" rx="155" ry="125"
+                  fill="rgba(184,91,63,0.04)"
+                  stroke={pointsByArea['outer-ring'] ? 'var(--accent)' : 'var(--line)'}
+                  strokeWidth={pointsByArea['outer-ring'] ? 1.8 : 1}
+                />
+                {/* Cavea (seating) — middle ellipse */}
+                <ellipse
+                  cx="320" cy="250" rx="110" ry="88"
+                  fill="rgba(184,91,63,0.06)"
+                  stroke={pointsByArea['cavea'] ? 'var(--accent)' : 'var(--line)'}
+                  strokeWidth={pointsByArea['cavea'] ? 1.5 : 1}
+                  strokeDasharray="4 3"
+                  opacity="0.7"
+                />
+                {/* Arena — inner ellipse */}
+                <ellipse
+                  cx="320" cy="250" rx="70" ry="50"
+                  fill="rgba(201,169,97,0.08)"
+                  stroke={pointsByArea['arena'] ? 'var(--accent)' : 'var(--line)'}
+                  strokeWidth={pointsByArea['arena'] ? 1.5 : 1}
+                />
+                {/* Labels */}
+                <text x="320" y="118" textAnchor="middle" fontSize="10" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                  외부 아치 (4층)
+                </text>
+                <text x="320" y="175" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="Noto Sans KR" opacity="0.85">
+                  카베아 (관객석 5만석)
+                </text>
+                <text x="320" y="250" textAnchor="middle" fontSize="10" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                  Arena
+                </text>
+                <text x="320" y="262" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                  아레나 (검투사 무대)
+                </text>
+                
+                {/* Velarium label (top) */}
+                <text x="320" y="100" textAnchor="middle" fontSize="8" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.7">
+                  ↑ 벨라리움 (천막)
+                </text>
+              </g>
+
+              {/* Ludus Magnus (east side) */}
+              <g>
+                <rect
+                  x="500" y="220" width="80" height="60" rx="4"
+                  fill="var(--bg)"
+                  stroke={pointsByArea['ludus-magnus'] ? 'var(--accent)' : 'var(--line)'}
+                  strokeWidth={pointsByArea['ludus-magnus'] ? 1.5 : 1}
+                />
+                <text x="508" y="240" fontSize="9" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic">
+                  Ludus Magnus
+                </text>
+                <text x="508" y="252" fontSize="8" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                  루두스 마그누스
+                </text>
+                <text x="508" y="262" fontSize="7.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                  검투사 훈련소
+                </text>
+              </g>
+
+              {/* Connecting lines */}
+              <line x1="120" y1="250" x2="165" y2="250" stroke="var(--line)" strokeWidth="1" strokeDasharray="3 3" opacity="0.5" />
+              <line x1="475" y1="250" x2="500" y2="250" stroke="var(--line)" strokeWidth="1" strokeDasharray="3 3" opacity="0.5" />
+
+              {/* Scale */}
+              <text x="320" y="395" textAnchor="middle" fontSize="8" fill="var(--text-faint)" fontFamily="DM Sans" opacity="0.7">
+                188m × 156m · 5만석 · 80년 완공 (CE)
+              </text>
+            </>
+          )}
+
+          {view === 'section' && (
+            <>
+              {/* Cross-section view */}
+              {/* Sky/awning area */}
+              <line x1="80" y1="80" x2="520" y2="80" stroke="var(--line)" strokeWidth="1" strokeDasharray="4 2" opacity="0.5" />
+              <text x="300" y="74" textAnchor="middle" fontSize="8" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                ↑ 벨라리움 천막 (70m 높이)
+              </text>
+
+              {/* Stadium outer walls */}
+              <polygon
+                points="100,360 110,90 490,90 500,360"
+                fill="rgba(184,91,63,0.04)"
+                stroke="var(--line)"
+                strokeWidth="1.5"
+              />
+              {/* Cavea seating (terraced) */}
+              <polygon
+                points="160,290 180,170 420,170 440,290"
+                fill="rgba(184,91,63,0.08)"
+                stroke="var(--line)"
+                strokeWidth="1"
+              />
+              {/* Arena floor line */}
+              <line x1="180" y1="290" x2="420" y2="290" stroke="var(--accent)" strokeWidth="2" />
+              <text x="300" y="285" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                아레나 (모래 바닥)
+              </text>
+
+              {/* Hypogeum (highlighted) */}
+              <rect
+                x="180" y="295" width="240" height="80" rx="4"
+                fill="rgba(201,169,97,0.10)"
+                stroke="var(--accent)"
+                strokeWidth="1.8"
+              />
+              <text x="300" y="320" textAnchor="middle" fontSize="11" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                Hypogeum (지하)
+              </text>
+              <text x="300" y="338" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                2층 지하 — 검투사·맹수 대기실
+              </text>
+              <text x="300" y="354" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                엘리베이터 32대 (목재 + 도르래)
+              </text>
+
+              {/* Ground level line */}
+              <line x1="80" y1="380" x2="520" y2="380" stroke="var(--text-faint)" strokeWidth="1.5" />
+              <text x="300" y="395" textAnchor="middle" fontSize="8" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                지면 (외부)
+              </text>
+
+              {/* Side labels */}
+              <text x="115" y="180" fontSize="9" fill="var(--text-soft)" fontFamily="Noto Sans KR" transform="rotate(-90, 115, 180)">
+                외부 아치 4층
+              </text>
+              <text x="200" y="210" fontSize="9" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                관객석 (카베아)
+              </text>
+            </>
+          )}
+
+          {/* Render point dots based on current view */}
+          {view === 'top' && (() => {
+            const areas = [
+              { id: 'outer-ring', cx: 320, cy: 130, label: '외부 아치' },
+              { id: 'cavea', cx: 280, cy: 200, label: '카베아' },
+              { id: 'awning', cx: 380, cy: 200, label: '벨라리움' },
+              { id: 'arena', cx: 320, cy: 250, label: '아레나' },
+              { id: 'arch-constantine', cx: 80, cy: 250, label: '개선문' },
+              { id: 'ludus-magnus', cx: 540, cy: 250, label: '루두스' },
+            ];
+            return areas.map((area) => {
+              const pts = pointsByArea[area.id] || [];
+              return pts.map((p, i) => {
+                const offset = pts.length === 1 ? 0 : (i - (pts.length - 1) / 2) * 24;
+                const cx = area.cx + offset;
+                return (
+                  <g
+                    key={p.id}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => onPointClick(p.id)}
+                    onMouseEnter={() => setHoveredPoint(p.id)}
+                    onMouseLeave={() => setHoveredPoint(null)}
+                  >
+                    <circle
+                      cx={cx} cy={area.cy}
+                      r={hoveredPoint === p.id ? 14 : 11}
+                      fill="var(--accent)" stroke="var(--bg)" strokeWidth="2"
+                      style={{ transition: 'all 0.15s' }}
+                    />
+                    <text
+                      x={cx} y={area.cy + 4}
+                      fontSize="10" fill="var(--bg)"
+                      fontFamily="DM Sans" fontWeight="600"
+                      textAnchor="middle" pointerEvents="none"
+                    >
+                      {String(p.idx).padStart(2, '0')}
+                    </text>
+                  </g>
+                );
+              });
+            });
+          })()}
+
+          {view === 'section' && (() => {
+            const pts = pointsByArea['hypogeum-section'] || [];
+            return pts.map((p, i) => (
+              <g
+                key={p.id}
+                style={{ cursor: 'pointer' }}
+                onClick={() => onPointClick(p.id)}
+                onMouseEnter={() => setHoveredPoint(p.id)}
+                onMouseLeave={() => setHoveredPoint(null)}
+              >
+                <circle
+                  cx={300} cy={335}
+                  r={hoveredPoint === p.id ? 14 : 11}
+                  fill="var(--accent)" stroke="var(--bg)" strokeWidth="2"
+                  style={{ transition: 'all 0.15s' }}
+                />
+                <text
+                  x={300} y={339}
+                  fontSize="10" fill="var(--bg)"
+                  fontFamily="DM Sans" fontWeight="600"
+                  textAnchor="middle" pointerEvents="none"
+                >
+                  {String(p.idx).padStart(2, '0')}
+                </text>
+              </g>
+            ));
+          })()}
+        </svg>
+      </div>
+
+      <div className="dc-floorplan-note">
+        {view === 'top' ? '위에서 본 모습 — 6점' : '단면도 — 1점 (하이포지움)'} · 번호 탭하면 작품 상세
+      </div>
+
+      <div className="dc-floor-pointlist">
+        <div className="dc-floor-pointlist-title">전체 7점:</div>
+        {points.map((p, i) => (
+          <button
+            key={p.id}
+            className="dc-floor-room-list-point"
+            onClick={() => onPointClick(p.id)}
+          >
+            <span className="dc-floor-room-list-num">{String(i + 1).padStart(2, '0')}</span>
+            <span className="dc-floor-room-list-name-text">{p.name}</span>
+            <span className="dc-floor-room-list-artist">{p.artist || ''}</span>
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -2487,7 +2824,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.25</div>
+      <div>도슨트 · Docent v0.26</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
