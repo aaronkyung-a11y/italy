@@ -561,7 +561,7 @@ function AttractionView({ attractionId, initialView, push, pop, replace, favorit
   if (!attraction) return <div>명소를 찾을 수 없습니다.</div>;
 
   const accent = attraction.coverHue;
-  const hasFloorPlan = attractionId === 'borghese' || attractionId === 'vatican' || attractionId === 'uffizi' || attractionId === 'foro' || attractionId === 'colosseum' || attractionId === 'duomo-milan' || attractionId === 'capitolini' || attractionId === 'vecchio' || attractionId === 'duomo' || attractionId === 'castel' || attractionId === 'sforzesco';
+  const hasFloorPlan = attractionId === 'borghese' || attractionId === 'vatican' || attractionId === 'uffizi' || attractionId === 'foro' || attractionId === 'colosseum' || attractionId === 'duomo-milan' || attractionId === 'capitolini' || attractionId === 'vecchio' || attractionId === 'duomo' || attractionId === 'castel' || attractionId === 'sforzesco' || attractionId === 'santacroce' || attractionId === 'bargello';
   const hasRoutes = !!attraction.routes && attraction.routes.length > 0;
 
   return (
@@ -721,6 +721,22 @@ function AttractionView({ attractionId, initialView, push, pop, replace, favorit
 
         {view === 'floorplan' && attractionId === 'sforzesco' && (
           <SforzescoFloorPlan
+            points={attraction.points}
+            accent={accent}
+            onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
+          />
+        )}
+
+        {view === 'floorplan' && attractionId === 'santacroce' && (
+          <SantaCroceFloorPlan
+            points={attraction.points}
+            accent={accent}
+            onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
+          />
+        )}
+
+        {view === 'floorplan' && attractionId === 'bargello' && (
+          <BargelloFloorPlan
             points={attraction.points}
             accent={accent}
             onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
@@ -3845,6 +3861,611 @@ function SforzescoFloorPlan({ points, accent, onPointClick }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────
+// SantaCroceFloorPlan — 라틴 십자형 본당 + 무덤 + 지오토 예배당 + 파치 예배당
+// ─────────────────────────────────────────────────────────
+function SantaCroceFloorPlan({ points, accent, onPointClick }) {
+  const POINT_TO_AREA = {
+    'santa-croce-facade': 'facade',
+    'michelangelo-tomb': 'mich-tomb',
+    'machiavelli-tomb': 'mach-tomb',
+    'galileo-tomb': 'gal-tomb',
+    'giotto-bardi-chapel': 'bardi-chapel',
+    'giotto-peruzzi-chapel': 'peruzzi-chapel',
+    'pazzi-chapel': 'pazzi-chapel',
+  };
+
+  const pointMap = {};
+  points.forEach((p, i) => { pointMap[p.id] = { ...p, idx: i + 1 }; });
+
+  const pointsByArea = {};
+  points.forEach((p, i) => {
+    const a = POINT_TO_AREA[p.id];
+    if (a) {
+      if (!pointsByArea[a]) pointsByArea[a] = [];
+      pointsByArea[a].push({ ...p, idx: i + 1 });
+    }
+  });
+
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+
+  return (
+    <div className="dc-floorplan-svg" style={{ '--accent': accent }}>
+      <div className="dc-floor-label">
+        <div className="dc-floor-label-title">
+          산타 크로체 — 위대한 자들의 신전
+        </div>
+        <div className="dc-floor-label-sub">
+          본당 115m · 라틴 십자 + 좌·우 무덤 + 후진 예배당 + 회랑 → 파치 예배당
+        </div>
+      </div>
+
+      <div className="dc-svg-wrapper">
+        <svg viewBox="0 0 600 500" className="dc-floor-svg" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <pattern id="sc-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="600" height="500" fill="url(#sc-grid)" />
+
+          {/* North arrow — basilica oriented with apse to east (right) */}
+          <g transform="translate(560, 30)">
+            <circle r="14" fill="rgba(0,0,0,0.3)" stroke="var(--text-faint)" strokeWidth="0.5" />
+            <path d="M 0,-8 L 4,4 L 0,0 L -4,4 Z" fill="var(--gold)" transform="rotate(-90)" />
+            <text y="-18" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="DM Sans">E</text>
+          </g>
+
+          {/* Piazza (south, bottom) */}
+          <g>
+            <rect x="80" y="395" width="280" height="60" rx="4" fill="rgba(201,169,97,0.03)" stroke="var(--line)" strokeWidth="0.8" strokeDasharray="3 3" opacity="0.6" />
+            <text x="220" y="418" textAnchor="middle" fontSize="9" fill="var(--text-faint)" fontFamily="Cormorant Garamond, serif" fontStyle="italic">
+              Piazza Santa Croce
+            </text>
+            <text x="220" y="432" textAnchor="middle" fontSize="8" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              산타 크로체 광장 + 단테 동상 (1865)
+            </text>
+            <text x="220" y="446" textAnchor="middle" fontSize="7" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.7">
+              ↓ 정면 — 1966 홍수 수위 표시
+            </text>
+          </g>
+
+          {/* Facade (south wall) */}
+          <g>
+            <rect
+              x="80" y="370" width="280" height="22" rx="2"
+              fill="rgba(201,169,97,0.10)"
+              stroke={pointsByArea['facade'] ? 'var(--accent)' : 'var(--line)'}
+              strokeWidth={pointsByArea['facade'] ? 1.5 : 1}
+            />
+            <text x="220" y="385" textAnchor="middle" fontSize="9" fill="var(--accent)" fontFamily="Noto Sans KR" fontWeight="500">
+              정면 파사드 (1853~1863)
+            </text>
+          </g>
+
+          {/* Main nave (basilica body, 115m long pointing right/east) */}
+          <g>
+            <rect
+              x="80" y="200" width="280" height="170" rx="3"
+              fill="rgba(184,91,63,0.04)"
+              stroke="var(--line)"
+              strokeWidth="1"
+            />
+            
+            {/* Transept (cross arms) */}
+            <rect x="55" y="240" width="305" height="60" rx="3" fill="rgba(184,91,63,0.05)" stroke="var(--line)" strokeWidth="0.8" strokeDasharray="2 2" opacity="0.7" />
+            
+            <text x="220" y="225" textAnchor="middle" fontSize="10" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+              Navata Centrale
+            </text>
+            <text x="220" y="237" textAnchor="middle" fontSize="8.5" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              본당 (115m 길이, 38m 너비)
+            </text>
+            
+            {/* Center floor markers (the famous "Tempio delle Glorie") */}
+            <text x="220" y="335" textAnchor="middle" fontSize="7.5" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.7">
+              ← 통로 사이 단테 가묘 (시신은 라벤나)
+            </text>
+            <text x="220" y="350" textAnchor="middle" fontSize="7" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.6">
+              로시니 무덤 (1900)
+            </text>
+          </g>
+
+          {/* Tombs along right (south) wall — Michelangelo + Machiavelli */}
+          {/* Michelangelo: 입구 들어가면 오른쪽 첫 번째 (south wall, near entrance) */}
+          <g>
+            <rect
+              x="90" y="290" width="55" height="40" rx="3"
+              fill="rgba(201,169,97,0.10)"
+              stroke={pointsByArea['mich-tomb'] ? 'var(--accent)' : 'var(--gold)'}
+              strokeWidth={pointsByArea['mich-tomb'] ? 1.8 : 1.2}
+            />
+            <text x="117" y="305" textAnchor="middle" fontSize="8" fill="var(--gold)" fontFamily="Cormorant Garamond, serif" fontStyle="italic">
+              Michelangelo
+            </text>
+            <text x="117" y="317" textAnchor="middle" fontSize="7" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              미켈란젤로
+            </text>
+            <text x="117" y="327" textAnchor="middle" fontSize="6" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              1564 (바사리 설계)
+            </text>
+          </g>
+
+          {/* Machiavelli: 갈릴레오 옆 — 같은 남쪽 벽 더 깊숙이 */}
+          <g>
+            <rect
+              x="160" y="290" width="55" height="40" rx="3"
+              fill="rgba(201,169,97,0.10)"
+              stroke={pointsByArea['mach-tomb'] ? 'var(--accent)' : 'var(--gold)'}
+              strokeWidth={pointsByArea['mach-tomb'] ? 1.8 : 1.2}
+            />
+            <text x="187" y="305" textAnchor="middle" fontSize="8" fill="var(--gold)" fontFamily="Cormorant Garamond, serif" fontStyle="italic">
+              Machiavelli
+            </text>
+            <text x="187" y="317" textAnchor="middle" fontSize="7" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              마키아벨리
+            </text>
+            <text x="187" y="327" textAnchor="middle" fontSize="6" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              1787
+            </text>
+          </g>
+
+          {/* Galileo: 미켈란젤로 마주보고 (북쪽 벽) */}
+          <g>
+            <rect
+              x="90" y="210" width="55" height="40" rx="3"
+              fill="rgba(201,169,97,0.10)"
+              stroke={pointsByArea['gal-tomb'] ? 'var(--accent)' : 'var(--gold)'}
+              strokeWidth={pointsByArea['gal-tomb'] ? 1.8 : 1.2}
+            />
+            <text x="117" y="225" textAnchor="middle" fontSize="8" fill="var(--gold)" fontFamily="Cormorant Garamond, serif" fontStyle="italic">
+              Galileo
+            </text>
+            <text x="117" y="237" textAnchor="middle" fontSize="7" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              갈릴레오
+            </text>
+            <text x="117" y="247" textAnchor="middle" fontSize="6" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              1737 (95년 후)
+            </text>
+          </g>
+
+          {/* Visual line between Mich and Galileo tombs */}
+          <line x1="117" y1="250" x2="117" y2="290" stroke="var(--gold)" strokeWidth="0.7" strokeDasharray="2 2" opacity="0.5" />
+          <text x="125" y="272" fontSize="6" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.7">
+            예술 ↕ 과학
+          </text>
+
+          {/* Bardi + Peruzzi chapels — east end (apse area, right side) */}
+          <g>
+            <rect
+              x="365" y="220" width="60" height="50" rx="3"
+              fill="rgba(184,91,63,0.10)"
+              stroke={pointsByArea['bardi-chapel'] ? 'var(--accent)' : 'var(--line)'}
+              strokeWidth={pointsByArea['bardi-chapel'] ? 1.5 : 1}
+            />
+            <text x="395" y="240" textAnchor="middle" fontSize="8.5" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic">
+              Bardi
+            </text>
+            <text x="395" y="252" textAnchor="middle" fontSize="7" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              지오토
+            </text>
+            <text x="395" y="263" textAnchor="middle" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              성 프란체스코
+            </text>
+          </g>
+
+          <g>
+            <rect
+              x="365" y="275" width="60" height="50" rx="3"
+              fill="rgba(184,91,63,0.10)"
+              stroke={pointsByArea['peruzzi-chapel'] ? 'var(--accent)' : 'var(--line)'}
+              strokeWidth={pointsByArea['peruzzi-chapel'] ? 1.5 : 1}
+            />
+            <text x="395" y="295" textAnchor="middle" fontSize="8.5" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic">
+              Peruzzi
+            </text>
+            <text x="395" y="307" textAnchor="middle" fontSize="7" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              지오토
+            </text>
+            <text x="395" y="318" textAnchor="middle" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              두 요한
+            </text>
+          </g>
+
+          {/* Main apse (semicircle at east end) */}
+          <path
+            d="M 360 240 Q 440 270, 360 300"
+            fill="rgba(184,91,63,0.04)"
+            stroke="var(--line)"
+            strokeWidth="1"
+            opacity="0.7"
+          />
+
+          {/* Cloister (北/north side) */}
+          <g>
+            <rect
+              x="80" y="120" width="280" height="70" rx="3"
+              fill="rgba(255,255,255,0.02)"
+              stroke="var(--line)"
+              strokeWidth="0.8"
+              strokeDasharray="3 3"
+              opacity="0.5"
+            />
+            <text x="220" y="142" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="Cormorant Garamond, serif" fontStyle="italic">
+              Chiostro
+            </text>
+            <text x="220" y="155" textAnchor="middle" fontSize="8" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              회랑 (북쪽 — 별도 입장)
+            </text>
+            <text x="220" y="172" textAnchor="middle" fontSize="7" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.8">
+              → 파치 예배당으로 연결
+            </text>
+          </g>
+
+          {/* Pazzi Chapel — east of cloister */}
+          <g>
+            <rect
+              x="430" y="115" width="120" height="75" rx="3"
+              fill="rgba(201,169,97,0.08)"
+              stroke={pointsByArea['pazzi-chapel'] ? 'var(--accent)' : 'var(--gold)'}
+              strokeWidth={pointsByArea['pazzi-chapel'] ? 1.8 : 1.2}
+            />
+            {/* Small dome circle */}
+            <circle cx="490" cy="152" r="20" fill="none" stroke="var(--gold)" strokeWidth="0.7" strokeDasharray="2 2" opacity="0.5" />
+            <text x="490" y="135" textAnchor="middle" fontSize="9" fill="var(--gold)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+              Pazzi
+            </text>
+            <text x="490" y="158" textAnchor="middle" fontSize="7" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              파치 예배당
+            </text>
+            <text x="490" y="172" textAnchor="middle" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              브루넬레스키 (1429)
+            </text>
+            <text x="490" y="184" textAnchor="middle" fontSize="6" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              미완성 정면
+            </text>
+          </g>
+
+          {/* Connector arrow */}
+          <line x1="360" y1="155" x2="430" y2="155" stroke="var(--gold)" strokeWidth="1" strokeDasharray="3 2" opacity="0.6" />
+
+          {/* East direction (apse) indicator */}
+          <text x="555" y="265" fontSize="8" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.7">→ 동</text>
+
+          {/* Scale info */}
+          <text x="220" y="475" textAnchor="middle" fontSize="8" fill="var(--text-faint)" fontFamily="DM Sans" opacity="0.7">
+            115m × 38m · 본당 + 파치 예배당 통합 €8
+          </text>
+
+          {/* Point dots */}
+          {(() => {
+            const positions = {
+              'facade': { cx: 220, cy: 381 },
+              'mich-tomb': { cx: 117, cy: 310 },
+              'mach-tomb': { cx: 187, cy: 310 },
+              'gal-tomb': { cx: 117, cy: 230 },
+              'bardi-chapel': { cx: 395, cy: 245 },
+              'peruzzi-chapel': { cx: 395, cy: 300 },
+              'pazzi-chapel': { cx: 490, cy: 152 },
+            };
+            return Object.entries(pointsByArea).flatMap(([area, pts]) => {
+              const pos = positions[area];
+              if (!pos) return [];
+              return pts.map((p, i) => {
+                const offset = pts.length === 1 ? 0 : (i - (pts.length - 1) / 2) * 24;
+                return (
+                  <g
+                    key={p.id}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => onPointClick(p.id)}
+                    onMouseEnter={() => setHoveredPoint(p.id)}
+                    onMouseLeave={() => setHoveredPoint(null)}
+                  >
+                    <circle
+                      cx={pos.cx + offset} cy={pos.cy}
+                      r={hoveredPoint === p.id ? 14 : 11}
+                      fill="var(--accent)" stroke="var(--bg)" strokeWidth="2"
+                      style={{ transition: 'all 0.15s' }}
+                    />
+                    <text
+                      x={pos.cx + offset} y={pos.cy + 4}
+                      fontSize="10" fill="var(--bg)"
+                      fontFamily="DM Sans" fontWeight="600"
+                      textAnchor="middle" pointerEvents="none"
+                    >
+                      {String(p.idx).padStart(2, '0')}
+                    </text>
+                  </g>
+                );
+              });
+            });
+          })()}
+        </svg>
+      </div>
+
+      <div className="dc-floorplan-note">
+        본당: 미켈란젤로(예술) ↕ 갈릴레오(과학) 마주봄 · 후진: 지오토 두 예배당 · 회랑 통해 파치 예배당
+      </div>
+
+      <div className="dc-floor-pointlist">
+        <div className="dc-floor-pointlist-title">전체 7점:</div>
+        {points.map((p, i) => (
+          <button
+            key={p.id}
+            className="dc-floor-room-list-point"
+            onClick={() => onPointClick(p.id)}
+          >
+            <span className="dc-floor-room-list-num">{String(i + 1).padStart(2, '0')}</span>
+            <span className="dc-floor-room-list-name-text">{p.name}</span>
+            <span className="dc-floor-room-list-artist">{p.artist || ''}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// BargelloFloorPlan — 2층 구조 (1층 미켈란젤로/첼리니, 2층 도나텔로)
+// ─────────────────────────────────────────────────────────
+function BargelloFloorPlan({ points, accent, onPointClick }) {
+  const POINT_TO_AREA = {
+    'bargello-exterior': 'exterior',
+    'michelangelo-bacchus': 'mich-room',
+    'cellini-bronzes': 'cellini-room',
+    'donatello-bronze-david': 'donatello-room',
+    'donatello-san-giorgio': 'donatello-room',
+    'verrocchio-david': 'donatello-room',
+  };
+
+  const pointMap = {};
+  points.forEach((p, i) => { pointMap[p.id] = { ...p, idx: i + 1 }; });
+
+  const pointsByArea = {};
+  points.forEach((p, i) => {
+    const a = POINT_TO_AREA[p.id];
+    if (a) {
+      if (!pointsByArea[a]) pointsByArea[a] = [];
+      pointsByArea[a].push({ ...p, idx: i + 1 });
+    }
+  });
+
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+
+  return (
+    <div className="dc-floorplan-svg" style={{ '--accent': accent }}>
+      <div className="dc-floor-label">
+        <div className="dc-floor-label-title">
+          바르젤로 — 13세기 감옥 → 르네상스 조각 박물관
+        </div>
+        <div className="dc-floor-label-sub">
+          2층 도나텔로 방 (다비드 3대) · 1층 미켈란젤로 + 첼리니 · 1865 이탈리아 첫 국립박물관
+        </div>
+      </div>
+
+      <div className="dc-svg-wrapper">
+        <svg viewBox="0 0 600 500" className="dc-floor-svg" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <pattern id="barg-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="600" height="500" fill="url(#barg-grid)" />
+
+          {/* Vertical scale labels on left */}
+          <text x="20" y="100" fontSize="9" fill="var(--text-faint)" fontFamily="DM Sans" opacity="0.7">2층</text>
+          <text x="20" y="280" fontSize="9" fill="var(--text-faint)" fontFamily="DM Sans" opacity="0.7">1층</text>
+          <text x="20" y="425" fontSize="9" fill="var(--text-faint)" fontFamily="DM Sans" opacity="0.7">외관</text>
+
+          {/* Torre Volognana indicator (visual right side) */}
+          <g>
+            <rect x="540" y="55" width="22" height="380" rx="2" fill="rgba(184,91,63,0.08)" stroke="var(--line)" strokeWidth="0.8" />
+            <text x="528" y="245" fontSize="7" fill="var(--text-faint)" fontFamily="Noto Sans KR" transform="rotate(-90, 530, 245)">
+              Torre Volognana (57m)
+            </text>
+          </g>
+
+          {/* === 2nd Floor (top half) === */}
+          <g>
+            <rect
+              x="60" y="65" width="475" height="170" rx="6"
+              fill="rgba(184,91,63,0.04)"
+              stroke="var(--line)"
+              strokeWidth="1.2"
+            />
+            <text x="80" y="85" fontSize="10" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+              Piano Secondo (2층)
+            </text>
+            <text x="80" y="98" fontSize="8" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              도나텔로의 방 (Salone di Donatello)
+            </text>
+
+            {/* Donatello room - huge central hall */}
+            <rect
+              x="100" y="115" width="380" height="105" rx="4"
+              fill="rgba(201,169,97,0.08)"
+              stroke={pointsByArea['donatello-room'] ? 'var(--accent)' : 'var(--gold)'}
+              strokeWidth={pointsByArea['donatello-room'] ? 1.8 : 1.2}
+            />
+            <text x="290" y="140" textAnchor="middle" fontSize="11" fill="var(--gold)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+              Salone di Donatello
+            </text>
+            <text x="290" y="154" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              도나텔로의 방 — 다비드 3대 한 자리
+            </text>
+            
+            {/* 3 statue indicators inside */}
+            <g>
+              <circle cx="170" cy="190" r="8" fill="rgba(184,91,63,0.15)" stroke="var(--text-faint)" strokeWidth="0.5" />
+              <text x="170" y="194" textAnchor="middle" fontSize="6" fill="var(--text-faint)" fontFamily="Noto Sans KR">조지</text>
+              <text x="170" y="207" textAnchor="middle" fontSize="6" fill="var(--text-faint)" fontFamily="Noto Sans KR">1416</text>
+              
+              <circle cx="290" cy="190" r="8" fill="rgba(184,91,63,0.15)" stroke="var(--text-faint)" strokeWidth="0.5" />
+              <text x="290" y="194" textAnchor="middle" fontSize="6" fill="var(--text-faint)" fontFamily="Noto Sans KR">다비드</text>
+              <text x="290" y="207" textAnchor="middle" fontSize="6" fill="var(--text-faint)" fontFamily="Noto Sans KR">도나텔로</text>
+              
+              <circle cx="410" cy="190" r="8" fill="rgba(184,91,63,0.15)" stroke="var(--text-faint)" strokeWidth="0.5" />
+              <text x="410" y="194" textAnchor="middle" fontSize="6" fill="var(--text-faint)" fontFamily="Noto Sans KR">다비드</text>
+              <text x="410" y="207" textAnchor="middle" fontSize="6" fill="var(--text-faint)" fontFamily="Noto Sans KR">베로키오</text>
+            </g>
+            
+            {/* 30 years span between two Davids */}
+            <line x1="298" y1="190" x2="402" y2="190" stroke="var(--text-faint)" strokeWidth="0.5" strokeDasharray="2 2" opacity="0.6" />
+            <text x="350" y="186" textAnchor="middle" fontSize="6" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.7">
+              30년 양식 변화 →
+            </text>
+          </g>
+
+          {/* === Stairs (vertical connector) === */}
+          <g>
+            <rect x="285" y="237" width="30" height="20" rx="2" fill="rgba(255,255,255,0.03)" stroke="var(--line)" strokeWidth="0.8" strokeDasharray="2 2" />
+            <text x="300" y="250" textAnchor="middle" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              계단 ↕
+            </text>
+          </g>
+
+          {/* === 1st Floor (middle) === */}
+          <g>
+            <rect
+              x="60" y="260" width="475" height="130" rx="6"
+              fill="rgba(184,91,63,0.04)"
+              stroke="var(--line)"
+              strokeWidth="1.2"
+            />
+            <text x="80" y="280" fontSize="10" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+              Piano Primo (1층)
+            </text>
+
+            {/* Michelangelo room (left) */}
+            <rect
+              x="100" y="295" width="180" height="80" rx="4"
+              fill="rgba(201,169,97,0.08)"
+              stroke={pointsByArea['mich-room'] ? 'var(--accent)' : 'var(--gold)'}
+              strokeWidth={pointsByArea['mich-room'] ? 1.8 : 1.2}
+            />
+            <text x="190" y="318" textAnchor="middle" fontSize="10" fill="var(--gold)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+              Sala di Michelangelo
+            </text>
+            <text x="190" y="332" textAnchor="middle" fontSize="8" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              미켈란젤로의 방
+            </text>
+            <circle cx="190" cy="354" r="8" fill="rgba(184,91,63,0.15)" stroke="var(--text-faint)" strokeWidth="0.5" />
+            <text x="190" y="358" textAnchor="middle" fontSize="6" fill="var(--text-faint)" fontFamily="Noto Sans KR">바쿠스</text>
+            <text x="190" y="370" textAnchor="middle" fontSize="6" fill="var(--text-faint)" fontFamily="Noto Sans KR">1497 (22세)</text>
+
+            {/* Cellini corner (right) */}
+            <rect
+              x="295" y="295" width="180" height="80" rx="4"
+              fill="rgba(201,169,97,0.06)"
+              stroke={pointsByArea['cellini-room'] ? 'var(--accent)' : 'var(--gold)'}
+              strokeWidth={pointsByArea['cellini-room'] ? 1.5 : 1}
+            />
+            <text x="385" y="318" textAnchor="middle" fontSize="10" fill="var(--gold)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+              Cellini Bronzi
+            </text>
+            <text x="385" y="332" textAnchor="middle" fontSize="8" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              첼리니 청동 코너
+            </text>
+            <text x="385" y="354" textAnchor="middle" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              페르세우스 받침대 진품
+            </text>
+            <text x="385" y="367" textAnchor="middle" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              4 청동상 + 4 부조 (1554)
+            </text>
+          </g>
+
+          {/* 56년 간격 표시 - between Mich Bacchus (1497) and Cellini Perseus (1554) */}
+          <line x1="280" y1="335" x2="295" y2="335" stroke="var(--gold)" strokeWidth="0.7" strokeDasharray="2 2" opacity="0.5" />
+          <text x="288" y="345" textAnchor="middle" fontSize="6" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.7">
+            56년
+          </text>
+
+          {/* === Ground floor (entrance/cortile) === */}
+          <g>
+            <rect
+              x="60" y="415" width="475" height="55" rx="4"
+              fill="rgba(255,255,255,0.02)"
+              stroke={pointsByArea['exterior'] ? 'var(--accent)' : 'var(--line)'}
+              strokeWidth={pointsByArea['exterior'] ? 1.5 : 0.8}
+              strokeDasharray={pointsByArea['exterior'] ? 'none' : '3 3'}
+              opacity={pointsByArea['exterior'] ? 1 : 0.6}
+            />
+            <text x="80" y="433" fontSize="9" fill="var(--text-soft)" fontFamily="Cormorant Garamond, serif" fontStyle="italic">
+              Pianoterra + Cortile
+            </text>
+            <text x="80" y="446" fontSize="8" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              외관 + 안뜰 — 비아 델 프로콘솔로 4번지 (두오모 도보 5분)
+            </text>
+            <text x="80" y="460" fontSize="7" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.7">
+              13세기 시청관저 → 16~18세기 감옥·처형장 → 1865 박물관 (이탈리아 첫 국립)
+            </text>
+          </g>
+
+          {/* Point dots */}
+          {(() => {
+            const positions = {
+              'donatello-room': { cx: 290, cy: 165 },
+              'mich-room': { cx: 190, cy: 350 },
+              'cellini-room': { cx: 385, cy: 350 },
+              'exterior': { cx: 290, cy: 442 },
+            };
+            return Object.entries(pointsByArea).flatMap(([area, pts]) => {
+              const pos = positions[area];
+              if (!pos) return [];
+              return pts.map((p, i) => {
+                const offset = pts.length === 1 ? 0 : (i - (pts.length - 1) / 2) * 28;
+                return (
+                  <g
+                    key={p.id}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => onPointClick(p.id)}
+                    onMouseEnter={() => setHoveredPoint(p.id)}
+                    onMouseLeave={() => setHoveredPoint(null)}
+                  >
+                    <circle
+                      cx={pos.cx + offset} cy={pos.cy}
+                      r={hoveredPoint === p.id ? 14 : 11}
+                      fill="var(--accent)" stroke="var(--bg)" strokeWidth="2"
+                      style={{ transition: 'all 0.15s' }}
+                    />
+                    <text
+                      x={pos.cx + offset} y={pos.cy + 4}
+                      fontSize="10" fill="var(--bg)"
+                      fontFamily="DM Sans" fontWeight="600"
+                      textAnchor="middle" pointerEvents="none"
+                    >
+                      {String(p.idx).padStart(2, '0')}
+                    </text>
+                  </g>
+                );
+              });
+            });
+          })()}
+        </svg>
+      </div>
+
+      <div className="dc-floorplan-note">
+        2층 도나텔로 방 = 다비드 3대 (도나텔로 1430s · 베로키오 1473 · 미켈란젤로 1504는 아카데미아) + 성 조지
+      </div>
+
+      <div className="dc-floor-pointlist">
+        <div className="dc-floor-pointlist-title">전체 6점:</div>
+        {points.map((p, i) => (
+          <button
+            key={p.id}
+            className="dc-floor-room-list-point"
+            onClick={() => onPointClick(p.id)}
+          >
+            <span className="dc-floor-room-list-num">{String(i + 1).padStart(2, '0')}</span>
+            <span className="dc-floor-room-list-name-text">{p.name}</span>
+            <span className="dc-floor-room-list-artist">{p.artist || ''}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // BorgheseFloorPlan — 정확한 SVG 평면도
 // ─────────────────────────────────────────────────────────
 function BorgheseFloorPlan({ points, accent, onPointClick }) {
@@ -4959,7 +5580,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.34</div>
+      <div>도슨트 · Docent v0.35</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
