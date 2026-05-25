@@ -3691,3 +3691,32 @@ img {
   cursor: pointer;
 }
 .dc-course-item-apply:hover { opacity: 0.9; }
+
+/* Auto-fill button on empty days */
+.dc-trip-auto-btn {
+  flex: 1;
+  padding: 10px;
+  background: rgba(80, 180, 100, 0.10);
+  border: 1px solid #5fa572;
+  border-radius: 8px;
+  color: #82c098;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.dc-trip-auto-btn:hover { background: rgba(80, 180, 100, 0.18); }
+
+/* Course item — already assigned in other day */
+.dc-course-item-attr.assigned {
+  opacity: 0.45;
+  border-style: dashed;
+}
+.dc-course-item-info {
+  font-size: 11px;
+  color: var(--text-faint);
+  padding: 5px 8px;
+  background: rgba(80, 180, 230, 0.06);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  border-left: 2px solid #6da8d9;
+}

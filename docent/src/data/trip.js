@@ -526,3 +526,47 @@ export const RECOMMENDED_COURSES = {
 export function getRecommendedCourses(city) {
   return RECOMMENDED_COURSES[city] || [];
 }
+
+// ─────────────────────────────────────────────────────────
+// 인접 일정 기반 도시 추론
+// ─────────────────────────────────────────────────────────
+// attractions 모듈을 import 하지 않고 외부에서 도시 정보를 받음
+// (trip.js가 attractions.js를 import하지 않도록 의존성 깨끗하게 유지)
+
+// 인접 일정 보고 빈 날의 도시 추론
+export function inferCityForDay(trip, dayIdx, getDayCity) {
+  if (!trip || !trip.days || dayIdx < 0 || dayIdx >= trip.days.length) return null;
+  const day = trip.days[dayIdx];
+  if (day.attractionIds.length > 0) {
+    // 이미 명소 있으면 그 도시
+    return getDayCity(day);
+  }
+
+  // 양쪽 인접 일 검색 (가까운 거부터)
+  for (let dist = 1; dist < trip.days.length; dist++) {
+    const prev = dayIdx - dist >= 0 ? trip.days[dayIdx - dist] : null;
+    const next = dayIdx + dist < trip.days.length ? trip.days[dayIdx + dist] : null;
+    const prevCity = prev ? getDayCity(prev) : null;
+    const nextCity = next ? getDayCity(next) : null;
+
+    // 양쪽 같은 도시 → 확정
+    if (prevCity && nextCity && prevCity === nextCity) return prevCity;
+    // 한쪽만 있음 → 그 도시
+    if (prevCity && !nextCity) return prevCity;
+    if (!prevCity && nextCity) return nextCity;
+    // 양쪽 다른 도시 → 일단 이전 도시 (보통 일정 흐름이 그쪽)
+    if (prevCity && nextCity && prevCity !== nextCity) return prevCity;
+  }
+  return null;
+}
+
+// 다른 날에 이미 배정된 명소 ID 집합
+export function getAssignedAttractionIds(trip, excludeDayIdx) {
+  if (!trip || !trip.days) return new Set();
+  const set = new Set();
+  trip.days.forEach((day, idx) => {
+    if (idx === excludeDayIdx) return;
+    day.attractionIds.forEach((aid) => set.add(aid));
+  });
+  return set;
+}

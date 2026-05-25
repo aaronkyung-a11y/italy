@@ -13,6 +13,7 @@ import {
   getReservationInfo, getTransitInfo,
   attractionReminderUrl, transitReminderUrl,
   getClosureStatus, getRecommendedCourses,
+  inferCityForDay, getAssignedAttractionIds,
 } from './data/trip.js';
 
 // ─────────────────────────────────────────────────────────
@@ -357,12 +358,33 @@ function TripView({ pop }) {
   function applyCourse(dayIdx, attractionIds) {
     if (!trip) return;
     const newDays = [...trip.days];
-    // 추천 코스의 명소를 그 날에 배정 (기존 명소 유지하고 추가, 중복 제거)
+    // 추천 코스의 명소를 그 날에 배정 (다른 날에 이미 있는 명소는 자동 제외)
+    const otherDaysAssigned = getAssignedAttractionIds(trip, dayIdx);
     const existing = new Set(newDays[dayIdx].attractionIds);
     const merged = [...newDays[dayIdx].attractionIds];
-    attractionIds.forEach((aid) => { if (!existing.has(aid)) merged.push(aid); });
+    attractionIds.forEach((aid) => {
+      if (!existing.has(aid) && !otherDaysAssigned.has(aid)) merged.push(aid);
+    });
     newDays[dayIdx] = { ...newDays[dayIdx], attractionIds: merged };
     update({ ...trip, days: newDays });
+  }
+
+  // 인접 일정 기반 자동 채우기: 빈 날의 추천 도시 → 첫 추천 코스 적용 (중복 제외)
+  function autoFillDay(dayIdx) {
+    if (!trip) return;
+    const inferredCity = inferCityForDay(trip, dayIdx, getDayCity);
+    if (!inferredCity) {
+      window.alert('인접 일정이 비어있어 도시를 추론할 수 없어요. 〈추천 코스로 시작〉을 이용해주세요.');
+      return;
+    }
+    const courses = getRecommendedCourses(inferredCity);
+    if (!courses.length) return;
+    // 중복 가장 적은 코스 선택
+    const otherDaysAssigned = getAssignedAttractionIds(trip, dayIdx);
+    const bestCourse = courses
+      .map((c) => ({ c, available: c.attractionIds.filter((aid) => !otherDaysAssigned.has(aid)).length }))
+      .sort((a, b) => b.available - a.available)[0].c;
+    applyCourse(dayIdx, bestCourse.attractionIds);
   }
 
   function resetTrip() {
@@ -661,12 +683,28 @@ function TripView({ pop }) {
                       + 명소 추가
                     </button>
                     {day.attractionIds.length === 0 && (
-                      <button
-                        className="dc-trip-course-btn"
-                        onClick={() => setShowCourses({ dayIdx })}
-                      >
-                        ✨ 추천 코스로 시작
-                      </button>
+                      <>
+                        <button
+                          className="dc-trip-course-btn"
+                          onClick={() => setShowCourses({ dayIdx })}
+                        >
+                          ✨ 추천 코스
+                        </button>
+                        {(() => {
+                          const inferred = inferCityForDay(trip, dayIdx, getDayCity);
+                          if (!inferred) return null;
+                          const cityLabel = { rome: '로마', florence: '피렌체', milan: '밀라노' }[inferred];
+                          return (
+                            <button
+                              className="dc-trip-auto-btn"
+                              onClick={() => autoFillDay(dayIdx)}
+                              title={`인접 일정 기준 ${cityLabel} 자동 채우기`}
+                            >
+                              🎯 {cityLabel} 자동 채우기
+                            </button>
+                          );
+                        })()}
+                      </>
                     )}
                   </div>
                 </div>
@@ -695,6 +733,8 @@ function TripView({ pop }) {
       {showCourses && (
         <CoursePicker
           dayDate={trip.days[showCourses.dayIdx].date}
+          inferredCity={inferCityForDay(trip, showCourses.dayIdx, getDayCity)}
+          assignedElsewhere={getAssignedAttractionIds(trip, showCourses.dayIdx)}
           onApply={(attractionIds) => {
             applyCourse(showCourses.dayIdx, attractionIds);
             setShowCourses(null);
@@ -789,9 +829,10 @@ function AttractionPicker({ dayIdx, dayDate, selectedIds, onToggle, onClose }) {
 // ─────────────────────────────────────────────────────────
 // CoursePicker — 추천 코스 모달
 // ─────────────────────────────────────────────────────────
-function CoursePicker({ dayDate, onApply, onClose }) {
-  const [tabCity, setTabCity] = useState('rome');
+function CoursePicker({ dayDate, inferredCity, assignedElsewhere, onApply, onClose }) {
+  const [tabCity, setTabCity] = useState(inferredCity || 'rome');
   const courses = getRecommendedCourses(tabCity);
+  const elsewhereSet = assignedElsewhere || new Set();
 
   function formatDate(iso) {
     const d = new Date(iso);
@@ -837,6 +878,7 @@ function CoursePicker({ dayDate, onApply, onClose }) {
               })
               .filter(Boolean);
 
+            const assignedHere = course.attractionIds.filter((aid) => elsewhereSet.has(aid));
             return (
               <div key={course.id} className="dc-course-item">
                 <div className="dc-course-item-head">
@@ -849,16 +891,22 @@ function CoursePicker({ dayDate, onApply, onClose }) {
                     const a = findAttraction(aid);
                     if (!a) return null;
                     const closure = getClosureStatus(aid, dayDate);
+                    const inOtherDay = elsewhereSet.has(aid);
                     return (
                       <span
                         key={aid}
-                        className={`dc-course-item-attr ${closure?.status === 'closed' ? 'closed' : ''}`}
+                        className={`dc-course-item-attr ${closure?.status === 'closed' ? 'closed' : ''} ${inOtherDay ? 'assigned' : ''}`}
                       >
-                        {a.emoji} {a.name}
+                        {a.emoji} {a.name}{inOtherDay ? ' (다른 날)' : ''}
                       </span>
                     );
                   })}
                 </div>
+                {assignedHere.length > 0 && (
+                  <div className="dc-course-item-info">
+                    ℹ️ {assignedHere.length}개는 이미 다른 날에 — 적용 시 자동 제외됨
+                  </div>
+                )}
                 {closedAttrs.length > 0 && (
                   <div className="dc-course-item-warning">
                     ⚠️ 이 날 휴관: {closedAttrs.join(', ')}
@@ -6541,7 +6589,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.39</div>
+      <div>도슨트 · Docent v0.40</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
