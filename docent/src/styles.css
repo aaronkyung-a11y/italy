@@ -1653,6 +1653,7 @@ img {
   align-items: center;
   gap: 8px;
   width: 100%;
+  min-width: 0;
   padding: 6px 8px;
   background: var(--surface);
   border: 1px solid var(--line);
@@ -1987,6 +1988,7 @@ img {
   display: flex;
   align-items: stretch;
   gap: 8px;
+  min-width: 0;
 }
 
 .dc-route-step-num {
@@ -2016,6 +2018,7 @@ img {
 
 .dc-route-step-card {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -2731,6 +2734,7 @@ img {
   align-items: center;
   gap: 10px;
   width: 100%;
+  min-width: 0;
   padding: 8px;
   background: var(--bg);
   border: 1px solid var(--line);
@@ -2947,6 +2951,7 @@ img {
   align-items: center;
   gap: 10px;
   width: 100%;
+  min-width: 0;
   padding: 10px;
   background: var(--surface);
   border: 1px solid var(--line);
