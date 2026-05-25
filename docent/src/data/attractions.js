@@ -45,7 +45,7 @@ export const CITIES = [
   coverHue: '#4A7C9E',
   tagline: '운하 위 도시 · 동서 무역의 절정',
   summary: '697년 첫 도제(Doge) 선출부터 1797년 나폴레옹에 멸망할 때까지 1100년 공화국. 118개 섬과 400개 다리, 비잔틴+고딕+르네상스가 한 자리에 겹친 도시.',
-  image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg/330px-Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg',
+  image: 'https://upload.wikimedia.org/wikipedia/commons/4/4f/Venezia_aerial_view.jpg',
   },
 ];
 
@@ -11028,7 +11028,7 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
     nameLocal: 'Piazza San Marco + Basilica',
     emoji: '⛪',
     coverHue: '#C9A961',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Venezia_Basilica_di_San_Marco_Fassade_2.jpg/330px-Venezia_Basilica_di_San_Marco_Fassade_2.jpg',
+    image: 'https://upload.wikimedia.org/wikipedia/commons/6/61/Venezia_Basilica_di_San_Marco_Fassade_2.jpg',
     overview: {
       tagline: '나폴레옹이 "유럽에서 가장 우아한 응접실"이라 부른 광장',
       duration: '2~3시간',
@@ -11050,7 +11050,7 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
         artist: '미상 (1063~1071, 다중 시대)',
         year: '11세기 ~ 17세기 추가',
         location: '광장 동쪽 끝',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Venezia_Basilica_di_San_Marco_Fassade_2.jpg/330px-Venezia_Basilica_di_San_Marco_Fassade_2.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/6/61/Venezia_Basilica_di_San_Marco_Fassade_2.jpg',
         shortDesc: '동방 비잔틴 십자형 + 5개 돔. 정면 모자이크는 13세기, 4두 청동마(복제)는 콘스탄티노폴리스 약탈품',
         longDesc: `**5돔 비잔틴 십자형**
 
@@ -11073,7 +11073,7 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
         artist: '비잔틴 + 베네치아 모자이크 장인들',
         year: '11세기 ~ 14세기',
         location: '바실리카 내부',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/San_Marco_-_Interior_View.jpg/330px-San_Marco_-_Interior_View.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/6/61/Venezia_Basilica_di_San_Marco_Fassade_2.jpg',
         shortDesc: '천장+벽 전체 황금 모자이크 8,000제곱미터. 〈창세기 돔〉 + 〈Pala d\'Oro〉 황금 제단 (3,000개 보석)',
         longDesc: `**8,000m² 황금 모자이크**
 
@@ -11100,7 +11100,7 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
         artist: '미상 (9세기 시작) — 1912년 재건',
         year: '재건 1912',
         location: '광장 남쪽',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Campanile_di_San_Marco_03.JPG/330px-Campanile_di_San_Marco_03.JPG',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/8/8c/Campanile_of_St._Mark%27s_Basilica_-_remote_view.jpg',
         shortDesc: '98.6m. 1902년 갑자기 무너짐 → 1912년 정확히 재건. 갈릴레오가 1609년 망원경 시연한 곳',
         longDesc: `**1902년 붕괴 사건**
 
@@ -11142,7 +11142,7 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
     nameLocal: 'Palazzo Ducale',
     emoji: '🏛️',
     coverHue: '#B85B3F',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Palazzo_Ducale_%28Venice%29_-_Facade_facing_the_Bacino_di_San_Marco.jpg/330px-Palazzo_Ducale_%28Venice%29_-_Facade_facing_the_Bacino_di_San_Marco.jpg',
+    image: 'https://upload.wikimedia.org/wikipedia/commons/0/00/%28Venice%29_Doge%27s_Palace_and_campanile_of_St._Mark%27s_Basilica_facing_the_sea.jpg',
     overview: {
       tagline: '베네치아 공화국 1100년의 통치 본부',
       duration: '2~3시간',
@@ -11163,7 +11163,7 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
         artist: 'Filippo Calendario + 다중',
         year: '14세기',
         location: '광장 남쪽 끝',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Palazzo_Ducale_%28Venice%29_-_Facade_facing_the_Bacino_di_San_Marco.jpg/330px-Palazzo_Ducale_%28Venice%29_-_Facade_facing_the_Bacino_di_San_Marco.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/0/00/%28Venice%29_Doge%27s_Palace_and_campanile_of_St._Mark%27s_Basilica_facing_the_sea.jpg',
         shortDesc: '〈위가 무겁고 아래가 가벼운〉 역설적 구조. 14세기 베네치아 고딕의 정점',
         longDesc: `**역전된 비례**
 
@@ -11190,7 +11190,7 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
         artist: '틴토레토 (Jacopo Tintoretto)',
         year: '1588~1592',
         location: '두칼레 궁 2층',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Sala_del_Maggior_Consiglio_Palazzo_Ducale.jpg/330px-Sala_del_Maggior_Consiglio_Palazzo_Ducale.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/0/00/%28Venice%29_Doge%27s_Palace_and_campanile_of_St._Mark%27s_Basilica_facing_the_sea.jpg',
         shortDesc: '54m × 25m 거대 홀. 틴토레토 〈천국〉(22m × 7m) — 세계 최대 캔버스 회화',
         longDesc: `**유럽 최대 의회실 (1340년 완공)**
 
@@ -11217,7 +11217,7 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
         artist: 'Antonio Contino',
         year: '1602',
         location: '궁 동쪽 운하',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Ponte_dei_sospiri_Venezia.jpg/330px-Ponte_dei_sospiri_Venezia.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/c/ca/Antonio_Contin_-_Ponte_dei_sospiri_%28Venice%29.jpg',
         shortDesc: '두칼레 궁 (대법원) → 신감옥 연결 다리. 죄수가 마지막으로 본 햇빛에 〈한숨〉을 쉰다는 데서 이름',
         longDesc: `**1602년 — 대법원과 감옥 연결**
 
@@ -11258,7 +11258,7 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
     nameLocal: 'Ponte di Rialto + Mercato',
     emoji: '🌉',
     coverHue: '#C9A961',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Venice_Rialto_Bridge_from_north.jpg/330px-Venice_Rialto_Bridge_from_north.jpg',
+    image: 'https://upload.wikimedia.org/wikipedia/commons/0/0b/Rialto_2025_4.jpg',
     overview: {
       tagline: '베네치아 1000년 상업 중심 — 셰익스피어 〈베니스의 상인〉의 무대',
       duration: '1~1.5시간',
@@ -11278,7 +11278,7 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
         artist: 'Antonio da Ponte',
         year: '1591',
         location: '대운하 중심부',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Venice_Rialto_Bridge_from_north.jpg/330px-Venice_Rialto_Bridge_from_north.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/0/0b/Rialto_2025_4.jpg',
         shortDesc: '대운하 4다리 중 첫째, 가장 오래됨. 단경간 28.8m 석교 + 양옆 상점 24개',
         longDesc: `**1591년 — 미켈란젤로 vs 다 폰테**
 
@@ -11304,7 +11304,7 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
         nameLocal: 'Mercato di Rialto + Pescaria',
         year: '1097년부터',
         location: '다리 북쪽 (산 폴로 쪽)',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Venezia_-_Mercato_di_Rialto.jpg/330px-Venezia_-_Mercato_di_Rialto.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/2/2a/Ponte_di_Rialto_Venice_1.jpg',
         shortDesc: '1097년부터 거의 동일 자리에서 운영 중인 시장. Pescaria(어시장) + Erberia(과일·채소). 화~토 07:30~12:00',
         longDesc: `**900년 동일 자리**
 
@@ -11345,7 +11345,7 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
     nameLocal: 'Murano + Burano',
     emoji: '🏝️',
     coverHue: '#4A7C9E',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Burano%2C_Italy_panorama.jpg/330px-Burano%2C_Italy_panorama.jpg',
+    image: 'https://upload.wikimedia.org/wikipedia/commons/f/f8/Burano_Venice_17.jpg',
     overview: {
       tagline: '유리(무라노) + 레이스 + 색깔 집(부라노)',
       duration: '반나절 (4~5시간)',
@@ -11365,7 +11365,7 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
         nameLocal: 'Vetrerie di Murano',
         year: '1291년부터',
         location: '무라노 섬',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Murano_glass.jpg/330px-Murano_glass.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/f/f4/Bowl_MET_DP100236.jpg',
         shortDesc: '1291년 베네치아 본섬에서 화재 위험으로 모든 유리공방을 무라노로 이전. 700년 가업 전수',
         longDesc: `**1291년 — 강제 이주**
 
@@ -11391,7 +11391,7 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
         nameLocal: 'Case Colorate di Burano',
         year: '전통 수백 년',
         location: '부라노 섬',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Burano%2C_Italy_panorama.jpg/330px-Burano%2C_Italy_panorama.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/f/f8/Burano_Venice_17.jpg',
         shortDesc: '500여 채의 집이 빨강·노랑·파랑·녹색. 안개 속 어부가 자기 집을 찾기 위한 신호',
         longDesc: `**색깔의 유래 — 안개 속 신호**
 
@@ -11433,7 +11433,7 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
     nameLocal: 'Gondola',
     emoji: '🛶',
     coverHue: '#B85B3F',
-    image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Gondolas_in_a_canal_in_Venice.jpg/330px-Gondolas_in_a_canal_in_Venice.jpg',
+    image: 'https://upload.wikimedia.org/wikipedia/commons/c/c8/Gondola_Ride.jpg',
     overview: {
       tagline: '11세기부터 베네치아 운하의 상징',
       duration: '30~50분',
@@ -11453,7 +11453,7 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
         nameLocal: 'Giro in Gondola',
         year: '경험',
         location: '베네치아 운하',
-        image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Gondolas_in_a_canal_in_Venice.jpg/330px-Gondolas_in_a_canal_in_Venice.jpg',
+        image: 'https://upload.wikimedia.org/wikipedia/commons/c/c8/Gondola_Ride.jpg',
         shortDesc: '11m × 1.4m. 11.5도 비대칭 (곤돌리에르 무게 보정). 옻칠 검정 - 1633년 도제 명령',
         longDesc: `**비대칭 11.5도**
 
