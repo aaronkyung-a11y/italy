@@ -10,10 +10,10 @@ export const RESERVATION_INFO = {
     leadTimeDays: 75,
     notes: '15분 슬롯, 25명 배치 — 2~3개월 전 예약 필수, 풀시즌 매진 흔함',
     sites: [
-      { name: 'Cenacolo Vinciano 공식', url: 'https://cenacolovinciano.org/en/', official: true },
-      { name: 'Vivaticket (공식 위탁)', url: 'https://www.vivaticket.com/en/biglietto/cenacolo-vinciano', official: true },
+      { name: 'Cenacolo Vinciano 공식', url: 'https://cenacolovinciano.org/', official: true },
+      { name: 'Vivaticket (공식 위탁)', url: 'https://www.lastsupper.shop/it/', official: true },
       { name: 'GetYourGuide', url: 'https://www.getyourguide.com/last-supper-l3760/', official: false },
-      { name: 'Tiqets', url: 'https://www.tiqets.com/en/milan-attractions-c70770/tickets-for-last-supper-by-leonardo-da-vinci-p972937/', official: false },
+      { name: 'Tiqets', url: 'https://www.tiqets.com/en/search?q=last+supper+milan', official: false },
     ],
     tips: [
       '입장 15분 단위 슬롯 — 도착 30분 전 처리 필수 (늦으면 입장 불가)',
@@ -29,10 +29,10 @@ export const RESERVATION_INFO = {
     leadTimeDays: 30,
     notes: '2시간 슬롯 시간제 입장 — 1개월 전 예약 권장, 9월은 1주 전 잡기 어려움',
     sites: [
-      { name: 'Galleria Borghese 공식', url: 'https://galleriaborghese.beniculturali.it/en/', official: true },
-      { name: 'Tosc (공식 위탁)', url: 'https://www.tosc.it', official: true },
+      { name: 'Galleria Borghese 공식', url: 'https://galleriaborghese.cultura.gov.it/en/', official: true },
+      { name: 'Tosc (공식 위탁)', url: 'https://www.tosc.it/en/artist/galleria-borghese/galleria-borghese-2253937/', official: true },
       { name: 'GetYourGuide', url: 'https://www.getyourguide.com/galleria-borghese-l2745/', official: false },
-      { name: 'Tiqets', url: 'https://www.tiqets.com/en/rome-attractions-c66857/galleria-borghese-c66854/', official: false },
+      { name: 'Tiqets', url: 'https://www.tiqets.com/en/search?q=galleria+borghese', official: false },
     ],
     tips: [
       '입장 슬롯 9:00, 11:00, 13:00, 15:00, 17:00 (2시간 단위)',
@@ -48,10 +48,10 @@ export const RESERVATION_INFO = {
     leadTimeDays: 30,
     notes: '시스티나 성당 포함 — 1개월 전 예약 권장. 수요일 오전은 교황 알현 일정 확인',
     sites: [
-      { name: 'Musei Vaticani 공식', url: 'https://www.museivaticani.va/content/museivaticani/en/visita-i-musei/scegli-la-visita.html', official: true },
-      { name: 'Vatican.com (가이드 투어)', url: 'https://www.vatican.com/tickets/vatican-museums-tickets', official: false },
+      { name: 'Musei Vaticani 공식', url: 'https://tickets.museivaticani.va', official: true },
+      { name: 'Vatican.com (가이드 투어)', url: 'https://www.museivaticani.va/', official: false },
       { name: 'GetYourGuide', url: 'https://www.getyourguide.com/vatican-museums-l2829/', official: false },
-      { name: 'Tiqets', url: 'https://www.tiqets.com/en/rome-attractions-c66857/vatican-museums-c66848/', official: false },
+      { name: 'Tiqets', url: 'https://www.tiqets.com/en/search?q=vatican+museums', official: false },
     ],
     tips: [
       '공식 €25 + 예약비 €5 = €30/인 (Sistine 포함)',
@@ -68,10 +68,10 @@ export const RESERVATION_INFO = {
     leadTimeDays: 14,
     notes: '2~3주 전 예약 권장. Uffizi+Pitti+Boboli 통합권 〈Passepartout〉 가능',
     sites: [
-      { name: 'Uffizi 공식', url: 'https://www.uffizi.it/biglietteria-online', official: true },
-      { name: 'B-Ticket (공식)', url: 'https://www.b-ticket.com/B-Ticket/uffizi/Default.aspx', official: true },
+      { name: 'Uffizi 공식', url: 'https://www.uffizi.it/en/tickets', official: true },
+      { name: 'B-Ticket (공식)', url: 'https://www.uffizi.it/en/tickets', official: true },
       { name: 'GetYourGuide', url: 'https://www.getyourguide.com/uffizi-galleries-l2780/', official: false },
-      { name: 'Tiqets', url: 'https://www.tiqets.com/en/florence-attractions-c66837/uffizi-c66836/', official: false },
+      { name: 'Tiqets', url: 'https://www.tiqets.com/en/search?q=uffizi', official: false },
     ],
     tips: [
       '공식 €25 (성수기) / €13 (비수기 11~3월) + 예약비 €4',
@@ -87,10 +87,10 @@ export const RESERVATION_INFO = {
     leadTimeDays: 14,
     notes: '다비드 한 점 보러 가는 곳. 2~3주 전 예약 권장',
     sites: [
-      { name: 'Accademia 공식', url: 'https://www.galleriaaccademiafirenze.it/en/', official: true },
-      { name: 'B-Ticket (공식)', url: 'https://www.b-ticket.com/B-Ticket/accademia/Default.aspx', official: true },
+      { name: 'Accademia 공식', url: 'https://www.galleriaaccademiafirenze.it/', official: true },
+      { name: 'B-Ticket (공식)', url: 'https://www.galleriaaccademiafirenze.it/', official: true },
       { name: 'GetYourGuide', url: 'https://www.getyourguide.com/accademia-l3779/', official: false },
-      { name: 'Tiqets', url: 'https://www.tiqets.com/en/florence-attractions-c66837/accademia-c66833/', official: false },
+      { name: 'Tiqets', url: 'https://www.tiqets.com/en/search?q=accademia+florence', official: false },
     ],
     tips: [
       '공식 €16 + 예약비 €4 = €20/인',
@@ -105,10 +105,10 @@ export const RESERVATION_INFO = {
     leadTimeDays: 10,
     notes: '콜로세움+포로+팔라티노 통합권. 〈Arena Floor〉 옵션은 별도. 1~2주 전 예약 권장',
     sites: [
-      { name: 'CoopCulture 공식', url: 'https://www.coopculture.it/en/colosseo-e-shop.cfm', official: true },
-      { name: 'PArCo 공식', url: 'https://parcocolosseo.it/en/tickets/', official: true },
+      { name: 'CoopCulture 공식', url: 'https://ticketing.colosseo.it/en/', official: true },
+      { name: 'PArCo 공식', url: 'https://parcocolosseo.it/en/', official: true },
       { name: 'GetYourGuide', url: 'https://www.getyourguide.com/colosseum-l2728/', official: false },
-      { name: 'Tiqets', url: 'https://www.tiqets.com/en/rome-attractions-c66857/colosseum-c66850/', official: false },
+      { name: 'Tiqets', url: 'https://www.tiqets.com/en/search?q=colosseum', official: false },
     ],
     tips: [
       '〈Standard〉 €18 (콜로세움+포로+팔라티노, 24시간 유효)',
@@ -125,9 +125,9 @@ export const RESERVATION_INFO = {
     leadTimeDays: 10,
     notes: '〈Duomo + Roof + Archaeological Area〉 통합권. 옥상 엘리베이터 vs 계단 선택. 1~2주 전 예약 권장',
     sites: [
-      { name: 'Duomo Milano 공식', url: 'https://www.duomomilano.it/en/info-tickets/', official: true },
+      { name: 'Duomo Milano 공식', url: 'https://www.duomomilano.it/en/', official: true },
       { name: 'GetYourGuide', url: 'https://www.getyourguide.com/milan-cathedral-l3713/', official: false },
-      { name: 'Tiqets', url: 'https://www.tiqets.com/en/milan-attractions-c70770/milan-cathedral-c66866/', official: false },
+      { name: 'Tiqets', url: 'https://www.tiqets.com/en/search?q=duomo+milano', official: false },
     ],
     tips: [
       'Duomo Pass A: 본당 + 옥상 (엘리베이터) + 박물관 = €22',
@@ -143,9 +143,9 @@ export const RESERVATION_INFO = {
     leadTimeDays: 14,
     notes: '5건물 통합권 €30+. 브루넬레스키 돔 + 조토 종탑 등반은 슬롯 예약 별도 필수',
     sites: [
-      { name: 'Duomo Firenze 공식', url: 'https://duomo.firenze.it/en/biglietteria/', official: true },
+      { name: 'Duomo Firenze 공식', url: 'https://duomo.firenze.it/en/tickets', official: true },
       { name: 'GetYourGuide', url: 'https://www.getyourguide.com/florence-cathedral-l3722/', official: false },
-      { name: 'Tiqets', url: 'https://www.tiqets.com/en/florence-attractions-c66837/florence-cathedral-c66835/', official: false },
+      { name: 'Tiqets', url: 'https://www.tiqets.com/en/search?q=duomo+firenze', official: false },
     ],
     tips: [
       'Ghiberti €30: 5건물 (본당 + 돔 + 종탑 + 세례당 + 박물관) 3일 유효',
@@ -170,7 +170,7 @@ export const RESERVATION_INFO = {
   castel: { urgency: 'low', leadTimeDays: 3, notes: '평시 워크인 OK, 9월 피크엔 줄 길어질 수 있음',
     sites: [{ name: 'Castel Sant\'Angelo 공식', url: 'https://castelsantangelo.beniculturali.it/en/', official: true }] },
   vecchio: { urgency: 'low', leadTimeDays: 3, notes: '워크인 OK. 500인의 방 + 스튜디올로 입장료 별도',
-    sites: [{ name: 'Palazzo Vecchio 공식', url: 'https://cultura.comune.fi.it/en/page/palazzo-vecchio', official: true }] },
+    sites: [{ name: 'Palazzo Vecchio 공식', url: 'https://musefirenze.it/en/museum/palazzo-vecchio/', official: true }] },
   bargello: { urgency: 'none', notes: '워크인 OK. 매월 첫 일요일 무료, 월요일·매월 둘째·넷째 일요일 휴관' },
   santacroce: { urgency: 'none', notes: '본당 + 파치 예배당 통합 €8 — 워크인 OK' },
   sforzesco: { urgency: 'none', notes: '11개 박물관 통합권 €10 — 워크인 OK. 외부 광장은 무료' },
@@ -233,7 +233,7 @@ export const RESERVATION_INFO = {
     leadTimeDays: 2,
     notes: '공식 요금 30분 €90(낮)/€110(저녁 7시 이후). 6인 한 척. 워크인 가능',
     sites: [
-      { name: 'Venezia Unica 공식', url: 'https://www.veneziaunica.it/en/content/gondola', official: true },
+      { name: 'Venezia Unica 공식', url: 'https://www.veneziaunica.it/en', official: true },
     ],
     tips: [
       '공식 €90(낮)/€110(저녁) — 30분 6인',
@@ -264,7 +264,7 @@ export const TRANSIT_INFO = {
         leadTimeDays: 60,
         notes: '60일 전 〈Super Economy〉 €19부터, 1주 전 €60~95. 매시 1~2회',
         bookingSites: [
-          { name: 'Trenitalia 공식', url: 'https://www.trenitalia.com/en.html', official: true },
+          { name: 'Trenitalia 공식', url: 'https://www.trenitalia.com/', official: true },
         ],
       },
       {
@@ -306,7 +306,7 @@ export const TRANSIT_INFO = {
         leadTimeDays: 60,
         notes: '매시 1~2회. 60일 전 예약 시 €25부터',
         bookingSites: [
-          { name: 'Trenitalia 공식', url: 'https://www.trenitalia.com/en.html', official: true },
+          { name: 'Trenitalia 공식', url: 'https://www.trenitalia.com/', official: true },
         ],
       },
       {
@@ -348,7 +348,7 @@ export const TRANSIT_INFO = {
         leadTimeDays: 60,
         notes: 'Frecciarossa 1000 직행. 매시 1~2회',
         bookingSites: [
-          { name: 'Trenitalia 공식', url: 'https://www.trenitalia.com/en.html', official: true },
+          { name: 'Trenitalia 공식', url: 'https://www.trenitalia.com/', official: true },
         ],
       },
       {
@@ -394,9 +394,9 @@ export const TRANSIT_INFO = {
     leadTimeDays: 14,
     notes: '미켈란젤로 4 알레고리 — 2주 전 예약 권장. 화요일 + 매월 둘째·넷째 일요일 휴관',
     sites: [
-      { name: 'Bargello Museum 공식 (예약)', url: 'https://www.bargellomusei.it/en/musei/cappelle-medicee/', official: true },
-      { name: 'B-Ticket (공식 위탁)', url: 'https://www.b-ticket.com/B-Ticket/bargello/Default.aspx', official: true },
-      { name: 'Tiqets', url: 'https://www.tiqets.com/en/florence-attractions-c66837/medici-chapels-c66839/', official: false },
+      { name: 'Bargello Museum 공식 (예약)', url: 'https://www.museodelbargello.it/', official: true },
+      { name: 'B-Ticket (공식 위탁)', url: 'https://www.museodelbargello.it/', official: true },
+      { name: 'Tiqets', url: 'https://www.tiqets.com/en/search?q=medici+chapels', official: false },
     ],
     tips: [
       '공식 €10 + 예약비 €3 = €13/인',
@@ -413,9 +413,9 @@ export const TRANSIT_INFO = {
     notes: '통합권 €22 (피티 + 보볼리 + 가르덴, 3일 유효). 매월 첫째·마지막 월요일 휴관',
     sites: [
       { name: 'Uffizi Galleries 공식', url: 'https://www.uffizi.it/en/pitti-palace', official: true },
-      { name: 'B-Ticket (공식 위탁)', url: 'https://www.b-ticket.com/B-Ticket/uffizi/Default.aspx', official: true },
-      { name: 'GetYourGuide', url: 'https://www.getyourguide.com/pitti-palace-l3739/', official: false },
-      { name: 'Tiqets', url: 'https://www.tiqets.com/en/florence-attractions-c66837/pitti-palace-c66831/', official: false },
+      { name: 'B-Ticket (공식 위탁)', url: 'https://www.uffizi.it/en/tickets', official: true },
+      { name: 'GetYourGuide', url: 'https://www.getyourguide.com/florence-l44/', official: false },
+      { name: 'Tiqets', url: 'https://www.tiqets.com/en/search?q=pitti+palace', official: false },
     ],
     tips: [
       '통합권 PassePartout €38 = Uffizi + Pitti + Boboli (5일 유효, 시간 여유 있을 때 가성비 ✓)',
@@ -431,9 +431,9 @@ export const TRANSIT_INFO = {
     leadTimeDays: 21,
     notes: '45분 시간 슬롯, 30명 제한 — 빠르게 매진. 화요일 휴관',
     sites: [
-      { name: 'Cappella Brancacci 공식', url: 'https://cappellabrancacci.it/en/', official: true },
-      { name: 'Musei Civici Fiorentini', url: 'https://musefirenze.it/en/musei/cappella-brancacci/', official: true },
-      { name: 'Tiqets', url: 'https://www.tiqets.com/en/florence-attractions-c66837/brancacci-chapel-c1011568/', official: false },
+      { name: 'Cappella Brancacci 공식', url: 'https://musefirenze.it/en/museum/cappella-brancacci/', official: true },
+      { name: 'Musei Civici Fiorentini', url: 'https://musefirenze.it/en/museum/cappella-brancacci/', official: true },
+      { name: 'Tiqets', url: 'https://www.tiqets.com/en/search?q=brancacci', official: false },
     ],
     tips: [
       '공식 €10 — 45분 시간 슬롯 필수 예약',
@@ -1363,7 +1363,7 @@ export function generateICS(trip, findAttraction) {
       uid: `transit-${i}-${uid++}`,
       summary: `🚆 예약: ${transit.name} (60일 전 권장)`,
       description: `${transit.distance} · 최저 ${transit.options[0]?.priceRange}\nTrenitalia/Italo 가격 비교: Trainline·Omio`,
-      location: 'https://www.trenitalia.com/en.html',
+      location: 'https://www.trenitalia.com/',
       startDate: remind.toISOString().slice(0, 10),
       allDay: true,
     }));
