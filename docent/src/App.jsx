@@ -562,7 +562,7 @@ function AttractionView({ attractionId, initialView, initialRouteId, push, pop, 
   if (!attraction) return <div>명소를 찾을 수 없습니다.</div>;
 
   const accent = attraction.coverHue;
-  const hasFloorPlan = attractionId === 'borghese' || attractionId === 'vatican' || attractionId === 'uffizi' || attractionId === 'foro' || attractionId === 'colosseum' || attractionId === 'duomo-milan' || attractionId === 'capitolini' || attractionId === 'vecchio' || attractionId === 'duomo' || attractionId === 'castel' || attractionId === 'sforzesco' || attractionId === 'santacroce' || attractionId === 'bargello';
+  const hasFloorPlan = attractionId === 'borghese' || attractionId === 'vatican' || attractionId === 'uffizi' || attractionId === 'foro' || attractionId === 'colosseum' || attractionId === 'duomo-milan' || attractionId === 'capitolini' || attractionId === 'vecchio' || attractionId === 'duomo' || attractionId === 'castel' || attractionId === 'sforzesco' || attractionId === 'santacroce' || attractionId === 'bargello' || attractionId === 'brera';
   const hasRoutes = !!attraction.routes && attraction.routes.length > 0;
 
   return (
@@ -738,6 +738,14 @@ function AttractionView({ attractionId, initialView, initialRouteId, push, pop, 
 
         {view === 'floorplan' && attractionId === 'bargello' && (
           <BargelloFloorPlan
+            points={attraction.points}
+            accent={accent}
+            onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
+          />
+        )}
+
+        {view === 'floorplan' && attractionId === 'brera' && (
+          <BreraFloorPlan
             points={attraction.points}
             accent={accent}
             onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
@@ -4477,6 +4485,351 @@ function BargelloFloorPlan({ points, accent, onPointClick }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────
+// BreraFloorPlan — 단층 갤러리 + 방번호 흐름 (6→9→24→29→38)
+// ─────────────────────────────────────────────────────────
+function BreraFloorPlan({ points, accent, onPointClick }) {
+  const POINT_TO_AREA = {
+    'brera-exterior': 'cortile',
+    'mantegna-dead-christ': 'sala-6',
+    'tintoretto-finding-mark': 'sala-9',
+    'piero-brera-madonna': 'sala-24',
+    'raphael-marriage-virgin': 'sala-24',
+    'caravaggio-emmaus': 'sala-29',
+    'hayez-kiss': 'sala-38',
+  };
+
+  const pointMap = {};
+  points.forEach((p, i) => { pointMap[p.id] = { ...p, idx: i + 1 }; });
+
+  const pointsByArea = {};
+  points.forEach((p, i) => {
+    const a = POINT_TO_AREA[p.id];
+    if (a) {
+      if (!pointsByArea[a]) pointsByArea[a] = [];
+      pointsByArea[a].push({ ...p, idx: i + 1 });
+    }
+  });
+
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+
+  return (
+    <div className="dc-floorplan-svg" style={{ '--accent': accent }}>
+      <div className="dc-floor-label">
+        <div className="dc-floor-label-title">
+          브레라 — 1층 안뜰 + 2층 갤러리 방번호 흐름
+        </div>
+        <div className="dc-floor-label-sub">
+          나폴레옹 1809 설립 · 40여 방 · 핵심 5 방 (6 · 9 · 24 · 29 · 38)
+        </div>
+      </div>
+
+      <div className="dc-svg-wrapper">
+        <svg viewBox="0 0 600 500" className="dc-floor-svg" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <pattern id="brera-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="600" height="500" fill="url(#brera-grid)" />
+
+          {/* === Ground floor: Cortile (top) === */}
+          <g>
+            <rect
+              x="60" y="55" width="475" height="105" rx="6"
+              fill="rgba(184,91,63,0.04)"
+              stroke={pointsByArea['cortile'] ? 'var(--accent)' : 'var(--line)'}
+              strokeWidth={pointsByArea['cortile'] ? 1.5 : 1}
+            />
+            <text x="80" y="78" fontSize="10" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+              Pianoterra — Cortile (1층 안뜰)
+            </text>
+            <text x="80" y="92" fontSize="8" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              17세기 예수회 학교 → 1809 나폴레옹의 국가 갤러리
+            </text>
+
+            {/* Napoleon statue (center) */}
+            <g>
+              <circle cx="297" cy="118" r="16" fill="rgba(201,169,97,0.15)" stroke="var(--gold)" strokeWidth="1.2" />
+              <text x="297" y="123" textAnchor="middle" fontSize="7" fill="var(--gold)" fontFamily="Noto Sans KR" fontWeight="500">
+                나폴레옹
+              </text>
+              <text x="297" y="145" textAnchor="middle" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                Canova 1811 · 누드 청동상
+              </text>
+              <text x="297" y="155" textAnchor="middle" fontSize="6" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.7">
+                (원본은 런던, 여긴 복제품)
+              </text>
+            </g>
+
+            {/* Library + Observatory indicators */}
+            <text x="105" y="125" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.7">
+              · 도서관
+            </text>
+            <text x="105" y="137" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.7">
+              · 천문대
+            </text>
+            <text x="480" y="125" textAnchor="end" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.7">
+              미술 아카데미 ·
+            </text>
+            <text x="480" y="137" textAnchor="end" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.7">
+              한 건물에 5 기관 ·
+            </text>
+          </g>
+
+          {/* === Staircase connector === */}
+          <g>
+            <rect x="280" y="165" width="34" height="22" rx="2" fill="rgba(255,255,255,0.04)" stroke="var(--line)" strokeWidth="0.8" strokeDasharray="3 2" />
+            <text x="297" y="180" textAnchor="middle" fontSize="7.5" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              ↓ 계단 (2층 진입)
+            </text>
+          </g>
+
+          {/* === 2nd floor: Pinacoteca === */}
+          <g>
+            <rect
+              x="60" y="195" width="475" height="245" rx="6"
+              fill="rgba(184,91,63,0.04)"
+              stroke="var(--line)"
+              strokeWidth="1.2"
+            />
+            <text x="80" y="216" fontSize="10" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+              Piano Primo — Pinacoteca (2층 갤러리)
+            </text>
+            <text x="80" y="228" fontSize="7.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              40여 방 · 핵심 5 방만 표시 · 화살표 = 관람 순서
+            </text>
+
+            {/* Sala 6 — Mantegna */}
+            <g>
+              <rect
+                x="80" y="245" width="135" height="80" rx="4"
+                fill="rgba(201,169,97,0.10)"
+                stroke={pointsByArea['sala-6'] ? 'var(--accent)' : 'var(--gold)'}
+                strokeWidth={pointsByArea['sala-6'] ? 1.8 : 1.2}
+              />
+              <text x="147" y="262" textAnchor="middle" fontSize="11" fill="var(--gold)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                Sala 6
+              </text>
+              <text x="147" y="278" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                만테냐 (1480)
+              </text>
+              <text x="147" y="293" textAnchor="middle" fontSize="7.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                〈죽은 그리스도〉
+              </text>
+              <text x="147" y="306" textAnchor="middle" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.8">
+                극단적 단축법
+              </text>
+              <text x="147" y="318" textAnchor="middle" fontSize="6" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.7">
+                66×81cm 소형
+              </text>
+            </g>
+
+            {/* Arrow */}
+            <line x1="220" y1="285" x2="245" y2="285" stroke="var(--gold)" strokeWidth="1.2" markerEnd="url(#brera-arr)" />
+
+            {/* Sala 9 — Tintoretto */}
+            <g>
+              <rect
+                x="250" y="245" width="135" height="80" rx="4"
+                fill="rgba(201,169,97,0.08)"
+                stroke={pointsByArea['sala-9'] ? 'var(--accent)' : 'var(--gold)'}
+                strokeWidth={pointsByArea['sala-9'] ? 1.8 : 1.2}
+              />
+              <text x="317" y="262" textAnchor="middle" fontSize="11" fill="var(--gold)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                Sala 9
+              </text>
+              <text x="317" y="278" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                틴토레토 (1562)
+              </text>
+              <text x="317" y="293" textAnchor="middle" fontSize="7.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                〈성 마르코 시신 발견〉
+              </text>
+              <text x="317" y="306" textAnchor="middle" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.8">
+                극단적 단축법 회랑
+              </text>
+              <text x="317" y="318" textAnchor="middle" fontSize="6" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.7">
+                매너리즘 정점
+              </text>
+            </g>
+
+            {/* Arrow */}
+            <line x1="390" y1="285" x2="415" y2="285" stroke="var(--gold)" strokeWidth="1.2" markerEnd="url(#brera-arr)" />
+
+            {/* Sala 24 — Piero + Raphael */}
+            <g>
+              <rect
+                x="420" y="245" width="110" height="80" rx="4"
+                fill="rgba(201,169,97,0.12)"
+                stroke={pointsByArea['sala-24'] ? 'var(--accent)' : 'var(--gold)'}
+                strokeWidth={pointsByArea['sala-24'] ? 2 : 1.4}
+              />
+              <text x="475" y="262" textAnchor="middle" fontSize="11" fill="var(--gold)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                Sala 24
+              </text>
+              <text x="475" y="276" textAnchor="middle" fontSize="8" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                피에로 + 라파엘로
+              </text>
+              <text x="475" y="289" textAnchor="middle" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                〈브레라 마돈나〉 (1472)
+              </text>
+              <text x="475" y="301" textAnchor="middle" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                〈성모의 결혼〉 (1504)
+              </text>
+              <text x="475" y="316" textAnchor="middle" fontSize="6" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.8">
+                ★ 두 거장 한 방
+              </text>
+            </g>
+
+            {/* Arrow going down */}
+            <line x1="475" y1="330" x2="475" y2="355" stroke="var(--gold)" strokeWidth="1.2" markerEnd="url(#brera-arr)" />
+            <text x="490" y="345" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.7">
+              ↓
+            </text>
+
+            {/* Sala 29 — Caravaggio */}
+            <g>
+              <rect
+                x="240" y="360" width="135" height="70" rx="4"
+                fill="rgba(201,169,97,0.10)"
+                stroke={pointsByArea['sala-29'] ? 'var(--accent)' : 'var(--gold)'}
+                strokeWidth={pointsByArea['sala-29'] ? 1.8 : 1.2}
+              />
+              <text x="307" y="377" textAnchor="middle" fontSize="11" fill="var(--gold)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                Sala 29
+              </text>
+              <text x="307" y="392" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                카라바조 (1606)
+              </text>
+              <text x="307" y="406" textAnchor="middle" fontSize="7" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                〈엠마오의 저녁〉
+              </text>
+              <text x="307" y="418" textAnchor="middle" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.8">
+                살인 직후 작품
+              </text>
+            </g>
+
+            {/* Arrow */}
+            <line x1="240" y1="395" x2="225" y2="395" stroke="var(--gold)" strokeWidth="1.2" />
+            <line x1="225" y1="395" x2="225" y2="395" stroke="var(--gold)" strokeWidth="1.2" markerEnd="url(#brera-arr)" />
+            <line x1="380" y1="395" x2="405" y2="395" stroke="var(--gold)" strokeWidth="1.2" markerEnd="url(#brera-arr)" />
+
+            {/* Sala 38 — Hayez (the climax) */}
+            <g>
+              <rect
+                x="410" y="360" width="120" height="70" rx="4"
+                fill="rgba(184,91,63,0.15)"
+                stroke={pointsByArea['sala-38'] ? 'var(--accent)' : 'var(--gold)'}
+                strokeWidth={pointsByArea['sala-38'] ? 2.2 : 1.5}
+              />
+              <text x="470" y="377" textAnchor="middle" fontSize="11" fill="var(--gold)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                Sala 38
+              </text>
+              <text x="470" y="392" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                하이에즈 (1859)
+              </text>
+              <text x="470" y="406" textAnchor="middle" fontSize="7" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                〈키스 — Il Bacio〉
+              </text>
+              <text x="470" y="418" textAnchor="middle" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.8">
+                통일 이탈리아 시각화
+              </text>
+            </g>
+
+            {/* "기타 방들" indicator */}
+            <g>
+              <rect x="80" y="360" width="135" height="70" rx="3" fill="rgba(255,255,255,0.02)" stroke="var(--line)" strokeWidth="0.6" strokeDasharray="3 3" opacity="0.5" />
+              <text x="147" y="385" textAnchor="middle" fontSize="8" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.7">
+                Sale 10~23
+              </text>
+              <text x="147" y="400" textAnchor="middle" fontSize="7" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.6">
+                벨리니·티치아노
+              </text>
+              <text x="147" y="412" textAnchor="middle" fontSize="7" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.6">
+                베네치아 거장 다수
+              </text>
+            </g>
+
+            {/* Arrow marker definition */}
+            <defs>
+              <marker id="brera-arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <path d="M 0 0 L 6 3 L 0 6 z" fill="var(--gold)" />
+              </marker>
+            </defs>
+          </g>
+
+          {/* Bottom info */}
+          <text x="300" y="465" textAnchor="middle" fontSize="8" fill="var(--text-faint)" fontFamily="DM Sans" opacity="0.7">
+            €15 · 매월 첫 일요일 무료 · 월요일 휴관 · 평균 2~3시간
+          </text>
+
+          {/* Point dots */}
+          {(() => {
+            const positions = {
+              'cortile': { cx: 297, cy: 118 },
+              'sala-6': { cx: 147, cy: 285 },
+              'sala-9': { cx: 317, cy: 285 },
+              'sala-24': { cx: 475, cy: 285 },
+              'sala-29': { cx: 307, cy: 395 },
+              'sala-38': { cx: 470, cy: 395 },
+            };
+            return Object.entries(pointsByArea).flatMap(([area, pts]) => {
+              const pos = positions[area];
+              if (!pos) return [];
+              return pts.map((p, i) => {
+                const offset = pts.length === 1 ? 0 : (i - (pts.length - 1) / 2) * 26;
+                return (
+                  <g
+                    key={p.id}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => onPointClick(p.id)}
+                    onMouseEnter={() => setHoveredPoint(p.id)}
+                    onMouseLeave={() => setHoveredPoint(null)}
+                  >
+                    <circle
+                      cx={pos.cx + offset} cy={pos.cy}
+                      r={hoveredPoint === p.id ? 14 : 11}
+                      fill="var(--accent)" stroke="var(--bg)" strokeWidth="2"
+                      style={{ transition: 'all 0.15s' }}
+                    />
+                    <text
+                      x={pos.cx + offset} y={pos.cy + 4}
+                      fontSize="10" fill="var(--bg)"
+                      fontFamily="DM Sans" fontWeight="600"
+                      textAnchor="middle" pointerEvents="none"
+                    >
+                      {String(p.idx).padStart(2, '0')}
+                    </text>
+                  </g>
+                );
+              });
+            });
+          })()}
+        </svg>
+      </div>
+
+      <div className="dc-floorplan-note">
+        2층 시간순 흐름: 6(15c) → 9(16c) → 24(15~16c) → 29(17c) → 38(19c) · Sala 24는 두 거장 한 방
+      </div>
+
+      <div className="dc-floor-pointlist">
+        <div className="dc-floor-pointlist-title">전체 7점:</div>
+        {points.map((p, i) => (
+          <button
+            key={p.id}
+            className="dc-floor-room-list-point"
+            onClick={() => onPointClick(p.id)}
+          >
+            <span className="dc-floor-room-list-num">{String(i + 1).padStart(2, '0')}</span>
+            <span className="dc-floor-room-list-name-text">{p.name}</span>
+            <span className="dc-floor-room-list-artist">{p.artist || ''}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // BorgheseFloorPlan — 정확한 SVG 평면도
 // ─────────────────────────────────────────────────────────
 function BorgheseFloorPlan({ points, accent, onPointClick }) {
@@ -5591,7 +5944,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.36</div>
+      <div>도슨트 · Docent v0.37</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
