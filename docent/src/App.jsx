@@ -110,9 +110,17 @@ function useViewStack(initial = { name: 'home' }) {
   const pop = useCallback(() => {
     if (stack.length > 1) window.history.back();
   }, [stack.length]);
+  const replace = useCallback((patch) => {
+    // 현재 스택 최상단 아이템을 patch와 병합 (history는 그대로)
+    setStack((s) => {
+      if (s.length === 0) return s;
+      const top = s[s.length - 1];
+      return [...s.slice(0, -1), { ...top, ...patch }];
+    });
+  }, []);
   const reset = useCallback(() => setStack([initial]), []);
 
-  return { current: stack[stack.length - 1], push, pop, reset, depth: stack.length };
+  return { current: stack[stack.length - 1], push, pop, replace, reset, depth: stack.length };
 }
 
 // ─────────────────────────────────────────────────────────
@@ -252,8 +260,10 @@ export default function App() {
       {view.current.name === 'attraction' && (
         <AttractionView
           attractionId={view.current.attractionId}
+          initialView={view.current.view || 'list'}
           push={view.push}
           pop={view.pop}
+          replace={view.replace}
           favorites={favorites}
         />
       )}
@@ -540,9 +550,14 @@ function AttractionCard({ attraction, onClick }) {
 // ─────────────────────────────────────────────────────────
 // Attraction — overview + point list
 // ─────────────────────────────────────────────────────────
-function AttractionView({ attractionId, push, pop, favorites }) {
+function AttractionView({ attractionId, initialView, push, pop, replace, favorites }) {
   const attraction = findAttraction(attractionId);
-  const [view, setView] = useState('list'); // 'list' | 'floorplan' | 'routes'
+  const [view, setViewLocal] = useState(initialView || 'list'); // 'list' | 'floorplan' | 'routes'
+  // 뷰 전환 시 nav stack에도 반영 — 다시 돌아왔을 때 마지막 뷰 복원
+  const setView = useCallback((v) => {
+    setViewLocal(v);
+    if (replace) replace({ view: v });
+  }, [replace]);
   if (!attraction) return <div>명소를 찾을 수 없습니다.</div>;
 
   const accent = attraction.coverHue;
@@ -4241,7 +4256,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.31</div>
+      <div>도슨트 · Docent v0.32</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
