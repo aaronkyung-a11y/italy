@@ -261,6 +261,7 @@ export default function App() {
         <AttractionView
           attractionId={view.current.attractionId}
           initialView={view.current.view || 'list'}
+          initialRouteId={view.current.routeId}
           push={view.push}
           pop={view.pop}
           replace={view.replace}
@@ -550,7 +551,7 @@ function AttractionCard({ attraction, onClick }) {
 // ─────────────────────────────────────────────────────────
 // Attraction — overview + point list
 // ─────────────────────────────────────────────────────────
-function AttractionView({ attractionId, initialView, push, pop, replace, favorites }) {
+function AttractionView({ attractionId, initialView, initialRouteId, push, pop, replace, favorites }) {
   const attraction = findAttraction(attractionId);
   const [view, setViewLocal] = useState(initialView || 'list'); // 'list' | 'floorplan' | 'routes'
   // 뷰 전환 시 nav stack에도 반영 — 다시 돌아왔을 때 마지막 뷰 복원
@@ -748,6 +749,8 @@ function AttractionView({ attractionId, initialView, push, pop, replace, favorit
             routes={attraction.routes}
             points={attraction.points}
             accent={accent}
+            initialRouteId={initialRouteId}
+            replace={replace}
             onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
           />
         )}
@@ -847,8 +850,16 @@ function VaticanFlowPlan({ points, accent, onPointClick }) {
 // ─────────────────────────────────────────────────────────
 // RouteGuide — 동선 코스 추천 (시간별 / 테마별)
 // ─────────────────────────────────────────────────────────
-function RouteGuide({ routes, points, accent, onPointClick }) {
-  const [selectedRouteId, setSelectedRouteId] = useState(routes[0].id);
+function RouteGuide({ routes, points, accent, initialRouteId, replace, onPointClick }) {
+  // 처음 보였을 때 초기값 — nav stack에 저장된 게 있으면 그걸, 없으면 첫 번째
+  const fallback = routes[0].id;
+  const valid = initialRouteId && routes.some(r => r.id === initialRouteId);
+  const [selectedRouteId, setSelectedRouteIdLocal] = useState(valid ? initialRouteId : fallback);
+  // 코스 변경 시 nav stack에도 반영 → 작품 갔다가 뒤로 와도 같은 코스 유지
+  const setSelectedRouteId = useCallback((rid) => {
+    setSelectedRouteIdLocal(rid);
+    if (replace) replace({ routeId: rid });
+  }, [replace]);
   const route = routes.find((r) => r.id === selectedRouteId);
 
   const pointMap = {};
@@ -5580,7 +5591,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.35</div>
+      <div>도슨트 · Docent v0.36</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
