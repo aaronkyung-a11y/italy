@@ -546,7 +546,7 @@ function AttractionView({ attractionId, push, pop, favorites }) {
   if (!attraction) return <div>명소를 찾을 수 없습니다.</div>;
 
   const accent = attraction.coverHue;
-  const hasFloorPlan = attractionId === 'borghese' || attractionId === 'vatican' || attractionId === 'uffizi' || attractionId === 'foro' || attractionId === 'colosseum';
+  const hasFloorPlan = attractionId === 'borghese' || attractionId === 'vatican' || attractionId === 'uffizi' || attractionId === 'foro' || attractionId === 'colosseum' || attractionId === 'duomo-milan' || attractionId === 'capitolini';
   const hasRoutes = !!attraction.routes && attraction.routes.length > 0;
 
   return (
@@ -658,6 +658,22 @@ function AttractionView({ attractionId, push, pop, favorites }) {
 
         {view === 'floorplan' && attractionId === 'colosseum' && (
           <ColosseumFloorPlan
+            points={attraction.points}
+            accent={accent}
+            onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
+          />
+        )}
+
+        {view === 'floorplan' && attractionId === 'duomo-milan' && (
+          <DuomoMilanoFloorPlan
+            points={attraction.points}
+            accent={accent}
+            onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
+          />
+        )}
+
+        {view === 'floorplan' && attractionId === 'capitolini' && (
+          <CapitoliniFloorPlan
             points={attraction.points}
             accent={accent}
             onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
@@ -1706,6 +1722,696 @@ function ColosseumFloorPlan({ points, accent, onPointClick }) {
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// DuomoMilanoFloorPlan — 다층 수직 구조 (지하 → 본당 → 옥상 → 첨탑)
+// ─────────────────────────────────────────────────────────
+function DuomoMilanoFloorPlan({ points, accent, onPointClick }) {
+  const [view, setView] = useState('section');  // 'section' (단면도) or 'plan' (평면도)
+
+  const POINT_TO_AREA = {
+    // Section view (vertical layout)
+    'duomo-milan-facade': 'facade',
+    'duomo-milan-interior': 'nave',
+    'duomo-milan-glass': 'transept',
+    'carlo-borromeo-crypt': 'crypt',
+    'battistero-milan': 'archaeology',
+    'duomo-milan-roof': 'roof',
+    'duomo-milan-spires': 'spires',
+    'madonnina': 'madonnina',
+  };
+
+  const pointMap = {};
+  points.forEach((p, i) => { pointMap[p.id] = { ...p, idx: i + 1 }; });
+
+  const pointsByArea = {};
+  points.forEach((p, i) => {
+    const a = POINT_TO_AREA[p.id];
+    if (a) {
+      if (!pointsByArea[a]) pointsByArea[a] = [];
+      pointsByArea[a].push({ ...p, idx: i + 1 });
+    }
+  });
+
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+
+  return (
+    <div className="dc-floorplan-svg" style={{ '--accent': accent }}>
+      <div className="dc-floor-toggle">
+        <button
+          className={`dc-floor-btn ${view === 'section' ? 'active' : ''}`}
+          onClick={() => setView('section')}
+        >
+          단면도 (수직)
+        </button>
+        <button
+          className={`dc-floor-btn ${view === 'plan' ? 'active' : ''}`}
+          onClick={() => setView('plan')}
+        >
+          평면도 (위에서)
+        </button>
+      </div>
+
+      <div className="dc-floor-label">
+        <div className="dc-floor-label-title">
+          {view === 'section' ? '두오모 디 밀라노 — 단면 (지하부터 첨탑까지)' : '두오모 디 밀라노 — 평면도 (본당 위에서)'}
+        </div>
+        <div className="dc-floor-label-sub">
+          {view === 'section'
+            ? '108.5m 높이 — 600년 공사 (1386~1965) · 마돈니나 황금 정상 · 옥상 패스 별도'
+            : '라틴 십자형 본당 158m · 5 신랑 (5 nave) · 후진 + 익랑(transept)'}
+        </div>
+      </div>
+
+      <div className="dc-svg-wrapper">
+        <svg viewBox="0 0 600 500" className="dc-floor-svg" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <pattern id="dm-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="600" height="500" fill="url(#dm-grid)" />
+
+          {view === 'section' && (
+            <>
+              {/* Vertical scale label on left */}
+              <text x="20" y="60" fontSize="9" fill="var(--text-faint)" fontFamily="DM Sans" opacity="0.7">108.5m</text>
+              <text x="20" y="180" fontSize="9" fill="var(--text-faint)" fontFamily="DM Sans" opacity="0.7">70m</text>
+              <text x="20" y="280" fontSize="9" fill="var(--text-faint)" fontFamily="DM Sans" opacity="0.7">45m</text>
+              <text x="20" y="380" fontSize="9" fill="var(--text-faint)" fontFamily="DM Sans" opacity="0.7">지면</text>
+              <text x="20" y="440" fontSize="9" fill="var(--text-faint)" fontFamily="DM Sans" opacity="0.7">-5m</text>
+
+              {/* Vertical scale line */}
+              <line x1="50" y1="50" x2="50" y2="450" stroke="var(--line)" strokeWidth="1" strokeDasharray="2 4" opacity="0.4" />
+              
+              {/* Madonnina at top */}
+              <g>
+                <polygon
+                  points="295,30 305,30 300,55"
+                  fill={pointsByArea['madonnina'] ? 'var(--accent)' : 'var(--gold)'}
+                  stroke="var(--gold)" strokeWidth="1.5"
+                />
+                <text x="350" y="50" fontSize="10" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                  Madonnina (108.5m)
+                </text>
+                <text x="350" y="62" fontSize="8.5" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                  황금 마돈나 첨탑 정상
+                </text>
+              </g>
+
+              {/* Spires (forest of spires) */}
+              <g>
+                {[110, 150, 190, 230, 270, 310, 350, 390, 430, 470].map((x, i) => {
+                  const h = 70 + (Math.abs(x - 290) < 40 ? 30 : 0);
+                  return (
+                    <polygon
+                      key={i}
+                      points={`${x-3},${h+120} ${x+3},${h+120} ${x},${h+80}`}
+                      fill="rgba(184,91,63,0.15)"
+                      stroke={pointsByArea['spires'] ? 'var(--accent)' : 'var(--line)'}
+                      strokeWidth={pointsByArea['spires'] ? 1.2 : 0.8}
+                    />
+                  );
+                })}
+                <text x="350" y="155" fontSize="10" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                  Spires (135개 첨탑)
+                </text>
+                <text x="350" y="167" fontSize="8.5" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                  첨탑의 숲
+                </text>
+              </g>
+
+              {/* Roof terrace */}
+              <g>
+                <rect
+                  x="110" y="220" width="380" height="35" rx="3"
+                  fill="rgba(184,91,63,0.08)"
+                  stroke={pointsByArea['roof'] ? 'var(--accent)' : 'var(--line)'}
+                  strokeWidth={pointsByArea['roof'] ? 1.5 : 1}
+                />
+                <text x="120" y="240" fontSize="10" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                  Terrazza (옥상 — 패스 별도)
+                </text>
+              </g>
+
+              {/* Main nave / interior */}
+              <g>
+                <polygon
+                  points="100,260 500,260 490,375 110,375"
+                  fill="rgba(184,91,63,0.06)"
+                  stroke={pointsByArea['nave'] ? 'var(--accent)' : 'var(--line)'}
+                  strokeWidth={pointsByArea['nave'] ? 1.5 : 1}
+                />
+                <text x="190" y="295" fontSize="10" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                  Navata (본당)
+                </text>
+                <text x="190" y="307" fontSize="9" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                  158m × 92m · 5 신랑
+                </text>
+              </g>
+
+              {/* Transept / glass (stained glass windows on side) */}
+              <g>
+                <rect
+                  x="380" y="265" width="40" height="105" rx="2"
+                  fill="rgba(201,169,97,0.08)"
+                  stroke={pointsByArea['transept'] ? 'var(--accent)' : 'var(--line)'}
+                  strokeWidth={pointsByArea['transept'] ? 1.2 : 0.8}
+                />
+                <text x="385" y="338" fontSize="7.5" fill="var(--text-soft)" fontFamily="Noto Sans KR" textAnchor="middle" transform="rotate(-90, 400, 335)">
+                  스테인드글라스
+                </text>
+              </g>
+
+              {/* Facade */}
+              <g>
+                <rect
+                  x="100" y="240" width="14" height="135" rx="2"
+                  fill="rgba(201,169,97,0.10)"
+                  stroke={pointsByArea['facade'] ? 'var(--accent)' : 'var(--line)'}
+                  strokeWidth={pointsByArea['facade'] ? 1.2 : 0.8}
+                />
+                <text x="92" y="320" fontSize="8" fill="var(--text-soft)" fontFamily="Noto Sans KR" transform="rotate(-90, 95, 320)">
+                  정면 파사드
+                </text>
+              </g>
+
+              {/* Ground line */}
+              <line x1="80" y1="378" x2="520" y2="378" stroke="var(--text-faint)" strokeWidth="1.5" />
+              <text x="535" y="382" fontSize="8" fill="var(--text-faint)" fontFamily="Noto Sans KR">지면</text>
+
+              {/* Crypt */}
+              <g>
+                <rect
+                  x="240" y="385" width="120" height="30" rx="3"
+                  fill="rgba(184,91,63,0.08)"
+                  stroke={pointsByArea['crypt'] ? 'var(--accent)' : 'var(--line)'}
+                  strokeWidth={pointsByArea['crypt'] ? 1.5 : 1}
+                />
+                <text x="250" y="405" fontSize="9.5" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                  Cripta — 카를로 보로메오
+                </text>
+              </g>
+
+              {/* Archaeology (Battistero) */}
+              <g>
+                <rect
+                  x="150" y="420" width="300" height="35" rx="3"
+                  fill="rgba(184,91,63,0.06)"
+                  stroke={pointsByArea['archaeology'] ? 'var(--accent)' : 'var(--line)'}
+                  strokeWidth={pointsByArea['archaeology'] ? 1.5 : 1}
+                />
+                <text x="160" y="438" fontSize="9.5" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                  Area Archeologica
+                </text>
+                <text x="160" y="450" fontSize="8.5" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                  4세기 세례당 + 로마 유적 (지하)
+                </text>
+              </g>
+            </>
+          )}
+
+          {view === 'plan' && (
+            <>
+              {/* Plan view — top-down */}
+              {/* Piazza del Duomo */}
+              <g>
+                <rect
+                  x="100" y="80" width="400" height="50" rx="4"
+                  fill="rgba(201,169,97,0.04)"
+                  stroke="var(--line)"
+                  strokeWidth="1"
+                  strokeDasharray="3 3"
+                  opacity="0.6"
+                />
+                <text x="300" y="110" textAnchor="middle" fontSize="9.5" fill="var(--text-soft)" fontFamily="Cormorant Garamond, serif" fontStyle="italic">
+                  Piazza del Duomo (광장)
+                </text>
+              </g>
+
+              {/* Facade strip */}
+              <g>
+                <rect
+                  x="120" y="135" width="360" height="20" rx="3"
+                  fill="rgba(201,169,97,0.10)"
+                  stroke={pointsByArea['facade'] ? 'var(--accent)' : 'var(--line)'}
+                  strokeWidth={pointsByArea['facade'] ? 1.5 : 1}
+                />
+                <text x="300" y="150" textAnchor="middle" fontSize="9" fill="var(--accent)" fontFamily="Noto Sans KR" fontWeight="500">
+                  정면 파사드
+                </text>
+              </g>
+
+              {/* Latin cross plan */}
+              {/* Main nave (long body) */}
+              <rect
+                x="160" y="160" width="280" height="180" rx="4"
+                fill="rgba(184,91,63,0.04)"
+                stroke={pointsByArea['nave'] ? 'var(--accent)' : 'var(--line)'}
+                strokeWidth={pointsByArea['nave'] ? 1.5 : 1}
+              />
+              {/* Transept (cross arms) */}
+              <rect
+                x="120" y="240" width="360" height="50" rx="3"
+                fill="rgba(184,91,63,0.05)"
+                stroke={pointsByArea['transept'] ? 'var(--accent)' : 'var(--line)'}
+                strokeWidth={pointsByArea['transept'] ? 1.2 : 0.8}
+                strokeDasharray={pointsByArea['transept'] ? 'none' : '3 3'}
+                opacity={pointsByArea['transept'] ? 1 : 0.7}
+              />
+              {/* Apse (semicircle at top) */}
+              <path
+                d="M 200 160 Q 300 90, 400 160"
+                fill="rgba(184,91,63,0.06)"
+                stroke="var(--line)"
+                strokeWidth="1"
+              />
+
+              {/* Labels */}
+              <text x="300" y="195" textAnchor="middle" fontSize="10" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                Navata Centrale
+              </text>
+              <text x="300" y="208" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                중앙 본당 (5 nave 중 가운데)
+              </text>
+              
+              <text x="148" y="268" fontSize="8" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                좌측 익랑
+              </text>
+              <text x="442" y="268" fontSize="8" fill="var(--text-soft)" fontFamily="Noto Sans KR" textAnchor="end">
+                우측 익랑
+              </text>
+
+              {/* Apse label */}
+              <text x="300" y="135" textAnchor="middle" fontSize="8.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                후진 ↑ (북쪽)
+              </text>
+
+              {/* Crypt indicator (dashed) */}
+              <rect
+                x="240" y="270" width="120" height="25" rx="2"
+                fill="rgba(201,169,97,0.04)"
+                stroke={pointsByArea['crypt'] ? 'var(--accent)' : 'var(--line)'}
+                strokeWidth={pointsByArea['crypt'] ? 1.2 : 0.8}
+                strokeDasharray="4 2"
+              />
+              <text x="300" y="287" textAnchor="middle" fontSize="8" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                지하 크립트 (점선)
+              </text>
+
+              {/* Archaeology (below) */}
+              <rect
+                x="180" y="350" width="240" height="30" rx="3"
+                fill="rgba(184,91,63,0.05)"
+                stroke={pointsByArea['archaeology'] ? 'var(--accent)' : 'var(--line)'}
+                strokeWidth={pointsByArea['archaeology'] ? 1.5 : 1}
+                strokeDasharray="3 3"
+              />
+              <text x="300" y="370" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                ↓ 지하 고고학 (입구 본당 안)
+              </text>
+
+              {/* Roof (legend top) */}
+              <g transform="translate(450, 410)">
+                <rect width="120" height="40" rx="4" fill="rgba(184,91,63,0.06)" stroke="var(--line)" strokeWidth="1" />
+                <text x="60" y="17" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                  옥상 + 첨탑 + 마돈니나
+                </text>
+                <text x="60" y="30" textAnchor="middle" fontSize="8" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                  단면도에서 확인
+                </text>
+              </g>
+
+              {/* Scale */}
+              <text x="300" y="420" textAnchor="middle" fontSize="8" fill="var(--text-faint)" fontFamily="DM Sans" opacity="0.7">
+                158m × 92m · 라틴 십자형 평면
+              </text>
+            </>
+          )}
+
+          {/* Point dots */}
+          {(() => {
+            const positions = view === 'section' ? {
+              'madonnina': { cx: 300, cy: 42 },
+              'spires': { cx: 470, cy: 160 },
+              'roof': { cx: 300, cy: 237 },
+              'facade': { cx: 107, cy: 310 },
+              'nave': { cx: 300, cy: 317 },
+              'transept': { cx: 400, cy: 318 },
+              'crypt': { cx: 300, cy: 400 },
+              'archaeology': { cx: 300, cy: 437 },
+            } : {
+              'facade': { cx: 300, cy: 145 },
+              'nave': { cx: 300, cy: 220 },
+              'transept': { cx: 145, cy: 265 },
+              'crypt': { cx: 300, cy: 282 },
+              'archaeology': { cx: 300, cy: 365 },
+              'roof': { cx: 510, cy: 423 },
+              'spires': { cx: 510, cy: 437 },
+              'madonnina': { cx: 510, cy: 451 },
+            };
+            
+            return Object.entries(pointsByArea).flatMap(([area, pts]) => {
+              const pos = positions[area];
+              if (!pos) return [];
+              return pts.map((p, i) => {
+                const offset = pts.length === 1 ? 0 : (i - (pts.length - 1) / 2) * 24;
+                return (
+                  <g
+                    key={p.id}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => onPointClick(p.id)}
+                    onMouseEnter={() => setHoveredPoint(p.id)}
+                    onMouseLeave={() => setHoveredPoint(null)}
+                  >
+                    <circle
+                      cx={pos.cx + offset} cy={pos.cy}
+                      r={hoveredPoint === p.id ? 14 : 11}
+                      fill="var(--accent)" stroke="var(--bg)" strokeWidth="2"
+                      style={{ transition: 'all 0.15s' }}
+                    />
+                    <text
+                      x={pos.cx + offset} y={pos.cy + 4}
+                      fontSize="10" fill="var(--bg)"
+                      fontFamily="DM Sans" fontWeight="600"
+                      textAnchor="middle" pointerEvents="none"
+                    >
+                      {String(p.idx).padStart(2, '0')}
+                    </text>
+                  </g>
+                );
+              });
+            });
+          })()}
+        </svg>
+      </div>
+
+      <div className="dc-floorplan-note">
+        {view === 'section' ? '단면 — 지하 5m부터 첨탑 108.5m까지' : '평면 — 라틴 십자형 본당 위에서'}
+      </div>
+
+      <div className="dc-floor-pointlist">
+        <div className="dc-floor-pointlist-title">전체 8점:</div>
+        {points.map((p, i) => (
+          <button
+            key={p.id}
+            className="dc-floor-room-list-point"
+            onClick={() => onPointClick(p.id)}
+          >
+            <span className="dc-floor-room-list-num">{String(i + 1).padStart(2, '0')}</span>
+            <span className="dc-floor-room-list-name-text">{p.name}</span>
+            <span className="dc-floor-room-list-artist">{p.artist || ''}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// CapitoliniFloorPlan — 미켈란젤로 광장 + 2 건물 (팔라초 콘세르바토리·누오보)
+// ─────────────────────────────────────────────────────────
+function CapitoliniFloorPlan({ points, accent, onPointClick }) {
+  const POINT_TO_AREA = {
+    'campidoglio': 'piazza',
+    'marcus-aurelius': 'conservatori-courtyard',
+    'lupa-capitolina': 'conservatori-lupa',
+    'costantino-colosso': 'conservatori-colossus',
+    'galata-morente': 'nuovo-galata',
+    'venere-capitolina': 'nuovo-venus',
+  };
+
+  const pointMap = {};
+  points.forEach((p, i) => { pointMap[p.id] = { ...p, idx: i + 1 }; });
+
+  const pointsByArea = {};
+  points.forEach((p, i) => {
+    const a = POINT_TO_AREA[p.id];
+    if (a) {
+      if (!pointsByArea[a]) pointsByArea[a] = [];
+      pointsByArea[a].push({ ...p, idx: i + 1 });
+    }
+  });
+
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+
+  // viewBox 600x500 — Michelangelo's iconic trapezoidal piazza design
+  // North = top (Palazzo Senatorio = town hall, not part of museum)
+  // Palazzo dei Conservatori = south of piazza
+  // Palazzo Nuovo = north (across piazza)
+  
+  return (
+    <div className="dc-floorplan-svg" style={{ '--accent': accent }}>
+      <div className="dc-floor-label">
+        <div className="dc-floor-label-title">
+          캄피돌리오 광장 + 카피톨리니 박물관
+        </div>
+        <div className="dc-floor-label-sub">
+          미켈란젤로의 사다리꼴 광장 (1538~1654) · 두 박물관 동 + 지하 회랑 연결
+        </div>
+      </div>
+
+      <div className="dc-svg-wrapper">
+        <svg viewBox="0 0 600 500" className="dc-floor-svg" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <pattern id="cap-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="600" height="500" fill="url(#cap-grid)" />
+
+          {/* North arrow */}
+          <g transform="translate(560, 30)">
+            <circle r="14" fill="rgba(0,0,0,0.3)" stroke="var(--text-faint)" strokeWidth="0.5" />
+            <path d="M 0,-8 L 4,4 L 0,0 L -4,4 Z" fill="var(--gold)" />
+            <text y="-18" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="DM Sans">N</text>
+          </g>
+
+          {/* Cordonata (Michelangelo stairway) from south */}
+          <g>
+            <polygon
+              points="240,440 360,440 320,470 280,470"
+              fill="rgba(184,91,63,0.04)"
+              stroke="var(--line)"
+              strokeWidth="1"
+              strokeDasharray="3 3"
+              opacity="0.6"
+            />
+            <text x="300" y="465" textAnchor="middle" fontSize="8" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              ↓ 코르도나타 (미켈란젤로 계단)
+            </text>
+          </g>
+
+          {/* Palazzo Senatorio (town hall, not museum) - top */}
+          <g>
+            <rect
+              x="180" y="55" width="240" height="55" rx="4"
+              fill="rgba(255,255,255,0.02)"
+              stroke="var(--line)"
+              strokeWidth="1"
+              strokeDasharray="4 3"
+              opacity="0.5"
+            />
+            <text x="300" y="80" textAnchor="middle" fontSize="9" fill="var(--text-faint)" fontFamily="Cormorant Garamond, serif" fontStyle="italic">
+              Palazzo Senatorio
+            </text>
+            <text x="300" y="93" textAnchor="middle" fontSize="8" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              로마 시청 (박물관 아님)
+            </text>
+            <text x="300" y="105" textAnchor="middle" fontSize="7.5" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.7">
+              ← 마르쿠스 아우렐리우스 원본 옆에 (지하 연결)
+            </text>
+          </g>
+
+          {/* Trapezoidal piazza (Michelangelo design) */}
+          <g>
+            <polygon
+              points="220,120 380,120 405,400 195,400"
+              fill="rgba(201,169,97,0.04)"
+              stroke={pointsByArea['piazza'] ? 'var(--accent)' : 'var(--line)'}
+              strokeWidth={pointsByArea['piazza'] ? 1.8 : 1}
+            />
+            <text x="300" y="160" textAnchor="middle" fontSize="11" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+              Piazza del Campidoglio
+            </text>
+            <text x="300" y="175" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              미켈란젤로 사다리꼴 광장
+            </text>
+            
+            {/* Center: Marcus Aurelius equestrian (copy) */}
+            <circle cx="300" cy="260" r="18" fill="rgba(201,169,97,0.10)" stroke="var(--gold)" strokeWidth="1.2" />
+            <text x="300" y="263" textAnchor="middle" fontSize="7" fill="var(--gold)" fontFamily="Noto Sans KR">
+              기마상
+            </text>
+            <text x="300" y="290" textAnchor="middle" fontSize="7.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              (광장은 복제 · 진품은 우측 건물 안)
+            </text>
+
+            {/* Star pattern (Michelangelo's oval) */}
+            <ellipse cx="300" cy="260" rx="80" ry="55" fill="none" stroke="var(--text-faint)" strokeWidth="0.7" opacity="0.4" strokeDasharray="2 3" />
+            
+            {/* 12-pointed star pattern (simplified) */}
+            <g opacity="0.3">
+              {[0, 30, 60, 90, 120, 150].map(angle => {
+                const rad = (angle * Math.PI) / 180;
+                const x1 = 300 + Math.cos(rad) * 70;
+                const y1 = 260 + Math.sin(rad) * 45;
+                const x2 = 300 - Math.cos(rad) * 70;
+                const y2 = 260 - Math.sin(rad) * 45;
+                return <line key={angle} x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--gold)" strokeWidth="0.6" />;
+              })}
+            </g>
+          </g>
+
+          {/* Palazzo dei Conservatori (right/east side of piazza when looking from cordonata) */}
+          <g>
+            <rect
+              x="405" y="150" width="140" height="220" rx="4"
+              fill="rgba(184,91,63,0.06)"
+              stroke="var(--accent)"
+              strokeWidth="1.3"
+            />
+            <text x="475" y="175" textAnchor="middle" fontSize="10" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+              Palazzo dei
+            </text>
+            <text x="475" y="188" textAnchor="middle" fontSize="10" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+              Conservatori
+            </text>
+            <text x="475" y="202" textAnchor="middle" fontSize="8" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              (우측 박물관 동)
+            </text>
+            
+            {/* Subdivisions */}
+            <line x1="405" y1="220" x2="545" y2="220" stroke="var(--line)" strokeWidth="0.5" strokeDasharray="2 2" opacity="0.5" />
+            <line x1="405" y1="275" x2="545" y2="275" stroke="var(--line)" strokeWidth="0.5" strokeDasharray="2 2" opacity="0.5" />
+            <line x1="405" y1="325" x2="545" y2="325" stroke="var(--line)" strokeWidth="0.5" strokeDasharray="2 2" opacity="0.5" />
+            
+            <text x="412" y="237" fontSize="8" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              · 안뜰 (유리 천장)
+            </text>
+            <text x="412" y="293" fontSize="8" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              · 늑대의 방
+            </text>
+            <text x="412" y="340" fontSize="8" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              · 콘스탄티노 거상
+            </text>
+            <text x="412" y="358" fontSize="7.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              (거대 두상·발·손)
+            </text>
+          </g>
+
+          {/* Palazzo Nuovo (left/west side of piazza) */}
+          <g>
+            <rect
+              x="55" y="150" width="140" height="220" rx="4"
+              fill="rgba(184,91,63,0.06)"
+              stroke="var(--accent)"
+              strokeWidth="1.3"
+            />
+            <text x="125" y="175" textAnchor="middle" fontSize="10" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+              Palazzo
+            </text>
+            <text x="125" y="188" textAnchor="middle" fontSize="10" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+              Nuovo
+            </text>
+            <text x="125" y="202" textAnchor="middle" fontSize="8" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              (좌측 박물관 동)
+            </text>
+            
+            <line x1="55" y1="240" x2="195" y2="240" stroke="var(--line)" strokeWidth="0.5" strokeDasharray="2 2" opacity="0.5" />
+            <line x1="55" y1="310" x2="195" y2="310" stroke="var(--line)" strokeWidth="0.5" strokeDasharray="2 2" opacity="0.5" />
+            
+            <text x="62" y="265" fontSize="8" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              · 갈리아의 방
+            </text>
+            <text x="62" y="282" fontSize="7.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              (죽어가는 갈리아인)
+            </text>
+            <text x="62" y="335" fontSize="8" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              · 비너스의 방
+            </text>
+            <text x="62" y="352" fontSize="7.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              (카피톨린 비너스)
+            </text>
+          </g>
+
+          {/* Underground connection (Galleria Lapidaria) */}
+          <g>
+            <line x1="195" y1="385" x2="405" y2="385" stroke="var(--gold)" strokeWidth="1.5" strokeDasharray="6 3" opacity="0.7" />
+            <text x="300" y="402" textAnchor="middle" fontSize="8" fill="var(--gold)" fontFamily="Noto Sans KR" opacity="0.8">
+              ↑ 지하 회랑 (Galleria Lapidaria) — 두 박물관 연결
+            </text>
+          </g>
+
+          {/* Bottom info */}
+          <text x="300" y="437" textAnchor="middle" fontSize="8" fill="var(--text-faint)" fontFamily="DM Sans" opacity="0.7">
+            세계 첫 공공 박물관 (1471) · 통합권 €15
+          </text>
+        
+          {/* Point dots */}
+          {(() => {
+            const positions = {
+              'piazza': { cx: 300, cy: 230 },
+              'conservatori-courtyard': { cx: 475, cy: 200 },
+              'conservatori-lupa': { cx: 475, cy: 250 },
+              'conservatori-colossus': { cx: 475, cy: 345 },
+              'nuovo-galata': { cx: 125, cy: 270 },
+              'nuovo-venus': { cx: 125, cy: 340 },
+            };
+            return Object.entries(pointsByArea).flatMap(([area, pts]) => {
+              const pos = positions[area];
+              if (!pos) return [];
+              return pts.map((p) => (
+                <g
+                  key={p.id}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => onPointClick(p.id)}
+                  onMouseEnter={() => setHoveredPoint(p.id)}
+                  onMouseLeave={() => setHoveredPoint(null)}
+                >
+                  <circle
+                    cx={pos.cx} cy={pos.cy}
+                    r={hoveredPoint === p.id ? 14 : 11}
+                    fill="var(--accent)" stroke="var(--bg)" strokeWidth="2"
+                    style={{ transition: 'all 0.15s' }}
+                  />
+                  <text
+                    x={pos.cx} y={pos.cy + 4}
+                    fontSize="10" fill="var(--bg)"
+                    fontFamily="DM Sans" fontWeight="600"
+                    textAnchor="middle" pointerEvents="none"
+                  >
+                    {String(p.idx).padStart(2, '0')}
+                  </text>
+                </g>
+              ));
+            });
+          })()}
+</svg>
+      </div>
+
+      <div className="dc-floorplan-note">
+        광장 1점 + 콘세르바토리 3점 + 누오보 2점 — 번호 탭하면 작품 상세
+      </div>
+
+      <div className="dc-floor-pointlist">
+        <div className="dc-floor-pointlist-title">전체 6점:</div>
+        {points.map((p, i) => (
+          <button
+            key={p.id}
+            className="dc-floor-room-list-point"
+            onClick={() => onPointClick(p.id)}
+          >
+            <span className="dc-floor-room-list-num">{String(i + 1).padStart(2, '0')}</span>
+            <span className="dc-floor-room-list-name-text">{p.name}</span>
+            <span className="dc-floor-room-list-artist">{p.artist || ''}</span>
+          </button>
+        ))}
+      </div>
+
     </div>
   );
 }
@@ -2824,7 +3530,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.28</div>
+      <div>도슨트 · Docent v0.29</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
