@@ -694,3 +694,156 @@ export function analyzeTrip(trip, getAttraction) {
     warningCount,
   };
 }
+
+// ─────────────────────────────────────────────────────────
+// 어린이 동반 모드 — 명소별 아이 친화도 (1=힘듦 ~ 5=즐김)
+// ─────────────────────────────────────────────────────────
+export const KID_FRIENDLY = {
+  // 로마
+  colosseum: 5, foro: 4, capitolini: 4, vincoli: 3,
+  vatican: 4, castel: 5,
+  borghese: 3,
+  pantheon: 4, trevi: 5, navona: 5, spagna: 4, popolo: 3,
+  // 피렌체
+  uffizi: 2, accademia: 3, vecchio: 4, bargello: 3, santacroce: 3, duomo: 4,
+  // 밀라노
+  cenacolo: 3, 'duomo-milan': 5, sforzesco: 4, 'galleria-scala': 4, brera: 2,
+};
+
+export function getKidFriendly(attractionId) {
+  return KID_FRIENDLY[attractionId] ?? 3;
+}
+
+// "큰 박물관" — 한 날에 여러 개 있으면 아이 부담 가중
+export const MAJOR_MUSEUM = new Set([
+  'vatican', 'uffizi', 'borghese', 'accademia', 'brera',
+  'capitolini', 'bargello', 'cenacolo',
+]);
+
+// 어린이 모드 일별 분석 — analyzeDay 결과 위에 추가 이슈 + 점수 조정
+export function analyzeDayKidMode(day, getAttraction, baseAnalysis) {
+  const attractions = day.attractionIds.map(getAttraction).filter(Boolean);
+  if (!attractions.length) return baseAnalysis;
+
+  const extraIssues = [];
+  let extraPenalty = 0;
+
+  // 1. 큰 박물관 개수 — 아이는 박물관 하루 1개가 이상적, 2개도 빡빡
+  const majors = attractions.filter((a) => MAJOR_MUSEUM.has(a.id));
+  if (majors.length >= 3) {
+    extraIssues.push({
+      severity: 'error',
+      type: 'kid-too-many-museums',
+      text: `🧒 주요 박물관 ${majors.length}곳 (${majors.map((a) => a.name).join('·')}) — 아이 동반 시 박물관 하루 1곳이 이상적`,
+    });
+    extraPenalty += 35;
+  } else if (majors.length === 2) {
+    extraIssues.push({
+      severity: 'warning',
+      type: 'kid-two-museums',
+      text: `🧒 주요 박물관 2곳 (${majors.map((a) => a.name).join('·')}) — 사이에 광장·분수 같은 가벼운 곳 끼워 넣으면 아이가 덜 지침`,
+    });
+    extraPenalty += 18;
+  }
+
+  // 2. 총 시간 — 아이는 6시간 이상부터 무리
+  const totalMin = baseAnalysis.totalMin || 0;
+  if (totalMin > 420) {
+    extraIssues.push({
+      severity: 'warning',
+      type: 'kid-time-over',
+      text: `🧒 ${Math.round(totalMin / 60)}시간 — 아이 동반 시 6시간 이하 권장. 점심 + 휴식 시간 별도 확보`,
+    });
+    extraPenalty += 18;
+  } else if (totalMin > 330 && majors.length >= 2) {
+    extraIssues.push({
+      severity: 'info',
+      type: 'kid-time-museum',
+      text: `🧒 박물관 위주로 ${Math.round(totalMin / 60)}시간 — 중간 1시간 점심 + 아이스크림 휴식 꼭`,
+    });
+    extraPenalty += 5;
+  }
+
+  // 3. 평균 아이 친화도 — 다 지루한 거만 모인 날
+  const avgKid = attractions.reduce((s, a) => s + getKidFriendly(a.id), 0) / attractions.length;
+  if (avgKid < 2.5) {
+    extraIssues.push({
+      severity: 'warning',
+      type: 'kid-friendliness',
+      text: `🧒 평균 친화도 ${avgKid.toFixed(1)}/5 — 아이가 지루해할 일정. 트레비·나보나·옥상 같은 즐길 거 추가`,
+    });
+    extraPenalty += 15;
+  } else if (avgKid >= 4) {
+    extraIssues.push({
+      severity: 'info',
+      type: 'kid-friendly',
+      text: `🧒 평균 친화도 ${avgKid.toFixed(1)}/5 — 아이가 좋아할 일정 ✨`,
+    });
+    // 보너스 (음의 페널티)
+    extraPenalty -= 5;
+  }
+
+  // 4. 클러스터 분산 — 아이는 도보 이동 부담 큼
+  const clusters = baseAnalysis.clusterCount || 0;
+  if (clusters >= 3) {
+    extraIssues.push({
+      severity: 'warning',
+      type: 'kid-spread',
+      text: `🧒 ${clusters}개 지역 분산 — 아이는 긴 도보·지하철 이동에 빨리 지침`,
+    });
+    extraPenalty += 12;
+  }
+
+  // 5. 체나콜로 + 다른 박물관 같은 날 — 15분 슬롯 시간 압박
+  if (day.attractionIds.includes('cenacolo') && majors.length >= 2) {
+    extraIssues.push({
+      severity: 'warning',
+      type: 'kid-cenacolo-tight',
+      text: `🧒 체나콜로(15분 슬롯) + 다른 큰 박물관 — 슬롯 시간 늦으면 아이 점심이 늦어짐. 슬롯을 오전 첫 타임으로 잡기`,
+    });
+    extraPenalty += 10;
+  }
+
+  // 새 점수 = 기존 점수 - 추가 페널티 (보너스는 더하기)
+  const newScore = Math.max(0, Math.min(100, (baseAnalysis.score ?? 100) - extraPenalty));
+
+  return {
+    ...baseAnalysis,
+    score: newScore,
+    issues: [...baseAnalysis.issues, ...extraIssues],
+    avgKidFriendly: Math.round(avgKid * 10) / 10,
+    majorMuseumCount: majors.length,
+  };
+}
+
+// kidMode 옵션 받는 analyzeTrip
+export function analyzeTripWithMode(trip, getAttraction, { kidMode = false } = {}) {
+  if (!trip || !trip.days) return null;
+  const dayAnalyses = trip.days.map((d) => {
+    const base = analyzeDay(d, getAttraction);
+    return kidMode ? analyzeDayKidMode(d, getAttraction, base) : base;
+  });
+  const validScores = dayAnalyses.filter((d) => d.score !== null).map((d) => d.score);
+  const avgScore = validScores.length ? Math.round(validScores.reduce((s, n) => s + n, 0) / validScores.length) : null;
+
+  const emptyDays = dayAnalyses.filter((d) => d.score === null).length;
+  const errorCount = dayAnalyses.reduce((s, d) => s + d.issues.filter((i) => i.severity === 'error').length, 0);
+  const warningCount = dayAnalyses.reduce((s, d) => s + d.issues.filter((i) => i.severity === 'warning').length, 0);
+
+  return { score: avgScore, dayAnalyses, emptyDays, errorCount, warningCount, kidMode };
+}
+
+const KID_MODE_KEY = 'docent:kid-mode';
+
+export function loadKidMode() {
+  try {
+    return localStorage.getItem(KID_MODE_KEY) === '1';
+  } catch (e) { return false; }
+}
+
+export function saveKidMode(v) {
+  try {
+    if (v) localStorage.setItem(KID_MODE_KEY, '1');
+    else localStorage.removeItem(KID_MODE_KEY);
+  } catch (e) {}
+}

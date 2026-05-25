@@ -16,6 +16,7 @@ import {
   getClosureStatus, getRecommendedCourses,
   inferCityForDay, getAssignedAttractionIds,
   analyzeDay, analyzeTrip, getCluster,
+  analyzeTripWithMode, loadKidMode, saveKidMode, getKidFriendly,
 } from './data/trip.js';
 
 // ─────────────────────────────────────────────────────────
@@ -313,9 +314,16 @@ function TripView({ pop }) {
   const [expandedTransit, setExpandedTransit] = useState(null); // dayIdx
   const [showSetup, setShowSetup] = useState(!trip);
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [kidMode, setKidModeState] = useState(() => loadKidMode());
 
-  // 분석 — 트립 전체 + 일별
-  const analysis = trip ? analyzeTrip(trip, findAttraction) : null;
+  function toggleKidMode() {
+    const next = !kidMode;
+    setKidModeState(next);
+    saveKidMode(next);
+  }
+
+  // 분석 — 트립 전체 + 일별 (kidMode 반영)
+  const analysis = trip ? analyzeTripWithMode(trip, findAttraction, { kidMode }) : null;
 
   // 빈 상태 — 날짜 입력 폼
   const [setupStart, setSetupStart] = useState('');
@@ -508,7 +516,9 @@ function TripView({ pop }) {
               <div className="dc-trip-analysis-score-label">/ 100</div>
             </div>
             <div className="dc-trip-analysis-summary">
-              <div className="dc-trip-analysis-title">📊 일정 점수</div>
+              <div className="dc-trip-analysis-title">
+                📊 일정 점수{kidMode && <span className="dc-kid-badge"> 🧒 어린이 동반</span>}
+              </div>
               <div className="dc-trip-analysis-meta">
                 {analysis.errorCount > 0 && <span className="err">⚠️ {analysis.errorCount} 오류</span>}
                 {analysis.warningCount > 0 && <span className="warn"> · 🟡 {analysis.warningCount} 주의</span>}
@@ -546,6 +556,20 @@ function TripView({ pop }) {
                   </div>
                 );
               })}
+              <button
+                className="dc-kid-toggle"
+                onClick={(e) => { e.stopPropagation(); toggleKidMode(); }}
+              >
+                <span className={`dc-kid-toggle-knob ${kidMode ? 'on' : 'off'}`}>{kidMode ? '✓' : ''}</span>
+                <span className="dc-kid-toggle-label">
+                  🧒 어린이(10세) 동반 모드
+                  <span className="dc-kid-toggle-sub">
+                    {kidMode
+                      ? '주요 박물관 카운트 · 6h 한도 · 명소별 친화도 평가 적용 중'
+                      : '꺼져 있음 — 탭하면 어린이 기준으로 점수 다시 계산'}
+                  </span>
+                </span>
+              </button>
               <div className="dc-trip-analysis-legend">
                 점수 기준: 🟢 80+ 좋음 · 🟡 60~79 보통 · 🔴 59 이하 재검토 권장
               </div>
@@ -6665,7 +6689,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.41</div>
+      <div>도슨트 · Docent v0.42</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
