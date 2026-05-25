@@ -389,6 +389,62 @@ export const TRANSIT_INFO = {
       },
     ],
   },
+  'medici-chapels': {
+    urgency: 'medium',
+    leadTimeDays: 14,
+    notes: '미켈란젤로 4 알레고리 — 2주 전 예약 권장. 화요일 + 매월 둘째·넷째 일요일 휴관',
+    sites: [
+      { name: 'Bargello Museum 공식 (예약)', url: 'https://www.bargellomusei.it/en/musei/cappelle-medicee/', official: true },
+      { name: 'B-Ticket (공식 위탁)', url: 'https://www.b-ticket.com/B-Ticket/bargello/Default.aspx', official: true },
+      { name: 'Tiqets', url: 'https://www.tiqets.com/en/florence-attractions-c66837/medici-chapels-c66839/', official: false },
+    ],
+    tips: [
+      '공식 €10 + 예약비 €3 = €13/인',
+      '관람 동선 60~90분 (대공의 채플 + 신성구실)',
+      '산 로렌초 마켓 점심과 묶기 — 도보 30초',
+      '8:15 또는 9:00 슬롯이 한산',
+      '매월 첫 일요일 무료 (예약 안 됨, 줄 길음)',
+      '아카데미아 다비드 본 후 같은 날 추천 — 미켈란젤로 작품 연속',
+    ],
+  },
+  'pitti-boboli': {
+    urgency: 'medium',
+    leadTimeDays: 14,
+    notes: '통합권 €22 (피티 + 보볼리 + 가르덴, 3일 유효). 매월 첫째·마지막 월요일 휴관',
+    sites: [
+      { name: 'Uffizi Galleries 공식', url: 'https://www.uffizi.it/en/pitti-palace', official: true },
+      { name: 'B-Ticket (공식 위탁)', url: 'https://www.b-ticket.com/B-Ticket/uffizi/Default.aspx', official: true },
+      { name: 'GetYourGuide', url: 'https://www.getyourguide.com/pitti-palace-l3739/', official: false },
+      { name: 'Tiqets', url: 'https://www.tiqets.com/en/florence-attractions-c66837/pitti-palace-c66831/', official: false },
+    ],
+    tips: [
+      '통합권 PassePartout €38 = Uffizi + Pitti + Boboli (5일 유효, 시간 여유 있을 때 가성비 ✓)',
+      'Pitti 단독 €16 / Boboli 단독 €10 / 통합 €22',
+      '팔라티나 갤러리 + 보볼리 정원 합쳐 3~4시간',
+      '보볼리는 6만평 — 아이가 뛰어다닐 수 있는 유일한 박물관',
+      '카발리에레 정원 일몰 시간(18~19시) 도시 전경 추천',
+      '월요일은 첫째·마지막만 휴관 — 9/21은 셋째 월요일 = 개방 ✓',
+    ],
+  },
+  brancacci: {
+    urgency: 'high',
+    leadTimeDays: 21,
+    notes: '45분 시간 슬롯, 30명 제한 — 빠르게 매진. 화요일 휴관',
+    sites: [
+      { name: 'Cappella Brancacci 공식', url: 'https://cappellabrancacci.it/en/', official: true },
+      { name: 'Musei Civici Fiorentini', url: 'https://musefirenze.it/en/musei/cappella-brancacci/', official: true },
+      { name: 'Tiqets', url: 'https://www.tiqets.com/en/florence-attractions-c66837/brancacci-chapel-c1011568/', official: false },
+    ],
+    tips: [
+      '공식 €10 — 45분 시간 슬롯 필수 예약',
+      '한 슬롯 30명 제한 — 인기 시간 빨리 매진',
+      '마사초 〈낙원 추방〉 + 〈세금 동전〉 = 르네상스 회화 시작점',
+      '관람 동선 짧음 (45분 슬롯이면 충분)',
+      '플래시 금지, 사진 가능',
+      'Ponte Vecchio에서 도보 12분 — Oltrarno 깊은 곳',
+      '미켈란젤로·다빈치·라파엘로가 청년 시기 〈수업〉했던 곳 — 미술사적 의미 큼',
+    ],
+  },
 };
 
 // 도시 페어를 정렬된 키로 변환
@@ -571,6 +627,39 @@ const CLOSURE_RULES = {
   duomo: (d) => new Date(d).getDay() === 0 ? { status: 'partial', notes: '일요일 세례당 오전 미사 제한 (본당 OK)' } : null,
   'duomo-milan': (d) => new Date(d).getDay() === 0 ? { status: 'partial', notes: '일요일 오전 미사 (옥상·박물관 OK)' } : null,
 
+  // 메디치 채플: 화요일 + 둘째·넷째 일요일 휴관
+  'medici-chapels': (d) => {
+    const dd = new Date(d);
+    const wd = dd.getDay();
+    if (wd === 2) return { status: 'closed', notes: '화요일 휴관' };
+    if (wd === 0) {
+      const sundayIdx = Math.ceil(dd.getDate() / 7);
+      if (sundayIdx === 2 || sundayIdx === 4) {
+        return { status: 'closed', notes: '둘째·넷째 일요일 휴관' };
+      }
+    }
+    return null;
+  },
+
+  // 피티/보볼리: 매월 첫째·마지막 월요일 휴관
+  'pitti-boboli': (d) => {
+    const dd = new Date(d);
+    if (dd.getDay() !== 1) return null;
+    // 첫째 월요일
+    const firstDayWeekday = new Date(dd.getFullYear(), dd.getMonth(), 1).getDay();
+    const firstMonday = firstDayWeekday <= 1 ? 1 + (1 - firstDayWeekday) : 1 + (8 - firstDayWeekday);
+    if (dd.getDate() === firstMonday) return { status: 'closed', notes: '첫째 월요일 휴관' };
+    // 마지막 월요일
+    const lastDay = new Date(dd.getFullYear(), dd.getMonth() + 1, 0);
+    const lastDayWeekday = lastDay.getDay();
+    const lastMonday = lastDay.getDate() - ((lastDayWeekday - 1 + 7) % 7);
+    if (dd.getDate() === lastMonday) return { status: 'closed', notes: '마지막 월요일 휴관' };
+    return null;
+  },
+
+  // 브란카치: 화요일 휴관
+  brancacci: (d) => new Date(d).getDay() === 2 ? { status: 'closed', notes: '화요일 휴관' } : null,
+
   // 콜로세움·포로·판테온 등은 매일 개방
 };
 
@@ -717,6 +806,8 @@ const CLUSTERS = {
   'flo-signoria': { name: '시뇨리아 권역', ids: ['vecchio', 'uffizi'] },
   'flo-accademia': { name: '아카데미아 권역', ids: ['accademia'] },
   'flo-croce': { name: '산타 크로체 권역', ids: ['santacroce'] },
+  'flo-san-lorenzo': { name: '산 로렌초 권역', ids: ['medici-chapels'] },
+  'flo-oltrarno': { name: 'Oltrarno 권역', ids: ['pitti-boboli', 'brancacci'] },
   // 밀라노
   'mil-centro': { name: '두오모 권역', ids: ['duomo-milan', 'galleria-scala', 'sforzesco'] },
   'mil-brera': { name: '브레라 권역', ids: ['brera'] },
@@ -843,6 +934,7 @@ export const KID_FRIENDLY = {
   pantheon: 4, trevi: 5, navona: 5, spagna: 4, popolo: 3,
   // 피렌체
   uffizi: 2, accademia: 3, vecchio: 4, bargello: 3, santacroce: 3, duomo: 4,
+  'medici-chapels': 3, 'pitti-boboli': 5, brancacci: 2,
   // 밀라노
   cenacolo: 3, 'duomo-milan': 5, sforzesco: 4, 'galleria-scala': 4, brera: 2,
   // 베네치아
@@ -857,6 +949,7 @@ export function getKidFriendly(attractionId) {
 export const MAJOR_MUSEUM = new Set([
   'vatican', 'uffizi', 'borghese', 'accademia', 'brera',
   'capitolini', 'bargello', 'cenacolo',
+  'medici-chapels', 'pitti-boboli',  // 피렌체 추가
   'palazzo-ducale',  // 베네치아
 ]);
 
