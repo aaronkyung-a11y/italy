@@ -847,3 +847,121 @@ export function saveKidMode(v) {
     else localStorage.removeItem(KID_MODE_KEY);
   } catch (e) {}
 }
+
+// ─────────────────────────────────────────────────────────
+// 정확한 예약 오픈 일정
+// ─────────────────────────────────────────────────────────
+
+// 체나콜로 분기별 출시 (이탈리아 시간 화요일 정오)
+const CENACOLO_RELEASES = [
+  { date: '2026-03-24', covers: { startMonth: 5, endMonth: 8, year: 2026 }, notes: '5~8월 분량 (3/24 정오 이탈리아 시간 출시 — 이미 풀림)' },
+  { date: '2026-06-23', covers: { startMonth: 9, endMonth: 12, year: 2026 }, notes: '9~12월 분량 — 6/23(화) 추정, 정확한 날짜는 6/20 즈음 공식 사이트 재확인' },
+  { date: '2026-09-22', covers: { startMonth: 1, endMonth: 4, year: 2027 }, notes: '2027년 1~4월 분량 (추정)' },
+  { date: '2026-12-22', covers: { startMonth: 5, endMonth: 8, year: 2027 }, notes: '2027년 5~8월 분량 (추정)' },
+];
+
+// 예약 오픈 시점 반환: { date, type, notes }
+export function getBookingOpenInfo(attractionId, visitDateStr) {
+  if (!visitDateStr) return null;
+  const visitDate = new Date(visitDateStr);
+  const visitMonth = visitDate.getMonth() + 1;
+  const visitYear = visitDate.getFullYear();
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+
+  // 체나콜로 특수 패턴
+  if (attractionId === 'cenacolo') {
+    const release = CENACOLO_RELEASES.find((r) =>
+      r.covers.year === visitYear &&
+      visitMonth >= r.covers.startMonth &&
+      visitMonth <= r.covers.endMonth
+    );
+    if (release) {
+      const releaseDate = new Date(release.date);
+      if (releaseDate < today) {
+        // 출시일 지남 → 즉시 예매 권장
+        return { date: today.toISOString().slice(0, 10), type: 'past-now', notes: '출시일 지남 — 즉시 공식 사이트 확인 + 백업으로 매주 수요일 정오 추가 분량' };
+      }
+      return { date: release.date, type: 'quarterly', notes: release.notes };
+    }
+    return null;
+  }
+
+  // 그 외: leadTimeDays 기반
+  const info = RESERVATION_INFO[attractionId];
+  if (!info || !info.leadTimeDays) return null;
+  const open = new Date(visitDate);
+  open.setDate(open.getDate() - info.leadTimeDays);
+  if (open < today) {
+    return { date: today.toISOString().slice(0, 10), type: 'today', notes: `방문 ${info.leadTimeDays}일 전 권장 시점이 이미 지남 — 즉시 예약` };
+  }
+  return { date: open.toISOString().slice(0, 10), type: 'lead-time', notes: `방문 ${info.leadTimeDays}일 전 권장 예약 시점` };
+}
+
+// 새 attractionReminderUrl — 정확한 출시 일정 사용
+export function attractionReminderUrlV2(attractionName, visitDate, attractionId, primaryBookingUrl) {
+  const open = getBookingOpenInfo(attractionId, visitDate);
+  if (!open) return null;
+  return buildCalendarUrl({
+    title: `🎫 예약: ${attractionName}`,
+    date: open.date,
+    details: `${open.notes}\n\n예약 사이트: ${primaryBookingUrl || ''}`,
+    location: primaryBookingUrl || '',
+  });
+}
+
+// 방문 시간 캘린더 이벤트 (실제 입장 슬롯)
+export function visitCalendarUrl(attractionName, visitDate, visitTime, durationMin, confirmation, location) {
+  if (!visitDate || !visitTime) return null;
+  // 종일이 아닌 시간 지정 이벤트
+  const [hh, mm] = visitTime.split(':');
+  const start = new Date(visitDate);
+  start.setHours(parseInt(hh), parseInt(mm), 0, 0);
+  const end = new Date(start.getTime() + (durationMin || 60) * 60 * 1000);
+  const fmt = (d) => {
+    const y = d.getFullYear();
+    const mo = String(d.getMonth() + 1).padStart(2, '0');
+    const da = String(d.getDate()).padStart(2, '0');
+    const h = String(d.getHours()).padStart(2, '0');
+    const mi = String(d.getMinutes()).padStart(2, '0');
+    return `${y}${mo}${da}T${h}${mi}00`;
+  };
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: `🎫 ${attractionName} 입장`,
+    dates: `${fmt(start)}/${fmt(end)}`,
+  });
+  const details = [
+    confirmation ? `확인번호: ${confirmation}` : '',
+    durationMin ? `소요 시간: ${durationMin}분` : '',
+    '도착 30분 전 처리 권장',
+  ].filter(Boolean).join('\n');
+  if (details) params.set('details', details);
+  if (location) params.set('location', location);
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+// ─────────────────────────────────────────────────────────
+// 예약 상태 추적
+// ─────────────────────────────────────────────────────────
+// 상태: 'unbooked' | 'reminder-set' | 'booked' | 'cancelled'
+// trip.bookings[attractionId] = { status, ... }
+
+export function getBookingStatus(trip, attractionId) {
+  if (!trip || !trip.bookings) return 'unbooked';
+  return trip.bookings[attractionId]?.status || 'unbooked';
+}
+
+export function getBookingData(trip, attractionId) {
+  if (!trip || !trip.bookings) return null;
+  return trip.bookings[attractionId] || null;
+}
+
+export function updateBooking(trip, attractionId, patch) {
+  const newBookings = { ...(trip.bookings || {}) };
+  if (patch === null) {
+    delete newBookings[attractionId];
+  } else {
+    newBookings[attractionId] = { ...(newBookings[attractionId] || {}), ...patch };
+  }
+  return { ...trip, bookings: newBookings };
+}

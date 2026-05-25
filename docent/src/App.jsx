@@ -17,6 +17,8 @@ import {
   inferCityForDay, getAssignedAttractionIds,
   analyzeDay, analyzeTrip, getCluster,
   analyzeTripWithMode, loadKidMode, saveKidMode, getKidFriendly,
+  getBookingOpenInfo, attractionReminderUrlV2, visitCalendarUrl,
+  getBookingStatus, getBookingData, updateBooking,
 } from './data/trip.js';
 
 // ─────────────────────────────────────────────────────────
@@ -724,52 +726,17 @@ function TripView({ pop }) {
                         )}
 
                         {expanded && (
-                          <div className="dc-trip-attr-detail">
-                            {res.notes && <div className="dc-trip-attr-notes">{res.notes}</div>}
-                            {res.sites && res.sites.length > 0 && (
-                              <div className="dc-trip-attr-sites">
-                                <div className="dc-trip-attr-sites-label">예약 사이트:</div>
-                                <div className="dc-trip-attr-sites-row">
-                                  {res.sites.map((s, i) => (
-                                    <a
-                                      key={i}
-                                      href={s.url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className={`dc-trip-site-btn ${s.official ? 'official' : 'thirdparty'}`}
-                                    >
-                                      {s.name} {s.official && '✓'}
-                                    </a>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                            {res.urgency !== 'none' && (
-                              <a
-                                className="dc-trip-cal-btn"
-                                href={attractionReminderUrl(
-                                  attr.name,
-                                  trip.startDate,
-                                  res,
-                                  res.sites?.[0]?.url
-                                )}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                📅 {res.leadTimeDays || 7}일 전 알림 캘린더에 추가
-                              </a>
-                            )}
-                            <button
-                              className="dc-trip-attr-remove"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                addAttractionToDay(dayIdx, attractionId);
-                                setExpandedAttraction(null);
-                              }}
-                            >
-                              일정에서 제거
-                            </button>
-                          </div>
+                          <BookingPanel
+                            attr={attr}
+                            visitDate={day.date}
+                            res={res}
+                            trip={trip}
+                            onUpdateBooking={(patch) => update(updateBooking(trip, attractionId, patch))}
+                            onRemove={() => {
+                              addAttractionToDay(dayIdx, attractionId);
+                              setExpandedAttraction(null);
+                            }}
+                          />
                         )}
                       </div>
                     );
@@ -847,8 +814,219 @@ function TripView({ pop }) {
 }
 
 // ─────────────────────────────────────────────────────────
-// AttractionPicker — 일정에 명소 추가 모달
+// BookingPanel — 예약 상태 추적 + 캘린더 통합
 // ─────────────────────────────────────────────────────────
+function BookingPanel({ attr, visitDate, res, trip, onUpdateBooking, onRemove }) {
+  const booking = getBookingData(trip, attr.id) || {};
+  const status = booking.status || 'unbooked';
+  const openInfo = getBookingOpenInfo(attr.id, visitDate);
+  const [editing, setEditing] = useState(false);
+  const [confirmation, setConfirmation] = useState(booking.confirmation || '');
+  const [slotTime, setSlotTime] = useState(booking.slotTime || '10:00');
+  const [bookingNotes, setBookingNotes] = useState(booking.notes || '');
+
+  // 알람 등록 시점
+  const handleSetReminder = () => {
+    onUpdateBooking({
+      status: 'reminder-set',
+      reminderDate: openInfo?.date,
+      reminderSetAt: new Date().toISOString(),
+    });
+  };
+
+  const handleMarkBooked = () => {
+    setEditing(true);
+  };
+
+  const handleSaveBooking = () => {
+    onUpdateBooking({
+      status: 'booked',
+      confirmation: confirmation.trim(),
+      slotTime: slotTime,
+      notes: bookingNotes.trim(),
+      bookedAt: new Date().toISOString(),
+    });
+    setEditing(false);
+  };
+
+  const handleCancel = () => {
+    if (!window.confirm('예약을 취소 상태로 변경하시겠습니까? (캘린더 이벤트는 수동으로 삭제 필요)')) return;
+    onUpdateBooking({ status: 'cancelled', cancelledAt: new Date().toISOString() });
+  };
+
+  const handleReset = () => {
+    if (!window.confirm('예약 상태를 초기화하시겠습니까?')) return;
+    onUpdateBooking(null);
+  };
+
+  // 방문 시간 캘린더 URL
+  const visitUrl = (status === 'booked' && booking.slotTime)
+    ? visitCalendarUrl(
+        attr.name,
+        visitDate,
+        booking.slotTime,
+        attr.overview?.duration_min || 60,
+        booking.confirmation,
+        res.sites?.[0]?.url
+      )
+    : null;
+
+  const reminderUrl = openInfo
+    ? attractionReminderUrlV2(attr.name, visitDate, attr.id, res.sites?.[0]?.url)
+    : null;
+
+  return (
+    <div className="dc-trip-attr-detail">
+      {res.notes && <div className="dc-trip-attr-notes">{res.notes}</div>}
+
+      {/* 정확한 예약 오픈 시점 안내 */}
+      {openInfo && (
+        <div className={`dc-book-open-info type-${openInfo.type}`}>
+          📅 <strong>예약 오픈 시점: {openInfo.date}</strong>
+          <div className="dc-book-open-notes">{openInfo.notes}</div>
+        </div>
+      )}
+
+      {/* 예약 사이트 */}
+      {res.sites && res.sites.length > 0 && (
+        <div className="dc-trip-attr-sites">
+          <div className="dc-trip-attr-sites-label">예약 사이트:</div>
+          <div className="dc-trip-attr-sites-row">
+            {res.sites.map((s, i) => (
+              <a
+                key={i}
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`dc-trip-site-btn ${s.official ? 'official' : 'thirdparty'}`}
+              >
+                {s.name} {s.official && '✓'}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 예약 상태 + 액션 */}
+      {res.urgency !== 'none' && (
+        <div className="dc-book-status-section">
+          <div className={`dc-book-status status-${status}`}>
+            {status === 'unbooked' && '🔔 예약 안 함'}
+            {status === 'reminder-set' && `⏰ 알람 설정됨 (${booking.reminderDate})`}
+            {status === 'booked' && `✅ 예약 완료${booking.confirmation ? ` · ${booking.confirmation}` : ''}${booking.slotTime ? ` · ${booking.slotTime}` : ''}`}
+            {status === 'cancelled' && '❌ 취소됨'}
+          </div>
+
+          {/* 예약 입력 폼 (편집 모드) */}
+          {editing && (
+            <div className="dc-book-form">
+              <label className="dc-book-form-row">
+                <span>확인번호</span>
+                <input
+                  type="text"
+                  value={confirmation}
+                  onChange={(e) => setConfirmation(e.target.value)}
+                  placeholder="예: TIC-12345"
+                  className="dc-book-input"
+                />
+              </label>
+              <label className="dc-book-form-row">
+                <span>방문 시간</span>
+                <input
+                  type="time"
+                  value={slotTime}
+                  onChange={(e) => setSlotTime(e.target.value)}
+                  className="dc-book-input"
+                />
+              </label>
+              <label className="dc-book-form-row">
+                <span>메모</span>
+                <input
+                  type="text"
+                  value={bookingNotes}
+                  onChange={(e) => setBookingNotes(e.target.value)}
+                  placeholder="추가 정보"
+                  className="dc-book-input"
+                />
+              </label>
+              <div className="dc-book-form-actions">
+                <button className="dc-book-btn-save" onClick={handleSaveBooking}>저장</button>
+                <button className="dc-book-btn-cancel" onClick={() => setEditing(false)}>취소</button>
+              </div>
+            </div>
+          )}
+
+          {/* 상태별 액션 버튼 */}
+          {!editing && (
+            <div className="dc-book-actions">
+              {(status === 'unbooked' || status === 'reminder-set') && reminderUrl && (
+                <a
+                  className="dc-trip-cal-btn"
+                  href={reminderUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={handleSetReminder}
+                >
+                  📅 {status === 'reminder-set' ? '알람 다시 추가' : '예약 알람 캘린더에 추가'}
+                </a>
+              )}
+
+              {(status === 'unbooked' || status === 'reminder-set') && (
+                <button className="dc-book-btn-mark" onClick={handleMarkBooked}>
+                  ✅ 예약 완료로 표시
+                </button>
+              )}
+
+              {status === 'booked' && (
+                <>
+                  {visitUrl && (
+                    <a
+                      className="dc-trip-cal-btn"
+                      href={visitUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      📅 방문 시간 ({booking.slotTime}) 캘린더에 추가
+                    </a>
+                  )}
+                  <button className="dc-book-btn-edit" onClick={handleMarkBooked}>
+                    ✏️ 예약 정보 수정
+                  </button>
+                  <button className="dc-book-btn-cancel-booking" onClick={handleCancel}>
+                    🗑 예약 취소
+                  </button>
+                </>
+              )}
+
+              {status === 'cancelled' && (
+                <>
+                  <div className="dc-book-cancel-note">
+                    ⚠️ 캘린더에 이미 추가된 이벤트는 수동으로 삭제 필요
+                  </div>
+                  <button className="dc-book-btn-mark" onClick={handleReset}>
+                    🔄 상태 초기화 (다시 예약)
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      <button
+        className="dc-trip-attr-remove"
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
+      >
+        일정에서 제거
+      </button>
+    </div>
+  );
+}
+
+
 function AttractionPicker({ dayIdx, dayDate, selectedIds, onToggle, onClose }) {
   const [tabCity, setTabCity] = useState('rome');
   const cityAttrs = ATTRACTIONS.filter((a) => a.city === tabCity);
@@ -6689,7 +6867,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.42</div>
+      <div>도슨트 · Docent v0.43</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
