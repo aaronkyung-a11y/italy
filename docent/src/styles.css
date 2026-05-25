@@ -4155,3 +4155,321 @@ img {
   left: -10px;
   color: var(--text-faint);
 }
+
+/* ───── Checklist Panel ───── */
+.dc-checklist {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.dc-checklist.complete {
+  border-color: #5fa572;
+}
+
+.dc-checklist-head {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text);
+  text-align: left;
+}
+
+.dc-checklist-progress-ring {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+.dc-checklist-ring-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.dc-checklist-ring-bg {
+  stroke: var(--line);
+  stroke-width: 2.5;
+}
+.dc-checklist-ring-fg {
+  stroke: var(--gold);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.3s;
+}
+.complete .dc-checklist-ring-fg {
+  stroke: #82c098;
+}
+.dc-checklist-pct {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gold);
+}
+.complete .dc-checklist-pct {
+  color: #82c098;
+}
+
+.dc-checklist-summary {
+  flex: 1;
+  min-width: 0;
+}
+.dc-checklist-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--gold);
+  margin-bottom: 3px;
+}
+.dc-checklist-meta {
+  font-size: 11px;
+  color: var(--text-soft);
+}
+.dc-checklist-all-done {
+  color: #82c098;
+  font-weight: 500;
+}
+.dc-checklist-chev {
+  color: var(--text-faint);
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+
+.dc-checklist-body {
+  padding: 0 14px 14px;
+  border-top: 1px dashed var(--line);
+}
+
+.dc-checklist-actions-row {
+  display: flex;
+  gap: 6px;
+  margin: 10px 0;
+}
+.dc-checklist-action {
+  flex: 1;
+  padding: 6px 8px;
+  background: rgba(201, 169, 97, 0.06);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text-soft);
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.dc-checklist-action:hover {
+  background: rgba(201, 169, 97, 0.14);
+  color: var(--text);
+}
+
+.dc-checklist-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  margin-bottom: 12px;
+  background: var(--bg);
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+}
+.dc-checklist-input {
+  padding: 7px 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+}
+.dc-checklist-input:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+.dc-checklist-save {
+  padding: 7px 12px;
+  background: var(--gold);
+  color: var(--bg);
+  border: none;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.dc-checklist-group {
+  margin-bottom: 14px;
+}
+.dc-checklist-group-head {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gold);
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px dashed var(--line);
+}
+.dc-checklist-group-count {
+  color: var(--text-faint);
+  font-weight: 400;
+  font-size: 10.5px;
+}
+
+.dc-checklist-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dc-checklist-item {
+  position: relative;
+  margin-bottom: 4px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  transition: background 0.15s;
+}
+.dc-checklist-item.checked {
+  opacity: 0.55;
+}
+.dc-checklist-item.urgent {
+  border-color: #e3c870;
+  background: rgba(220, 180, 60, 0.04);
+}
+.dc-checklist-item.overdue {
+  border-color: #e87878;
+  background: rgba(220, 60, 60, 0.05);
+}
+
+.dc-checklist-row {
+  flex: 1;
+  display: flex;
+  gap: 9px;
+  cursor: pointer;
+  min-width: 0;
+}
+.dc-checklist-check {
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  flex-shrink: 0;
+  accent-color: var(--gold);
+}
+.dc-checklist-content {
+  flex: 1;
+  min-width: 0;
+}
+.dc-checklist-label {
+  font-size: 12.5px;
+  color: var(--text);
+  font-weight: 500;
+  line-height: 1.35;
+}
+.checked .dc-checklist-label {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.dc-checklist-due {
+  font-size: 10.5px;
+  color: var(--text-soft);
+  margin-top: 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dc-checklist-due-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 9.5px;
+  font-weight: 500;
+  background: rgba(255,255,255,0.04);
+  color: var(--text-soft);
+}
+.dc-checklist-due-badge.urgent {
+  background: rgba(220, 180, 60, 0.15);
+  color: #e3c870;
+}
+.dc-checklist-due-badge.overdue {
+  background: rgba(220, 60, 60, 0.15);
+  color: #e87878;
+}
+
+.dc-checklist-notes {
+  font-size: 10.5px;
+  color: var(--text-faint);
+  margin-top: 3px;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+.dc-checklist-edit-notes {
+  margin-top: 5px;
+  display: flex;
+  gap: 5px;
+}
+.dc-checklist-save-sm {
+  padding: 5px 10px;
+  background: var(--gold);
+  color: var(--bg);
+  border: none;
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.dc-checklist-item-actions {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+.dc-checklist-icon-btn {
+  width: 26px;
+  height: 26px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-faint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dc-checklist-icon-btn:hover {
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+}
+
+.dc-checklist-empty {
+  text-align: center;
+  padding: 20px 10px;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.dc-checklist-sync-time {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+  font-size: 9.5px;
+  color: var(--text-faint);
+  text-align: center;
+}

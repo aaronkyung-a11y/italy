@@ -20,6 +20,8 @@ import {
   getBookingOpenInfo, attractionReminderUrlV2, visitCalendarUrl,
   getBookingStatus, getBookingData, updateBooking,
   buildShareUrl, decodeTripFromShare, downloadICS, shareTrip,
+  getChecklist, mergeAutoChecklist, updateChecklistItem, addChecklistItem,
+  removeChecklistItem, groupChecklistByCategory, getChecklistProgress,
 } from './data/trip.js';
 
 // ─────────────────────────────────────────────────────────
@@ -620,6 +622,13 @@ function TripView({ pop }) {
         </div>
       )}
 
+      {/* 체크리스트 패널 */}
+      <ChecklistPanel
+        trip={trip}
+        update={update}
+        findAttraction={findAttraction}
+      />
+
       <div className="dc-trip-days">
         {trip.days.map((day, dayIdx) => {
           const dayCity = getDayCity(day);
@@ -1072,6 +1081,259 @@ function BookingPanel({ attr, visitDate, res, trip, onUpdateBooking, onRemove })
       >
         일정에서 제거
       </button>
+    </div>
+  );
+}
+
+
+// ─────────────────────────────────────────────────────────
+// ChecklistPanel — 예약 준비 체크리스트 (자동 + 수동, localStorage 영구 저장)
+// ─────────────────────────────────────────────────────────
+function ChecklistPanel({ trip, update, findAttraction }) {
+  const [open, setOpen] = useState(false);
+  const [addingCustom, setAddingCustom] = useState(false);
+  const [newLabel, setNewLabel] = useState('');
+  const [newNotes, setNewNotes] = useState('');
+  const [newDueDate, setNewDueDate] = useState('');
+  const [editingId, setEditingId] = useState(null);
+  const [editNotes, setEditNotes] = useState('');
+
+  const checklist = getChecklist(trip);
+  const progress = getChecklistProgress(checklist.items);
+  const groups = groupChecklistByCategory(checklist.items);
+
+  // 첫 진입 시 자동 동기화
+  useEffect(() => {
+    if (!checklist.lastAutoSyncAt) {
+      update(mergeAutoChecklist(trip, findAttraction));
+    }
+  }, []);
+
+  const handleResync = () => {
+    update(mergeAutoChecklist(trip, findAttraction));
+  };
+
+  const handleToggle = (itemId, checked) => {
+    update(updateChecklistItem(trip, itemId, { checked }));
+  };
+
+  const handleAddCustom = () => {
+    if (!newLabel.trim()) return;
+    update(addChecklistItem(trip, {
+      label: newLabel.trim(),
+      notes: newNotes.trim(),
+      dueDate: newDueDate || null,
+      category: 'custom',
+    }));
+    setNewLabel(''); setNewNotes(''); setNewDueDate('');
+    setAddingCustom(false);
+  };
+
+  const handleRemove = (itemId) => {
+    if (!window.confirm('이 항목을 삭제하시겠습니까?')) return;
+    update(removeChecklistItem(trip, itemId));
+  };
+
+  const handleSaveNotes = (itemId) => {
+    update(updateChecklistItem(trip, itemId, { notes: editNotes }));
+    setEditingId(null);
+  };
+
+  const fmtDate = (iso) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return `${d.getMonth() + 1}/${d.getDate()}`;
+  };
+
+  const daysUntilDue = (dueDate) => {
+    if (!dueDate) return null;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const due = new Date(dueDate); due.setHours(0, 0, 0, 0);
+    const diff = Math.round((due - today) / (1000 * 60 * 60 * 24));
+    return diff;
+  };
+
+  const categoryLabels = {
+    hotel: '🏨 호텔',
+    train: '🚆 기차',
+    reservation: '🎫 명소 예약',
+    custom: '✏️ 직접 추가',
+  };
+
+  return (
+    <div className={`dc-checklist ${progress.pct === 100 ? 'complete' : ''}`}>
+      <button
+        className="dc-checklist-head"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <div className="dc-checklist-progress-ring">
+          <svg viewBox="0 0 36 36" className="dc-checklist-ring-svg">
+            <path
+              className="dc-checklist-ring-bg"
+              d="M18 2.5 a 15.5 15.5 0 0 1 0 31 a 15.5 15.5 0 0 1 0 -31"
+              fill="none"
+            />
+            <path
+              className="dc-checklist-ring-fg"
+              d="M18 2.5 a 15.5 15.5 0 0 1 0 31 a 15.5 15.5 0 0 1 0 -31"
+              fill="none"
+              strokeDasharray={`${progress.pct}, 100`}
+            />
+          </svg>
+          <div className="dc-checklist-pct">{progress.pct}%</div>
+        </div>
+        <div className="dc-checklist-summary">
+          <div className="dc-checklist-title">✅ 예약 체크리스트</div>
+          <div className="dc-checklist-meta">
+            {progress.done} / {progress.total} 완료
+            {progress.pct === 100 && <span className="dc-checklist-all-done"> · 전부 완료! 🎉</span>}
+          </div>
+        </div>
+        <ChevronRight size={16} className="dc-checklist-chev" style={{ transform: open ? 'rotate(90deg)' : 'none' }} />
+      </button>
+
+      {open && (
+        <div className="dc-checklist-body">
+          {/* 자동 동기화 + 수동 추가 버튼 */}
+          <div className="dc-checklist-actions-row">
+            <button className="dc-checklist-action" onClick={handleResync}>
+              🔄 자동 항목 재생성
+            </button>
+            <button className="dc-checklist-action" onClick={() => setAddingCustom((v) => !v)}>
+              {addingCustom ? '취소' : '＋ 항목 추가'}
+            </button>
+          </div>
+
+          {/* 새 항목 추가 폼 */}
+          {addingCustom && (
+            <div className="dc-checklist-add-form">
+              <input
+                type="text"
+                placeholder="예: 여행 보험 가입"
+                value={newLabel}
+                onChange={(e) => setNewLabel(e.target.value)}
+                className="dc-checklist-input"
+              />
+              <input
+                type="date"
+                value={newDueDate}
+                onChange={(e) => setNewDueDate(e.target.value)}
+                className="dc-checklist-input"
+              />
+              <input
+                type="text"
+                placeholder="메모 (선택)"
+                value={newNotes}
+                onChange={(e) => setNewNotes(e.target.value)}
+                className="dc-checklist-input"
+              />
+              <button className="dc-checklist-save" onClick={handleAddCustom}>
+                추가
+              </button>
+            </div>
+          )}
+
+          {/* 카테고리별 항목 */}
+          {Object.entries(groups).map(([cat, items]) => {
+            if (!items.length) return null;
+            const catLabel = categoryLabels[cat] || cat;
+            const catDone = items.filter((i) => i.checked).length;
+            return (
+              <div key={cat} className="dc-checklist-group">
+                <div className="dc-checklist-group-head">
+                  {catLabel} <span className="dc-checklist-group-count">({catDone}/{items.length})</span>
+                </div>
+                <ul className="dc-checklist-list">
+                  {items.map((item) => {
+                    const due = daysUntilDue(item.dueDate);
+                    const urgent = due !== null && due >= 0 && due <= 7 && !item.checked;
+                    const overdue = due !== null && due < 0 && !item.checked;
+                    return (
+                      <li
+                        key={item.id}
+                        className={`dc-checklist-item ${item.checked ? 'checked' : ''} ${urgent ? 'urgent' : ''} ${overdue ? 'overdue' : ''}`}
+                      >
+                        <label className="dc-checklist-row">
+                          <input
+                            type="checkbox"
+                            checked={item.checked}
+                            onChange={(e) => handleToggle(item.id, e.target.checked)}
+                            className="dc-checklist-check"
+                          />
+                          <div className="dc-checklist-content">
+                            <div className="dc-checklist-label">
+                              {item.label}
+                            </div>
+                            {item.dueDate && (
+                              <div className="dc-checklist-due">
+                                예약 시점: {fmtDate(item.dueDate)}
+                                {due !== null && !item.checked && (
+                                  <span className={`dc-checklist-due-badge ${overdue ? 'overdue' : urgent ? 'urgent' : ''}`}>
+                                    {overdue ? `D+${Math.abs(due)} 지남` : due === 0 ? '오늘' : `D-${due}`}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            {editingId === item.id ? (
+                              <div className="dc-checklist-edit-notes">
+                                <input
+                                  type="text"
+                                  value={editNotes}
+                                  onChange={(e) => setEditNotes(e.target.value)}
+                                  className="dc-checklist-input"
+                                  autoFocus
+                                />
+                                <button
+                                  className="dc-checklist-save-sm"
+                                  onClick={(e) => { e.preventDefault(); handleSaveNotes(item.id); }}
+                                >저장</button>
+                              </div>
+                            ) : (
+                              item.notes && <div className="dc-checklist-notes">{item.notes}</div>
+                            )}
+                          </div>
+                        </label>
+                        <div className="dc-checklist-item-actions">
+                          {editingId !== item.id && (
+                            <button
+                              className="dc-checklist-icon-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingId(item.id);
+                                setEditNotes(item.notes || '');
+                              }}
+                              title="메모 편집"
+                            >✏️</button>
+                          )}
+                          {!item.autoGenerated && (
+                            <button
+                              className="dc-checklist-icon-btn"
+                              onClick={(e) => { e.stopPropagation(); handleRemove(item.id); }}
+                              title="삭제"
+                            >🗑</button>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            );
+          })}
+
+          {checklist.items.length === 0 && (
+            <div className="dc-checklist-empty">
+              체크리스트가 비어 있습니다. 〈🔄 자동 항목 재생성〉을 눌러 일정 기반 자동 추가하세요.
+            </div>
+          )}
+
+          {checklist.lastAutoSyncAt && (
+            <div className="dc-checklist-sync-time">
+              마지막 자동 동기화: {new Date(checklist.lastAutoSyncAt).toLocaleString('ko-KR')}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -6917,7 +7179,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.44</div>
+      <div>도슨트 · Docent v0.45</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
