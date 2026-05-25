@@ -3558,3 +3558,136 @@ img {
   font-weight: 500;
   cursor: pointer;
 }
+
+/* Closure warning */
+.dc-trip-attr.closed { opacity: 0.85; }
+.dc-trip-closure {
+  padding: 6px 12px;
+  font-size: 11px;
+  border-top: 1px dashed var(--line);
+  line-height: 1.5;
+}
+.dc-trip-closure.closed {
+  background: rgba(220, 60, 60, 0.10);
+  color: #e87878;
+}
+.dc-trip-closure.partial {
+  background: rgba(220, 180, 60, 0.10);
+  color: #e3c870;
+}
+
+.dc-trip-day-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+.dc-trip-day-actions .dc-trip-add-btn { flex: 1; margin-top: 0; }
+.dc-trip-course-btn {
+  flex: 1;
+  padding: 10px;
+  background: rgba(201, 169, 97, 0.10);
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  color: var(--gold);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.dc-trip-course-btn:hover { background: rgba(201, 169, 97, 0.18); }
+
+/* Picker item closure */
+.dc-trip-picker-item.closed-day {
+  background: rgba(220, 60, 60, 0.04);
+  border: 1px dashed rgba(220, 60, 60, 0.4);
+}
+.dc-trip-picker-closure {
+  font-size: 10px;
+  margin-top: 3px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  display: inline-block;
+}
+.dc-trip-picker-closure.closed {
+  background: rgba(220, 60, 60, 0.18);
+  color: #e87878;
+}
+.dc-trip-picker-closure.partial {
+  background: rgba(220, 180, 60, 0.18);
+  color: #e3c870;
+}
+
+/* Course picker */
+.dc-course-item {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  margin: 8px;
+}
+.dc-course-item-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+.dc-course-item-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--gold);
+  font-weight: 500;
+}
+.dc-course-item-duration {
+  font-size: 10.5px;
+  color: var(--text-faint);
+}
+.dc-course-item-summary {
+  font-size: 12px;
+  color: var(--text-soft);
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+.dc-course-item-attrs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.dc-course-item-attr {
+  font-size: 11px;
+  padding: 3px 7px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text-soft);
+}
+.dc-course-item-attr.closed {
+  background: rgba(220, 60, 60, 0.08);
+  border-color: rgba(220, 60, 60, 0.4);
+  color: #e87878;
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+.dc-course-item-warning {
+  font-size: 11px;
+  color: #e87878;
+  padding: 6px 8px;
+  background: rgba(220, 60, 60, 0.08);
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+.dc-course-item-apply {
+  display: block;
+  width: 100%;
+  padding: 9px;
+  background: var(--gold);
+  color: var(--bg);
+  border: none;
+  border-radius: 8px;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.dc-course-item-apply:hover { opacity: 0.9; }

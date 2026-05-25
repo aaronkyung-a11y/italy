@@ -391,3 +391,138 @@ export function createEmptyTrip(startDate, endDate) {
   }
   return { startDate, endDate, days };
 }
+
+// ─────────────────────────────────────────────────────────
+// 휴관일 룰 — 날짜 받아 휴관 상태 반환
+// 반환값: null (정상 개방) | { status: 'closed' | 'partial', notes: string }
+// ─────────────────────────────────────────────────────────
+const CLOSURE_RULES = {
+  // 월요일 휴관 (대부분의 이탈리아 국립 박물관)
+  borghese: (d) => new Date(d).getDay() === 1 ? { status: 'closed', notes: '월요일 휴관' } : null,
+  uffizi: (d) => new Date(d).getDay() === 1 ? { status: 'closed', notes: '월요일 휴관' } : null,
+  accademia: (d) => new Date(d).getDay() === 1 ? { status: 'closed', notes: '월요일 휴관' } : null,
+  cenacolo: (d) => new Date(d).getDay() === 1 ? { status: 'closed', notes: '월요일 휴관' } : null,
+  brera: (d) => new Date(d).getDay() === 1 ? { status: 'closed', notes: '월요일 휴관' } : null,
+  sforzesco: (d) => new Date(d).getDay() === 1 ? { status: 'closed', notes: '월요일 박물관 휴관 (광장은 개방)' } : null,
+  castel: (d) => new Date(d).getDay() === 1 ? { status: 'closed', notes: '월요일 휴관' } : null,
+  capitolini: () => null, // 캐피톨리니는 매월 첫 일요일 무료 + 평시 매일 개방
+
+  // 일요일 휴관 (Vatican은 독립국이라 룰이 다름)
+  vatican: (d) => {
+    const dd = new Date(d);
+    if (dd.getDay() !== 0) return null;
+    // 마지막 일요일은 9:00~14:00 무료
+    const last = new Date(dd.getFullYear(), dd.getMonth() + 1, 0);
+    const lastSunday = last.getDate() - ((last.getDay() + 7) % 7);
+    if (dd.getDate() === lastSunday) {
+      return { status: 'partial', notes: '마지막 일요일 — 무료, 9시~14시 (혼잡)' };
+    }
+    return { status: 'closed', notes: '일요일 휴관 (마지막 일요일 제외)' };
+  },
+
+  // 바르젤로: 월요일 + 매월 둘째·넷째 일요일 휴관
+  bargello: (d) => {
+    const dd = new Date(d);
+    const wd = dd.getDay();
+    if (wd === 1) return { status: 'closed', notes: '월요일 휴관' };
+    if (wd === 0) {
+      const sundayIdx = Math.ceil(dd.getDate() / 7); // 그 달의 몇 번째 일요일인지
+      if (sundayIdx === 2 || sundayIdx === 4) {
+        return { status: 'closed', notes: '둘째·넷째 일요일 휴관' };
+      }
+    }
+    return null;
+  },
+
+  // 일요일 오전 미사 시간 제한 (성당)
+  santacroce: (d) => new Date(d).getDay() === 0 ? { status: 'partial', notes: '일요일 오전 미사 시간 입장 제한 (오후 OK)' } : null,
+  duomo: (d) => new Date(d).getDay() === 0 ? { status: 'partial', notes: '일요일 세례당 오전 미사 제한 (본당 OK)' } : null,
+  'duomo-milan': (d) => new Date(d).getDay() === 0 ? { status: 'partial', notes: '일요일 오전 미사 (옥상·박물관 OK)' } : null,
+
+  // 콜로세움·포로·판테온 등은 매일 개방
+};
+
+export function getClosureStatus(attractionId, dateStr) {
+  const rule = CLOSURE_RULES[attractionId];
+  if (!rule) return null;
+  return rule(dateStr);
+}
+
+// ─────────────────────────────────────────────────────────
+// 추천 코스 — 도시별 미리 짠 동선
+// ─────────────────────────────────────────────────────────
+export const RECOMMENDED_COURSES = {
+  rome: [
+    {
+      id: 'rome-ancient',
+      name: '로마 — 고대 로마 풀데이',
+      summary: '콜로세움 + 포로 통합권 → 카피톨리니 → 빈콜리 모세상',
+      attractionIds: ['colosseum', 'foro', 'capitolini', 'vincoli'],
+      durationHint: '약 7~8시간',
+    },
+    {
+      id: 'rome-squares',
+      name: '로마 — 5 광장 + 분수 도보',
+      summary: '판테온 → 나보나 → 트레비 → 스페인 → 포폴로 (도보 코스)',
+      attractionIds: ['pantheon', 'navona', 'trevi', 'spagna', 'popolo'],
+      durationHint: '약 5~6시간',
+    },
+    {
+      id: 'rome-vatican',
+      name: '로마 — 바티칸 풀데이',
+      summary: '바티칸 + 시스티나 (오전 4시간) → 산탄젤로 (오후) → 산탄젤로 다리',
+      attractionIds: ['vatican', 'castel'],
+      durationHint: '약 6~7시간',
+    },
+    {
+      id: 'rome-borghese',
+      name: '로마 — 보르게세 + 북부',
+      summary: '보르게세 (슬롯 예약) → 포폴로 광장 + 카라바조 → 스페인 광장',
+      attractionIds: ['borghese', 'popolo', 'spagna'],
+      durationHint: '약 4~5시간',
+    },
+  ],
+  florence: [
+    {
+      id: 'florence-duomo-day',
+      name: '피렌체 — 두오모 풀데이',
+      summary: '두오모 (5건물 통합권) → 베키오 + 시뇨리아 광장',
+      attractionIds: ['duomo', 'vecchio'],
+      durationHint: '약 6~7시간',
+    },
+    {
+      id: 'florence-art-day',
+      name: '피렌체 — 우피치 + 르네상스 조각',
+      summary: '우피치 (오전) → 베키오 → 바르젤로 (이탈리아 첫 박물관)',
+      attractionIds: ['uffizi', 'vecchio', 'bargello'],
+      durationHint: '약 7~8시간',
+    },
+    {
+      id: 'florence-david-tombs',
+      name: '피렌체 — 다비드 + 위인들 무덤',
+      summary: '아카데미아 다비드 → 산타 크로체 (미켈란젤로·갈릴레오·마키아벨리)',
+      attractionIds: ['accademia', 'santacroce'],
+      durationHint: '약 4~5시간',
+    },
+  ],
+  milan: [
+    {
+      id: 'milan-duomo-day',
+      name: '밀라노 — 두오모 + 도심',
+      summary: '두오모 + 옥상 → 갤러리아 + 라 스칼라 → 스포르체스코 성',
+      attractionIds: ['duomo-milan', 'galleria-scala', 'sforzesco'],
+      durationHint: '약 6~7시간',
+    },
+    {
+      id: 'milan-art-day',
+      name: '밀라노 — 미술 코스',
+      summary: '체나콜로 (슬롯 예약) → 브레라 미술관',
+      attractionIds: ['cenacolo', 'brera'],
+      durationHint: '약 3~4시간 (체나콜로 15분 + 이동 + 브레라)',
+    },
+  ],
+};
+
+export function getRecommendedCourses(city) {
+  return RECOMMENDED_COURSES[city] || [];
+}

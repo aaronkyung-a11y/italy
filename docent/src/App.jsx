@@ -12,6 +12,7 @@ import {
   loadTrip, saveTrip, clearTrip, createEmptyTrip,
   getReservationInfo, getTransitInfo,
   attractionReminderUrl, transitReminderUrl,
+  getClosureStatus, getRecommendedCourses,
 } from './data/trip.js';
 
 // ─────────────────────────────────────────────────────────
@@ -304,6 +305,7 @@ export default function App() {
 function TripView({ pop }) {
   const [trip, setTripState] = useState(() => loadTrip());
   const [showPicker, setShowPicker] = useState(null); // null or { dayIdx }
+  const [showCourses, setShowCourses] = useState(null); // null or { dayIdx }
   const [expandedAttraction, setExpandedAttraction] = useState(null); // attractionId
   const [expandedTransit, setExpandedTransit] = useState(null); // dayIdx
   const [showSetup, setShowSetup] = useState(!trip);
@@ -349,6 +351,17 @@ function TripView({ pop }) {
       day.attractionIds = [...day.attractionIds, attractionId];
     }
     newDays[dayIdx] = day;
+    update({ ...trip, days: newDays });
+  }
+
+  function applyCourse(dayIdx, attractionIds) {
+    if (!trip) return;
+    const newDays = [...trip.days];
+    // 추천 코스의 명소를 그 날에 배정 (기존 명소 유지하고 추가, 중복 제거)
+    const existing = new Set(newDays[dayIdx].attractionIds);
+    const merged = [...newDays[dayIdx].attractionIds];
+    attractionIds.forEach((aid) => { if (!existing.has(aid)) merged.push(aid); });
+    newDays[dayIdx] = { ...newDays[dayIdx], attractionIds: merged };
     update({ ...trip, days: newDays });
   }
 
@@ -561,8 +574,10 @@ function TripView({ pop }) {
                       critical: '지금 예약!', high: '1개월 전', medium: '2~3주 전', low: '1주 전 OK', none: '예약 불필요'
                     }[res.urgency];
 
+                    const closure = getClosureStatus(attractionId, day.date);
+
                     return (
-                      <div key={attractionId} className="dc-trip-attr">
+                      <div key={attractionId} className={`dc-trip-attr ${closure?.status === 'closed' ? 'closed' : ''}`}>
                         <button
                           className="dc-trip-attr-row"
                           onClick={() => setExpandedAttraction(expanded ? null : `${dayIdx}-${attractionId}`)}
@@ -580,6 +595,11 @@ function TripView({ pop }) {
                             style={{ transform: expanded ? 'rotate(90deg)' : 'none' }}
                           />
                         </button>
+                        {closure && (
+                          <div className={`dc-trip-closure ${closure.status}`}>
+                            {closure.status === 'closed' ? '⚠️ 휴관일!' : '⏰ 시간 제한'} — {closure.notes}
+                          </div>
+                        )}
 
                         {expanded && (
                           <div className="dc-trip-attr-detail">
@@ -633,12 +653,22 @@ function TripView({ pop }) {
                     );
                   })}
 
-                  <button
-                    className="dc-trip-add-btn"
-                    onClick={() => setShowPicker({ dayIdx })}
-                  >
-                    + 명소 추가
-                  </button>
+                  <div className="dc-trip-day-actions">
+                    <button
+                      className="dc-trip-add-btn"
+                      onClick={() => setShowPicker({ dayIdx })}
+                    >
+                      + 명소 추가
+                    </button>
+                    {day.attractionIds.length === 0 && (
+                      <button
+                        className="dc-trip-course-btn"
+                        onClick={() => setShowCourses({ dayIdx })}
+                      >
+                        ✨ 추천 코스로 시작
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -658,6 +688,18 @@ function TripView({ pop }) {
           selectedIds={trip.days[showPicker.dayIdx].attractionIds}
           onToggle={(aid) => addAttractionToDay(showPicker.dayIdx, aid)}
           onClose={() => setShowPicker(null)}
+        />
+      )}
+
+      {/* 추천 코스 모달 */}
+      {showCourses && (
+        <CoursePicker
+          dayDate={trip.days[showCourses.dayIdx].date}
+          onApply={(attractionIds) => {
+            applyCourse(showCourses.dayIdx, attractionIds);
+            setShowCourses(null);
+          }}
+          onClose={() => setShowCourses(null)}
         />
       )}
     </div>
@@ -707,13 +749,14 @@ function AttractionPicker({ dayIdx, dayDate, selectedIds, onToggle, onClose }) {
           {cityAttrs.map((a) => {
             const selected = selectedIds.includes(a.id);
             const res = getReservationInfo(a.id);
+            const closure = getClosureStatus(a.id, dayDate);
             const urgencyEmoji = {
               critical: '🔴', high: '🟠', medium: '🟡', low: '🟢', none: ''
             }[res.urgency];
             return (
               <button
                 key={a.id}
-                className={`dc-trip-picker-item ${selected ? 'selected' : ''}`}
+                className={`dc-trip-picker-item ${selected ? 'selected' : ''} ${closure?.status === 'closed' ? 'closed-day' : ''}`}
                 onClick={() => onToggle(a.id)}
               >
                 <span className="dc-trip-picker-emoji">{a.emoji}</span>
@@ -723,6 +766,11 @@ function AttractionPicker({ dayIdx, dayDate, selectedIds, onToggle, onClose }) {
                     {urgencyEmoji && <span>{urgencyEmoji} </span>}
                     {a.points.length}점 · {a.overview?.duration || '시간 미정'}
                   </div>
+                  {closure && (
+                    <div className={`dc-trip-picker-closure ${closure.status}`}>
+                      {closure.status === 'closed' ? '⚠️ 휴관일' : '⏰ 시간 제한'} · {closure.notes}
+                    </div>
+                  )}
                 </div>
                 {selected && <Check size={18} className="dc-trip-picker-check" />}
               </button>
@@ -733,6 +781,99 @@ function AttractionPicker({ dayIdx, dayDate, selectedIds, onToggle, onClose }) {
         <button className="dc-trip-picker-done" onClick={onClose}>
           완료
         </button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// CoursePicker — 추천 코스 모달
+// ─────────────────────────────────────────────────────────
+function CoursePicker({ dayDate, onApply, onClose }) {
+  const [tabCity, setTabCity] = useState('rome');
+  const courses = getRecommendedCourses(tabCity);
+
+  function formatDate(iso) {
+    const d = new Date(iso);
+    const days = ['일', '월', '화', '수', '목', '금', '토'];
+    return `${d.getMonth() + 1}/${d.getDate()} (${days[d.getDay()]})`;
+  }
+
+  return (
+    <div className="dc-trip-picker-overlay" onClick={onClose}>
+      <div className="dc-trip-picker" onClick={(e) => e.stopPropagation()}>
+        <div className="dc-trip-picker-header">
+          <div className="dc-trip-picker-title">
+            {formatDate(dayDate)} — 추천 코스
+          </div>
+          <button className="dc-trip-picker-close" onClick={onClose}>✕</button>
+        </div>
+
+        <div className="dc-trip-picker-tabs">
+          {['rome', 'florence', 'milan'].map((c) => (
+            <button
+              key={c}
+              className={`dc-trip-picker-tab ${tabCity === c ? 'active' : ''}`}
+              onClick={() => setTabCity(c)}
+            >
+              {c === 'rome' && '로마'}
+              {c === 'florence' && '피렌체'}
+              {c === 'milan' && '밀라노'}
+            </button>
+          ))}
+        </div>
+
+        <div className="dc-trip-picker-list">
+          {courses.map((course) => {
+            // 코스 안 명소들 중 그 날 휴관인 게 있으면 경고
+            const closedAttrs = course.attractionIds
+              .map((aid) => {
+                const closure = getClosureStatus(aid, dayDate);
+                if (closure?.status === 'closed') {
+                  const a = findAttraction(aid);
+                  return a?.name;
+                }
+                return null;
+              })
+              .filter(Boolean);
+
+            return (
+              <div key={course.id} className="dc-course-item">
+                <div className="dc-course-item-head">
+                  <div className="dc-course-item-name">{course.name}</div>
+                  <div className="dc-course-item-duration">{course.durationHint}</div>
+                </div>
+                <div className="dc-course-item-summary">{course.summary}</div>
+                <div className="dc-course-item-attrs">
+                  {course.attractionIds.map((aid) => {
+                    const a = findAttraction(aid);
+                    if (!a) return null;
+                    const closure = getClosureStatus(aid, dayDate);
+                    return (
+                      <span
+                        key={aid}
+                        className={`dc-course-item-attr ${closure?.status === 'closed' ? 'closed' : ''}`}
+                      >
+                        {a.emoji} {a.name}
+                      </span>
+                    );
+                  })}
+                </div>
+                {closedAttrs.length > 0 && (
+                  <div className="dc-course-item-warning">
+                    ⚠️ 이 날 휴관: {closedAttrs.join(', ')}
+                  </div>
+                )}
+                <button
+                  className="dc-course-item-apply"
+                  onClick={() => onApply(course.attractionIds)}
+                >
+                  이 코스 적용
+                </button>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -6400,7 +6541,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.38</div>
+      <div>도슨트 · Docent v0.39</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
