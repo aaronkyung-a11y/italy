@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  ChevronRight, ArrowLeft, Play, Pause, Volume2, VolumeX,
+  ChevronRight, ChevronLeft, ArrowLeft, Play, Pause, Volume2, VolumeX,
   Clock, Info, MapPin, Star, Headphones, BookOpen, Eye, Sparkles, Quote,
   Camera, Image as ImageIcon, Loader2, AlertCircle, RefreshCw, WifiOff, Search,
   Download, Smartphone, X,
@@ -8,6 +8,11 @@ import {
   Heart, BookmarkCheck, Check, Trash2,
 } from 'lucide-react';
 import { CITIES, ATTRACTIONS, findAttraction, findPoint, TOTAL_POINTS } from './data/attractions.js';
+import {
+  loadTrip, saveTrip, clearTrip, createEmptyTrip,
+  getReservationInfo, getTransitInfo,
+  attractionReminderUrl, transitReminderUrl,
+} from './data/trip.js';
 
 // ─────────────────────────────────────────────────────────
 // Image compression for Vision API uploads
@@ -254,6 +259,7 @@ export default function App() {
   return (
     <div className="dc-app">
       {view.current.name === 'home' && <HomeView push={view.push} favorites={favorites} />}
+      {view.current.name === 'trip' && <TripView pop={view.pop} />}
       {view.current.name === 'city' && (
         <CityView cityId={view.current.cityId} push={view.push} pop={view.pop} />
       )}
@@ -291,6 +297,447 @@ export default function App() {
     </div>
   );
 }
+
+// ─────────────────────────────────────────────────────────
+// TripView — 내 일정 관리 (일정 + 예약 + 도시간 이동 + 캘린더)
+// ─────────────────────────────────────────────────────────
+function TripView({ pop }) {
+  const [trip, setTripState] = useState(() => loadTrip());
+  const [showPicker, setShowPicker] = useState(null); // null or { dayIdx }
+  const [expandedAttraction, setExpandedAttraction] = useState(null); // attractionId
+  const [expandedTransit, setExpandedTransit] = useState(null); // dayIdx
+  const [showSetup, setShowSetup] = useState(!trip);
+
+  // 빈 상태 — 날짜 입력 폼
+  const [setupStart, setSetupStart] = useState('');
+  const [setupEnd, setSetupEnd] = useState('');
+  const [setupError, setSetupError] = useState('');
+
+  function update(t) {
+    setTripState(t);
+    if (t) saveTrip(t);
+    else clearTrip();
+  }
+
+  function handleCreate() {
+    setSetupError('');
+    if (!setupStart || !setupEnd) {
+      setSetupError('출발일과 복귀일을 모두 선택해주세요');
+      return;
+    }
+    if (setupEnd < setupStart) {
+      setSetupError('복귀일은 출발일보다 늦어야 합니다');
+      return;
+    }
+    const days = Math.ceil((new Date(setupEnd) - new Date(setupStart)) / (1000 * 60 * 60 * 24)) + 1;
+    if (days > 30) {
+      setSetupError('일정은 30일 이내로 설정해주세요');
+      return;
+    }
+    const newTrip = createEmptyTrip(setupStart, setupEnd);
+    update(newTrip);
+    setShowSetup(false);
+  }
+
+  function addAttractionToDay(dayIdx, attractionId) {
+    if (!trip) return;
+    const newDays = [...trip.days];
+    const day = { ...newDays[dayIdx] };
+    if (day.attractionIds.includes(attractionId)) {
+      day.attractionIds = day.attractionIds.filter((id) => id !== attractionId);
+    } else {
+      day.attractionIds = [...day.attractionIds, attractionId];
+    }
+    newDays[dayIdx] = day;
+    update({ ...trip, days: newDays });
+  }
+
+  function resetTrip() {
+    if (!window.confirm('정말 일정을 초기화하시겠습니까? 모든 명소 배정이 삭제됩니다.')) return;
+    update(null);
+    setShowSetup(true);
+    setSetupStart('');
+    setSetupEnd('');
+  }
+
+  function getDayCity(day) {
+    if (!day.attractionIds.length) return null;
+    const cities = day.attractionIds.map((id) => {
+      const a = findAttraction(id);
+      return a ? a.city : null;
+    }).filter(Boolean);
+    if (!cities.length) return null;
+    // 가장 많이 나온 도시
+    const counts = {};
+    cities.forEach((c) => { counts[c] = (counts[c] || 0) + 1; });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+  }
+
+  function formatDate(iso) {
+    const d = new Date(iso);
+    const days = ['일', '월', '화', '수', '목', '금', '토'];
+    return `${d.getMonth() + 1}/${d.getDate()} (${days[d.getDay()]})`;
+  }
+
+  function daysUntil(iso) {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const target = new Date(iso); target.setHours(0, 0, 0, 0);
+    return Math.round((target - today) / (1000 * 60 * 60 * 24));
+  }
+
+  // ── 빈 상태: 날짜 입력 폼
+  if (showSetup || !trip) {
+    const today = new Date().toISOString().slice(0, 10);
+    return (
+      <div className="dc-subview dc-trip-setup">
+        <button className="dc-back" onClick={pop}><ChevronLeft size={20} /></button>
+        <h1 className="dc-trip-setup-title">내 일정 만들기</h1>
+        <p className="dc-trip-setup-sub">출발일과 복귀일을 선택하면 매일 가고 싶은 명소를 배정할 수 있어요</p>
+
+        <div className="dc-trip-setup-form">
+          <label className="dc-trip-setup-label">
+            <span>출발일</span>
+            <input
+              type="date"
+              className="dc-trip-setup-input"
+              value={setupStart}
+              min={today}
+              onChange={(e) => setSetupStart(e.target.value)}
+            />
+          </label>
+          <label className="dc-trip-setup-label">
+            <span>복귀일</span>
+            <input
+              type="date"
+              className="dc-trip-setup-input"
+              value={setupEnd}
+              min={setupStart || today}
+              onChange={(e) => setSetupEnd(e.target.value)}
+            />
+          </label>
+          {setupError && <div className="dc-trip-setup-error">{setupError}</div>}
+          <button className="dc-trip-setup-btn" onClick={handleCreate}>
+            일정 만들기
+          </button>
+        </div>
+
+        <div className="dc-trip-setup-info">
+          <div className="dc-trip-setup-info-title">💡 일정 관리로 할 수 있는 것</div>
+          <ul>
+            <li>매일 가고 싶은 명소를 탭으로 추가</li>
+            <li>예약이 필요한 곳에 〈🔴 지금 예약〉 같은 긴급도 표시</li>
+            <li>공식 + 서드파티 예약 사이트 한 번에 (Tiqets · GetYourGuide · Trainline · Omio)</li>
+            <li>도시간 이동 자동 감지 (Trenitalia · Italo 비교)</li>
+            <li>적절한 예약 시점을 Google 캘린더에 한 번에 추가</li>
+          </ul>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 일정 있음: 일별 카드 + 예약 정보
+  return (
+    <div className="dc-subview dc-trip">
+      <button className="dc-back" onClick={pop}><ChevronLeft size={20} /></button>
+      <div className="dc-trip-header">
+        <h1 className="dc-trip-title">내 일정</h1>
+        <div className="dc-trip-range">
+          {formatDate(trip.startDate)} ~ {formatDate(trip.endDate)} · {trip.days.length}일
+        </div>
+        <div className="dc-trip-countdown">
+          {(() => {
+            const d = daysUntil(trip.startDate);
+            if (d > 0) return `출발 ${d}일 전`;
+            if (d === 0) return '오늘 출발 🎉';
+            if (d < 0 && daysUntil(trip.endDate) >= 0) return '여행 중 ✈️';
+            return '여행 완료';
+          })()}
+        </div>
+      </div>
+
+      <div className="dc-trip-days">
+        {trip.days.map((day, dayIdx) => {
+          const dayCity = getDayCity(day);
+          const prevDay = dayIdx > 0 ? trip.days[dayIdx - 1] : null;
+          const prevCity = prevDay ? getDayCity(prevDay) : null;
+          const transitInfo = (prevCity && dayCity && prevCity !== dayCity)
+            ? getTransitInfo(prevCity, dayCity)
+            : null;
+
+          return (
+            <div key={day.date}>
+              {/* 도시 이동 카드 (전날과 도시가 다르면) */}
+              {transitInfo && (
+                <div className="dc-trip-transit">
+                  <button
+                    className="dc-trip-transit-header"
+                    onClick={() => setExpandedTransit(expandedTransit === dayIdx ? null : dayIdx)}
+                  >
+                    <div className="dc-trip-transit-icon">🚆</div>
+                    <div className="dc-trip-transit-body">
+                      <div className="dc-trip-transit-name">{transitInfo.name}</div>
+                      <div className="dc-trip-transit-sub">
+                        {transitInfo.distance} · {transitInfo.options[0].duration} ({transitInfo.options[0].provider} 기준)
+                      </div>
+                    </div>
+                    <ChevronRight
+                      size={16}
+                      className="dc-trip-transit-chev"
+                      style={{ transform: expandedTransit === dayIdx ? 'rotate(90deg)' : 'none' }}
+                    />
+                  </button>
+
+                  {expandedTransit === dayIdx && (
+                    <div className="dc-trip-transit-options">
+                      {transitInfo.options.map((opt, i) => (
+                        <div key={i} className="dc-trip-transit-opt">
+                          <div className="dc-trip-transit-opt-head">
+                            <div className="dc-trip-transit-opt-name">{opt.provider}</div>
+                            <div className="dc-trip-transit-opt-meta">
+                              {opt.duration !== '-' && <span>{opt.duration}</span>}
+                              {opt.priceRange !== '-' && <span>· {opt.priceRange}</span>}
+                            </div>
+                          </div>
+                          {opt.notes && <div className="dc-trip-transit-opt-notes">{opt.notes}</div>}
+                          <div className="dc-trip-transit-opt-sites">
+                            {opt.bookingSites.map((s, j) => (
+                              <a
+                                key={j}
+                                href={s.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`dc-trip-site-btn ${s.official ? 'official' : 'thirdparty'}`}
+                              >
+                                {s.name} {s.official && '✓'}
+                              </a>
+                            ))}
+                          </div>
+                          {opt.leadTimeDays && (
+                            <a
+                              className="dc-trip-cal-btn"
+                              href={transitReminderUrl(
+                                `${transitInfo.name} (${opt.provider})`,
+                                day.date,
+                                opt.leadTimeDays,
+                                opt.notes,
+                                opt.bookingSites[0]?.url
+                              )}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              📅 {opt.leadTimeDays}일 전 알림 캘린더에 추가
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 일별 카드 */}
+              <div className="dc-trip-day">
+                <div className="dc-trip-day-header">
+                  <div className="dc-trip-day-date">{formatDate(day.date)}</div>
+                  {dayCity && (
+                    <div className="dc-trip-day-city">
+                      {dayCity === 'rome' && '로마'}
+                      {dayCity === 'florence' && '피렌체'}
+                      {dayCity === 'milan' && '밀라노'}
+                    </div>
+                  )}
+                </div>
+
+                <div className="dc-trip-day-attractions">
+                  {day.attractionIds.map((attractionId) => {
+                    const attr = findAttraction(attractionId);
+                    if (!attr) return null;
+                    const res = getReservationInfo(attractionId);
+                    const expanded = expandedAttraction === `${dayIdx}-${attractionId}`;
+                    const urgencyEmoji = {
+                      critical: '🔴', high: '🟠', medium: '🟡', low: '🟢', none: ''
+                    }[res.urgency] || '';
+                    const urgencyLabel = {
+                      critical: '지금 예약!', high: '1개월 전', medium: '2~3주 전', low: '1주 전 OK', none: '예약 불필요'
+                    }[res.urgency];
+
+                    return (
+                      <div key={attractionId} className="dc-trip-attr">
+                        <button
+                          className="dc-trip-attr-row"
+                          onClick={() => setExpandedAttraction(expanded ? null : `${dayIdx}-${attractionId}`)}
+                        >
+                          <span className="dc-trip-attr-emoji">{attr.emoji}</span>
+                          <span className="dc-trip-attr-name">{attr.name}</span>
+                          {urgencyEmoji && (
+                            <span className={`dc-trip-attr-badge urg-${res.urgency}`}>
+                              {urgencyEmoji} {urgencyLabel}
+                            </span>
+                          )}
+                          <ChevronRight
+                            size={14}
+                            className="dc-trip-attr-chev"
+                            style={{ transform: expanded ? 'rotate(90deg)' : 'none' }}
+                          />
+                        </button>
+
+                        {expanded && (
+                          <div className="dc-trip-attr-detail">
+                            {res.notes && <div className="dc-trip-attr-notes">{res.notes}</div>}
+                            {res.sites && res.sites.length > 0 && (
+                              <div className="dc-trip-attr-sites">
+                                <div className="dc-trip-attr-sites-label">예약 사이트:</div>
+                                <div className="dc-trip-attr-sites-row">
+                                  {res.sites.map((s, i) => (
+                                    <a
+                                      key={i}
+                                      href={s.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className={`dc-trip-site-btn ${s.official ? 'official' : 'thirdparty'}`}
+                                    >
+                                      {s.name} {s.official && '✓'}
+                                    </a>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            {res.urgency !== 'none' && (
+                              <a
+                                className="dc-trip-cal-btn"
+                                href={attractionReminderUrl(
+                                  attr.name,
+                                  trip.startDate,
+                                  res,
+                                  res.sites?.[0]?.url
+                                )}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                📅 {res.leadTimeDays || 7}일 전 알림 캘린더에 추가
+                              </a>
+                            )}
+                            <button
+                              className="dc-trip-attr-remove"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                addAttractionToDay(dayIdx, attractionId);
+                                setExpandedAttraction(null);
+                              }}
+                            >
+                              일정에서 제거
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  <button
+                    className="dc-trip-add-btn"
+                    onClick={() => setShowPicker({ dayIdx })}
+                  >
+                    + 명소 추가
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <button className="dc-trip-reset" onClick={resetTrip}>
+        🗑 일정 초기화
+      </button>
+
+      {/* 명소 선택 모달 */}
+      {showPicker && (
+        <AttractionPicker
+          dayIdx={showPicker.dayIdx}
+          dayDate={trip.days[showPicker.dayIdx].date}
+          selectedIds={trip.days[showPicker.dayIdx].attractionIds}
+          onToggle={(aid) => addAttractionToDay(showPicker.dayIdx, aid)}
+          onClose={() => setShowPicker(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// AttractionPicker — 일정에 명소 추가 모달
+// ─────────────────────────────────────────────────────────
+function AttractionPicker({ dayIdx, dayDate, selectedIds, onToggle, onClose }) {
+  const [tabCity, setTabCity] = useState('rome');
+  const cityAttrs = ATTRACTIONS.filter((a) => a.city === tabCity);
+
+  function formatDate(iso) {
+    const d = new Date(iso);
+    const days = ['일', '월', '화', '수', '목', '금', '토'];
+    return `${d.getMonth() + 1}/${d.getDate()} (${days[d.getDay()]})`;
+  }
+
+  return (
+    <div className="dc-trip-picker-overlay" onClick={onClose}>
+      <div className="dc-trip-picker" onClick={(e) => e.stopPropagation()}>
+        <div className="dc-trip-picker-header">
+          <div className="dc-trip-picker-title">
+            {formatDate(dayDate)}에 명소 추가
+          </div>
+          <button className="dc-trip-picker-close" onClick={onClose}>
+            ✕
+          </button>
+        </div>
+
+        <div className="dc-trip-picker-tabs">
+          {['rome', 'florence', 'milan'].map((c) => (
+            <button
+              key={c}
+              className={`dc-trip-picker-tab ${tabCity === c ? 'active' : ''}`}
+              onClick={() => setTabCity(c)}
+            >
+              {c === 'rome' && '로마'}
+              {c === 'florence' && '피렌체'}
+              {c === 'milan' && '밀라노'}
+            </button>
+          ))}
+        </div>
+
+        <div className="dc-trip-picker-list">
+          {cityAttrs.map((a) => {
+            const selected = selectedIds.includes(a.id);
+            const res = getReservationInfo(a.id);
+            const urgencyEmoji = {
+              critical: '🔴', high: '🟠', medium: '🟡', low: '🟢', none: ''
+            }[res.urgency];
+            return (
+              <button
+                key={a.id}
+                className={`dc-trip-picker-item ${selected ? 'selected' : ''}`}
+                onClick={() => onToggle(a.id)}
+              >
+                <span className="dc-trip-picker-emoji">{a.emoji}</span>
+                <div className="dc-trip-picker-info">
+                  <div className="dc-trip-picker-name">{a.name}</div>
+                  <div className="dc-trip-picker-sub">
+                    {urgencyEmoji && <span>{urgencyEmoji} </span>}
+                    {a.points.length}점 · {a.overview?.duration || '시간 미정'}
+                  </div>
+                </div>
+                {selected && <Check size={18} className="dc-trip-picker-check" />}
+              </button>
+            );
+          })}
+        </div>
+
+        <button className="dc-trip-picker-done" onClick={onClose}>
+          완료
+        </button>
+      </div>
+    </div>
+  );
+}
+
 
 // ─────────────────────────────────────────────────────────
 // Home — list of 5 attractions
@@ -394,6 +841,15 @@ function HomeView({ push, favorites }) {
       <button className="dc-search-bar" onClick={() => push({ name: 'search' })}>
         <Search size={16} className="dc-search-bar-icon" />
         <span className="dc-search-bar-placeholder">작품·작가 이름으로 검색</span>
+      </button>
+
+      <button className="dc-trip-cta" onClick={() => push({ name: 'trip' })}>
+        <div className="dc-trip-cta-icon">📅</div>
+        <div className="dc-trip-cta-body">
+          <div className="dc-trip-cta-title">내 일정</div>
+          <div className="dc-trip-cta-sub">출발/복귀 + 매일 명소 · 예약 사이트 + 캘린더 알림</div>
+        </div>
+        <ChevronRight size={16} className="dc-scan-cta-chev" />
       </button>
 
       <button className="dc-scan-cta" onClick={() => push({ name: 'scan' })}>
@@ -5944,7 +6400,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.37</div>
+      <div>도슨트 · Docent v0.38</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
