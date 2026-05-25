@@ -806,8 +806,8 @@ const CLUSTERS = {
   'flo-signoria': { name: '시뇨리아 권역', ids: ['vecchio', 'uffizi'] },
   'flo-accademia': { name: '아카데미아 권역', ids: ['accademia'] },
   'flo-croce': { name: '산타 크로체 권역', ids: ['santacroce'] },
-  'flo-san-lorenzo': { name: '산 로렌초 권역', ids: ['medici-chapels'] },
-  'flo-oltrarno': { name: 'Oltrarno 권역', ids: ['pitti-boboli', 'brancacci'] },
+  'flo-san-lorenzo': { name: '산 로렌초 권역', ids: ['medici-chapels', 'san-lorenzo-market'] },
+  'flo-oltrarno': { name: 'Oltrarno 권역', ids: ['pitti-boboli', 'brancacci', 'oltrarno', 'ponte-vecchio'] },
   // 밀라노
   'mil-centro': { name: '두오모 권역', ids: ['duomo-milan', 'galleria-scala', 'sforzesco'] },
   'mil-brera': { name: '브레라 권역', ids: ['brera'] },
@@ -935,6 +935,7 @@ export const KID_FRIENDLY = {
   // 피렌체
   uffizi: 2, accademia: 3, vecchio: 4, bargello: 3, santacroce: 3, duomo: 4,
   'medici-chapels': 3, 'pitti-boboli': 5, brancacci: 2,
+  'ponte-vecchio': 5, 'san-lorenzo-market': 5, oltrarno: 4,
   // 밀라노
   cenacolo: 3, 'duomo-milan': 5, sforzesco: 4, 'galleria-scala': 4, brera: 2,
   // 베네치아
