@@ -570,3 +570,127 @@ export function getAssignedAttractionIds(trip, excludeDayIdx) {
   });
   return set;
 }
+
+// ─────────────────────────────────────────────────────────
+// 명소 지역 클러스터 — 도시 안 보행 거리 그룹
+// ─────────────────────────────────────────────────────────
+const CLUSTERS = {
+  // 로마
+  'rome-centro': { name: '로마 중심부', ids: ['pantheon', 'navona', 'trevi', 'spagna', 'popolo'] },
+  'rome-colosseo': { name: '콜로세움 권역', ids: ['colosseum', 'foro', 'capitolini', 'vincoli'] },
+  'rome-vaticano': { name: '바티칸 권역', ids: ['vatican', 'castel'] },
+  'rome-borghese': { name: '보르게세 권역', ids: ['borghese'] },
+  // 피렌체 (모두 도보 20분 이내)
+  'flo-duomo': { name: '두오모 권역', ids: ['duomo', 'bargello'] },
+  'flo-signoria': { name: '시뇨리아 권역', ids: ['vecchio', 'uffizi'] },
+  'flo-accademia': { name: '아카데미아 권역', ids: ['accademia'] },
+  'flo-croce': { name: '산타 크로체 권역', ids: ['santacroce'] },
+  // 밀라노
+  'mil-centro': { name: '두오모 권역', ids: ['duomo-milan', 'galleria-scala', 'sforzesco'] },
+  'mil-brera': { name: '브레라 권역', ids: ['brera'] },
+  'mil-cenacolo': { name: '체나콜로 권역', ids: ['cenacolo'] },
+};
+
+export function getCluster(attractionId) {
+  for (const [key, info] of Object.entries(CLUSTERS)) {
+    if (info.ids.includes(attractionId)) return { key, ...info };
+  }
+  return null;
+}
+
+// ─────────────────────────────────────────────────────────
+// 일별 분석 — issues + score
+// ─────────────────────────────────────────────────────────
+// severity: 'error' (-30), 'warning' (-15), 'info' (-5)
+export function analyzeDay(day, getAttraction) {
+  const issues = [];
+  const attractions = day.attractionIds.map(getAttraction).filter(Boolean);
+  
+  if (!attractions.length) {
+    return { score: null, issues: [], totalMin: 0, clusterCount: 0 };
+  }
+
+  // 1. 휴관 충돌 (error)
+  attractions.forEach((a) => {
+    const closure = getClosureStatus(a.id, day.date);
+    if (closure?.status === 'closed') {
+      issues.push({ severity: 'error', type: 'closed', text: `${a.name} 휴관일에 배정됨 — ${closure.notes}` });
+    }
+  });
+
+  // 2. 시간 배분
+  const totalMin = attractions.reduce((s, a) => s + (a.overview?.duration_min || 60), 0);
+  if (totalMin > 480) {
+    issues.push({ severity: 'warning', type: 'time-over', text: `예상 ${Math.round(totalMin / 60)}시간 — 너무 빡빡함, 일부 다른 날로 옮기는 게 좋음` });
+  } else if (totalMin > 360 && attractions.length >= 4) {
+    issues.push({ severity: 'info', type: 'time-tight', text: `예상 ${Math.round(totalMin / 60)}시간 — 적당히 빡빡함` });
+  } else if (totalMin < 120) {
+    issues.push({ severity: 'info', type: 'time-under', text: `예상 ${Math.round(totalMin / 60)}시간 — 추가 명소 여유 있음` });
+  }
+
+  // 3. 도시 혼합 (warning)
+  const cityCounts = {};
+  attractions.forEach((a) => { cityCounts[a.city] = (cityCounts[a.city] || 0) + 1; });
+  if (Object.keys(cityCounts).length > 1) {
+    const cities = Object.keys(cityCounts).map((c) => ({ rome: '로마', florence: '피렌체', milan: '밀라노' }[c] || c)).join(' + ');
+    issues.push({ severity: 'warning', type: 'city-mix', text: `한 날에 두 도시 (${cities}) — 도시간 이동 시간 별도 계산 필요` });
+  }
+
+  // 4. 클러스터 분산
+  const clusters = new Set();
+  attractions.forEach((a) => {
+    const c = getCluster(a.id);
+    if (c) clusters.add(c.key);
+  });
+  if (clusters.size >= 3) {
+    const names = Array.from(clusters).map((k) => {
+      for (const [key, info] of Object.entries(CLUSTERS)) if (key === k) return info.name;
+      return k;
+    }).join(' · ');
+    issues.push({ severity: 'warning', type: 'spread', text: `${clusters.size}개 지역 분산 (${names}) — 이동 시간 많이 잡힘` });
+  } else if (clusters.size === 2 && attractions.length >= 3) {
+    issues.push({ severity: 'info', type: 'two-clusters', text: '2개 지역 — 적당한 분배' });
+  }
+
+  // 5. 예약 부담
+  const critical = attractions.filter((a) => {
+    const r = getReservationInfo(a.id);
+    return r.urgency === 'critical' || r.urgency === 'high';
+  });
+  if (critical.length >= 2) {
+    issues.push({ severity: 'info', type: 'multi-booking', text: `예약 필수 ${critical.length}곳 (${critical.map((a) => a.name).join(', ')}) — 시간 슬롯 겹치지 않게` });
+  }
+
+  // 점수 계산
+  let score = 100;
+  issues.forEach((i) => {
+    if (i.severity === 'error') score -= 30;
+    else if (i.severity === 'warning') score -= 15;
+    else if (i.severity === 'info') score -= 3;
+  });
+  score = Math.max(0, score);
+
+  return { score, issues, totalMin, clusterCount: clusters.size, attractionCount: attractions.length };
+}
+
+// 전체 트립 분석
+export function analyzeTrip(trip, getAttraction) {
+  if (!trip || !trip.days) return null;
+  const dayAnalyses = trip.days.map((d) => analyzeDay(d, getAttraction));
+  const validScores = dayAnalyses.filter((d) => d.score !== null).map((d) => d.score);
+  const avgScore = validScores.length ? Math.round(validScores.reduce((s, n) => s + n, 0) / validScores.length) : null;
+  
+  const emptyDays = dayAnalyses.filter((d) => d.score === null).length;
+  const totalIssues = dayAnalyses.reduce((s, d) => s + d.issues.length, 0);
+  const errorCount = dayAnalyses.reduce((s, d) => s + d.issues.filter((i) => i.severity === 'error').length, 0);
+  const warningCount = dayAnalyses.reduce((s, d) => s + d.issues.filter((i) => i.severity === 'warning').length, 0);
+  
+  return {
+    score: avgScore,
+    dayAnalyses,
+    emptyDays,
+    totalIssues,
+    errorCount,
+    warningCount,
+  };
+}

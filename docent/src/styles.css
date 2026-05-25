@@ -3720,3 +3720,154 @@ img {
   margin-bottom: 8px;
   border-left: 2px solid #6da8d9;
 }
+
+/* Trip analysis panel */
+.dc-trip-analysis {
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.dc-trip-analysis.score-high { border-color: #5fa572; }
+.dc-trip-analysis.score-mid { border-color: #e3c870; }
+.dc-trip-analysis.score-low { border-color: #e87878; }
+
+.dc-trip-analysis-head {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text);
+  text-align: left;
+}
+
+.dc-trip-analysis-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 50px;
+}
+.dc-trip-analysis-score-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1;
+}
+.score-high .dc-trip-analysis-score-num { color: #82c098; }
+.score-mid .dc-trip-analysis-score-num { color: #e3c870; }
+.score-low .dc-trip-analysis-score-num { color: #e87878; }
+.dc-trip-analysis-score-label {
+  font-size: 9px;
+  color: var(--text-faint);
+  margin-top: 2px;
+}
+
+.dc-trip-analysis-summary { flex: 1; min-width: 0; }
+.dc-trip-analysis-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--gold);
+  margin-bottom: 3px;
+}
+.dc-trip-analysis-meta {
+  font-size: 11px;
+  color: var(--text-soft);
+}
+.dc-trip-analysis-meta .err { color: #e87878; }
+.dc-trip-analysis-meta .warn { color: #e3c870; }
+.dc-trip-analysis-meta .ok { color: #82c098; }
+.dc-trip-analysis-meta .empty { color: var(--text-faint); }
+.dc-trip-analysis-chev {
+  color: var(--text-faint);
+  transition: transform 0.15s;
+  flex-shrink: 0;
+}
+
+.dc-trip-analysis-body {
+  padding: 0 14px 14px;
+  border-top: 1px dashed var(--line);
+}
+
+.dc-trip-analysis-day {
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--line);
+}
+.dc-trip-analysis-day:last-of-type { border-bottom: none; }
+.dc-trip-analysis-day-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.dc-trip-analysis-day-date {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--gold);
+}
+.dc-trip-analysis-day-score {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+.dc-trip-analysis-day-score.score-high { background: rgba(80, 180, 100, 0.15); color: #82c098; }
+.dc-trip-analysis-day-score.score-mid { background: rgba(220, 180, 60, 0.15); color: #e3c870; }
+.dc-trip-analysis-day-score.score-low { background: rgba(220, 60, 60, 0.15); color: #e87878; }
+
+.dc-trip-analysis-issues {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.dc-trip-analysis-issue {
+  padding: 5px 0 5px 18px;
+  position: relative;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-soft);
+}
+.dc-trip-analysis-issue::before {
+  position: absolute;
+  left: 0;
+  top: 5px;
+  font-size: 12px;
+}
+.dc-trip-analysis-issue.sev-error { color: #e87878; }
+.dc-trip-analysis-issue.sev-error::before { content: '🔴'; }
+.dc-trip-analysis-issue.sev-warning { color: #e3c870; }
+.dc-trip-analysis-issue.sev-warning::before { content: '🟡'; }
+.dc-trip-analysis-issue.sev-info { color: var(--text-soft); }
+.dc-trip-analysis-issue.sev-info::before { content: 'ℹ'; }
+
+.dc-trip-analysis-legend {
+  font-size: 10px;
+  color: var(--text-faint);
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+}
+
+/* Per-day score badge */
+.dc-trip-day-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dc-trip-day-score {
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+.dc-trip-day-score.score-high { background: rgba(80, 180, 100, 0.15); color: #82c098; }
+.dc-trip-day-score.score-mid { background: rgba(220, 180, 60, 0.15); color: #e3c870; }
+.dc-trip-day-score.score-low { background: rgba(220, 60, 60, 0.15); color: #e87878; }

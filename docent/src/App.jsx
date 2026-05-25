@@ -15,6 +15,7 @@ import {
   attractionReminderUrl, transitReminderUrl,
   getClosureStatus, getRecommendedCourses,
   inferCityForDay, getAssignedAttractionIds,
+  analyzeDay, analyzeTrip, getCluster,
 } from './data/trip.js';
 
 // ─────────────────────────────────────────────────────────
@@ -311,6 +312,10 @@ function TripView({ pop }) {
   const [expandedAttraction, setExpandedAttraction] = useState(null); // attractionId
   const [expandedTransit, setExpandedTransit] = useState(null); // dayIdx
   const [showSetup, setShowSetup] = useState(!trip);
+  const [showAnalysis, setShowAnalysis] = useState(false);
+
+  // 분석 — 트립 전체 + 일별
+  const analysis = trip ? analyzeTrip(trip, findAttraction) : null;
 
   // 빈 상태 — 날짜 입력 폼
   const [setupStart, setSetupStart] = useState('');
@@ -491,6 +496,64 @@ function TripView({ pop }) {
         </div>
       </div>
 
+      {/* 분석 패널 */}
+      {analysis && analysis.score !== null && (
+        <div className={`dc-trip-analysis score-${analysis.score >= 80 ? 'high' : analysis.score >= 60 ? 'mid' : 'low'}`}>
+          <button
+            className="dc-trip-analysis-head"
+            onClick={() => setShowAnalysis((v) => !v)}
+          >
+            <div className="dc-trip-analysis-score">
+              <div className="dc-trip-analysis-score-num">{analysis.score}</div>
+              <div className="dc-trip-analysis-score-label">/ 100</div>
+            </div>
+            <div className="dc-trip-analysis-summary">
+              <div className="dc-trip-analysis-title">📊 일정 점수</div>
+              <div className="dc-trip-analysis-meta">
+                {analysis.errorCount > 0 && <span className="err">⚠️ {analysis.errorCount} 오류</span>}
+                {analysis.warningCount > 0 && <span className="warn"> · 🟡 {analysis.warningCount} 주의</span>}
+                {analysis.errorCount === 0 && analysis.warningCount === 0 && <span className="ok">✓ 큰 문제 없음</span>}
+                {analysis.emptyDays > 0 && <span className="empty"> · {analysis.emptyDays}일 비어있음</span>}
+              </div>
+            </div>
+            <ChevronRight size={16} className="dc-trip-analysis-chev" style={{ transform: showAnalysis ? 'rotate(90deg)' : 'none' }} />
+          </button>
+          {showAnalysis && (
+            <div className="dc-trip-analysis-body">
+              {analysis.dayAnalyses.map((dayA, idx) => {
+                if (dayA.score === null) return null;
+                if (!dayA.issues.length) return null;
+                const day = trip.days[idx];
+                const formatD = (iso) => {
+                  const d = new Date(iso);
+                  return `${d.getMonth() + 1}/${d.getDate()}`;
+                };
+                return (
+                  <div key={idx} className="dc-trip-analysis-day">
+                    <div className="dc-trip-analysis-day-head">
+                      <span className="dc-trip-analysis-day-date">{formatD(day.date)}</span>
+                      <span className={`dc-trip-analysis-day-score score-${dayA.score >= 80 ? 'high' : dayA.score >= 60 ? 'mid' : 'low'}`}>
+                        {dayA.score}
+                      </span>
+                    </div>
+                    <ul className="dc-trip-analysis-issues">
+                      {dayA.issues.map((iss, i) => (
+                        <li key={i} className={`dc-trip-analysis-issue sev-${iss.severity}`}>
+                          {iss.text}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+              <div className="dc-trip-analysis-legend">
+                점수 기준: 🟢 80+ 좋음 · 🟡 60~79 보통 · 🔴 59 이하 재검토 권장
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="dc-trip-days">
         {trip.days.map((day, dayIdx) => {
           const dayCity = getDayCity(day);
@@ -575,13 +638,25 @@ function TripView({ pop }) {
               <div className="dc-trip-day">
                 <div className="dc-trip-day-header">
                   <div className="dc-trip-day-date">{formatDate(day.date)}</div>
-                  {dayCity && (
-                    <div className="dc-trip-day-city">
-                      {dayCity === 'rome' && '로마'}
-                      {dayCity === 'florence' && '피렌체'}
-                      {dayCity === 'milan' && '밀라노'}
-                    </div>
-                  )}
+                  <div className="dc-trip-day-meta">
+                    {(() => {
+                      const dayA = analysis?.dayAnalyses[dayIdx];
+                      if (!dayA || dayA.score === null) return null;
+                      const cls = dayA.score >= 80 ? 'high' : dayA.score >= 60 ? 'mid' : 'low';
+                      return (
+                        <span className={`dc-trip-day-score score-${cls}`} title={`동선 점수 ${dayA.score}/100`}>
+                          {dayA.score}
+                        </span>
+                      );
+                    })()}
+                    {dayCity && (
+                      <span className="dc-trip-day-city">
+                        {dayCity === 'rome' && '로마'}
+                        {dayCity === 'florence' && '피렌체'}
+                        {dayCity === 'milan' && '밀라노'}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="dc-trip-day-attractions">
@@ -6590,7 +6665,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.40</div>
+      <div>도슨트 · Docent v0.41</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
