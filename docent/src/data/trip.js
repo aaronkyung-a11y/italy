@@ -15,6 +15,14 @@ export const RESERVATION_INFO = {
       { name: 'GetYourGuide', url: 'https://www.getyourguide.com/last-supper-l3760/', official: false },
       { name: 'Tiqets', url: 'https://www.tiqets.com/en/milan-attractions-c70770/tickets-for-last-supper-by-leonardo-da-vinci-p972937/', official: false },
     ],
+    tips: [
+      '입장 15분 단위 슬롯 — 도착 30분 전 처리 필수 (늦으면 입장 불가)',
+      '티켓에 이름 인쇄 — 양도 불가, 여권 ID 확인',
+      '공식 €15/인 · max 5장/체크아웃 · 연 2회/인 제한',
+      '매주 수요일 정오 다음 주 추가 분량 (백업)',
+      '단체 10+ → cenacologruppi@adartem.art',
+      '오전 첫 타임 (8:15) 추천 — 아이 동반 시 점심 전 마무리',
+    ],
   },
   borghese: {
     urgency: 'high',
@@ -25,6 +33,14 @@ export const RESERVATION_INFO = {
       { name: 'Tosc (공식 위탁)', url: 'https://www.tosc.it', official: true },
       { name: 'GetYourGuide', url: 'https://www.getyourguide.com/galleria-borghese-l2745/', official: false },
       { name: 'Tiqets', url: 'https://www.tiqets.com/en/rome-attractions-c66857/galleria-borghese-c66854/', official: false },
+    ],
+    tips: [
+      '입장 슬롯 9:00, 11:00, 13:00, 15:00, 17:00 (2시간 단위)',
+      '시간 정각에 입장 — 다음 슬롯 시 비워야 함',
+      '공식 €13 + 예약비 €2 = €15/인',
+      '카라바조 + 베르니니 중심 — 첫 슬롯 9:00이 가장 한산',
+      '소지품 의무 보관 (가방·우산), 사진 ✓',
+      '취소·환불 7일 전까지',
     ],
   },
   vatican: {
@@ -37,6 +53,15 @@ export const RESERVATION_INFO = {
       { name: 'GetYourGuide', url: 'https://www.getyourguide.com/vatican-museums-l2829/', official: false },
       { name: 'Tiqets', url: 'https://www.tiqets.com/en/rome-attractions-c66857/vatican-museums-c66848/', official: false },
     ],
+    tips: [
+      '공식 €25 + 예약비 €5 = €30/인 (Sistine 포함)',
+      '얼리버드 7:30 입장 옵션 (€50) — 시스티나 거의 비어 있음',
+      '수요일 오전 교황 알현 (주 1회, 광장 따로 무료 신청)',
+      '복장 규정: 어깨·무릎 가리는 옷 (위반 시 입장 거부)',
+      '시스티나 안에서 사진 금지, 정숙',
+      '관람 동선 4~5시간 풀데이 — 점심 전 시스티나 도달 권장',
+      '백팩·큰 가방 의무 보관',
+    ],
   },
   uffizi: {
     urgency: 'medium',
@@ -47,6 +72,14 @@ export const RESERVATION_INFO = {
       { name: 'B-Ticket (공식)', url: 'https://www.b-ticket.com/B-Ticket/uffizi/Default.aspx', official: true },
       { name: 'GetYourGuide', url: 'https://www.getyourguide.com/uffizi-galleries-l2780/', official: false },
       { name: 'Tiqets', url: 'https://www.tiqets.com/en/florence-attractions-c66837/uffizi-c66836/', official: false },
+    ],
+    tips: [
+      '공식 €25 (성수기) / €13 (비수기 11~3월) + 예약비 €4',
+      'Passepartout: 우피치 + 피티 + 보볼리 통합 €38, 5일 유효 (시간 여유 있을 때 가성비 ✓)',
+      '입장은 30분 단위 슬롯 — 첫 8:15 슬롯이 가장 한산',
+      '관람 동선 3~4시간, 보티첼리·다빈치·카라바조 핵심',
+      '아이 동반 시 우피치 + 광장 휴식 끼워 넣기',
+      '매월 첫 일요일 무료 (예약 안 됨, 줄 길음)',
     ],
   },
   accademia: {
@@ -59,6 +92,13 @@ export const RESERVATION_INFO = {
       { name: 'GetYourGuide', url: 'https://www.getyourguide.com/accademia-l3779/', official: false },
       { name: 'Tiqets', url: 'https://www.tiqets.com/en/florence-attractions-c66837/accademia-c66833/', official: false },
     ],
+    tips: [
+      '공식 €16 + 예약비 €4 = €20/인',
+      '관람 동선 1~1.5시간 (다비드 한 점이 메인)',
+      '미완성 〈노예들〉(Schiavi) 시리즈도 강력 추천 — 다비드 가는 길에',
+      '8:15 첫 슬롯이 가장 좋음 (다비드 앞 빈 공간)',
+      '매월 첫 일요일 무료',
+    ],
   },
   colosseum: {
     urgency: 'medium',
@@ -70,6 +110,15 @@ export const RESERVATION_INFO = {
       { name: 'GetYourGuide', url: 'https://www.getyourguide.com/colosseum-l2728/', official: false },
       { name: 'Tiqets', url: 'https://www.tiqets.com/en/rome-attractions-c66857/colosseum-c66850/', official: false },
     ],
+    tips: [
+      '〈Standard〉 €18 (콜로세움+포로+팔라티노, 24시간 유효)',
+      '〈Full Experience Arena〉 €24 (지하 + 아레나 바닥, 가이드 필수)',
+      '〈Full Experience Underground〉 €27 (지하 단독, 가장 깊이)',
+      '오전 첫 8:30 슬롯이 가장 한산',
+      '포로+팔라티노는 다음 날 가도 OK (24시간 유효)',
+      '복장 규정 없음, 큰 가방 보관소 없음 (작은 가방만)',
+      '아이 동반: Arena Floor 옵션이 〈검투사 자리에 선다〉 경험 — 추천',
+    ],
   },
   'duomo-milan': {
     urgency: 'medium',
@@ -80,6 +129,14 @@ export const RESERVATION_INFO = {
       { name: 'GetYourGuide', url: 'https://www.getyourguide.com/milan-cathedral-l3713/', official: false },
       { name: 'Tiqets', url: 'https://www.tiqets.com/en/milan-attractions-c70770/milan-cathedral-c66866/', official: false },
     ],
+    tips: [
+      'Duomo Pass A: 본당 + 옥상 (엘리베이터) + 박물관 = €22',
+      'Duomo Pass B: 본당 + 옥상 (계단 251단) + 박물관 = €16',
+      'C 옵션: 본당만 = €7',
+      '옥상 일몰 시간 슬롯이 가장 인기 (예약 빨리 차됨)',
+      '아이 동반: 계단 251단은 10세도 OK, 엘리베이터 옵션이 안전',
+      '복장 규정: 어깨·무릎 가리는 옷 (성당 본당)',
+    ],
   },
   duomo: {
     urgency: 'medium',
@@ -89,6 +146,15 @@ export const RESERVATION_INFO = {
       { name: 'Duomo Firenze 공식', url: 'https://duomo.firenze.it/en/biglietteria/', official: true },
       { name: 'GetYourGuide', url: 'https://www.getyourguide.com/florence-cathedral-l3722/', official: false },
       { name: 'Tiqets', url: 'https://www.tiqets.com/en/florence-attractions-c66837/florence-cathedral-c66835/', official: false },
+    ],
+    tips: [
+      'Ghiberti €30: 5건물 (본당 + 돔 + 종탑 + 세례당 + 박물관) 3일 유효',
+      'Giotto €20: 본당 + 종탑 + 박물관 (돔·세례당 제외)',
+      'Brunelleschi €30: 본당 + 돔 + 박물관 + 세례당 (종탑 제외)',
+      '돔 등반 463단 — 슬롯 빨리 매진 (가장 인기), 2~3주 전 예약 필수',
+      '종탑 등반 414단 — 슬롯 있지만 돔보다 여유',
+      '아이 동반: 돔 등반은 좁고 가파름, 10세도 가능하지만 폐소공포 주의',
+      '본당 입장은 무료지만 줄 길음 (티켓 + 슬롯이 더 빠름)',
     ],
   },
   // 나머지는 예약 불필요/권장
@@ -964,4 +1030,222 @@ export function updateBooking(trip, attractionId, patch) {
     newBookings[attractionId] = { ...(newBookings[attractionId] || {}), ...patch };
   }
   return { ...trip, bookings: newBookings };
+}
+
+// ─────────────────────────────────────────────────────────
+// 트립 공유 URL (base64 인코딩, 개인 정보 제외)
+// ─────────────────────────────────────────────────────────
+// 공유 시 booking 정보 (확인번호 등) 제외 → 일정 + 명소만
+export function encodeTripForShare(trip) {
+  if (!trip) return '';
+  const shareable = {
+    startDate: trip.startDate,
+    endDate: trip.endDate,
+    days: trip.days.map((d) => ({ date: d.date, attractionIds: d.attractionIds })),
+  };
+  const json = JSON.stringify(shareable);
+  // URL-safe base64
+  return btoa(unescape(encodeURIComponent(json)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
+export function decodeTripFromShare(encoded) {
+  try {
+    const padded = encoded.replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(escape(atob(padded)));
+    const data = JSON.parse(json);
+    if (!data.startDate || !Array.isArray(data.days)) return null;
+    return { ...data, bookings: {} };
+  } catch (e) {
+    return null;
+  }
+}
+
+export function buildShareUrl(trip) {
+  const encoded = encodeTripForShare(trip);
+  const base = window.location.origin + window.location.pathname;
+  return `${base}?trip=${encoded}`;
+}
+
+// ─────────────────────────────────────────────────────────
+// .ics 내보내기 (iCalendar RFC 5545)
+// ─────────────────────────────────────────────────────────
+function icsEscape(s) {
+  return String(s || '').replace(/[\\;,]/g, (m) => '\\' + m).replace(/\n/g, '\\n');
+}
+
+function icsDate(dateStr, allDay = true) {
+  const d = new Date(dateStr);
+  const y = d.getFullYear();
+  const mo = String(d.getMonth() + 1).padStart(2, '0');
+  const da = String(d.getDate()).padStart(2, '0');
+  if (allDay) return `${y}${mo}${da}`;
+  return `${y}${mo}${da}T${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}00`;
+}
+
+function icsEvent({ uid, summary, description, location, startDate, endDate, allDay, dtStart, dtEnd }) {
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const lines = [
+    'BEGIN:VEVENT',
+    `UID:${uid}@docent-tau.vercel.app`,
+    `DTSTAMP:${stamp}`,
+  ];
+  if (allDay) {
+    lines.push(`DTSTART;VALUE=DATE:${icsDate(startDate, true)}`);
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setDate(end.getDate() + 1);
+      lines.push(`DTEND;VALUE=DATE:${icsDate(end.toISOString().slice(0, 10), true)}`);
+    }
+  } else if (dtStart) {
+    lines.push(`DTSTART:${dtStart}`);
+    if (dtEnd) lines.push(`DTEND:${dtEnd}`);
+  }
+  lines.push(`SUMMARY:${icsEscape(summary)}`);
+  if (description) lines.push(`DESCRIPTION:${icsEscape(description)}`);
+  if (location) lines.push(`LOCATION:${icsEscape(location)}`);
+  lines.push('END:VEVENT');
+  return lines.join('\r\n');
+}
+
+export function generateICS(trip, findAttraction) {
+  if (!trip || !trip.days) return null;
+  const events = [];
+  let uid = 0;
+
+  // 1. 일정 전체 (all-day, 도시 표시)
+  trip.days.forEach((day) => {
+    if (!day.attractionIds.length) return;
+    const cityCounts = {};
+    const attrs = day.attractionIds.map(findAttraction).filter(Boolean);
+    attrs.forEach((a) => { cityCounts[a.city] = (cityCounts[a.city] || 0) + 1; });
+    const dominantCity = Object.entries(cityCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+    const cityLabel = { rome: '로마', florence: '피렌체', milan: '밀라노' }[dominantCity] || '';
+    const summary = `🗺 도슨트: ${cityLabel} (${attrs.length}곳)`;
+    const description = attrs.map((a) => `${a.emoji} ${a.name}`).join('\n');
+    events.push(icsEvent({
+      uid: `day-${day.date}-${uid++}`,
+      summary,
+      description,
+      startDate: day.date,
+      allDay: true,
+    }));
+  });
+
+  // 2. 예약 알람 + 방문 시간 이벤트
+  trip.days.forEach((day) => {
+    day.attractionIds.forEach((aid) => {
+      const attr = findAttraction(aid);
+      if (!attr) return;
+      const res = getReservationInfo(aid);
+      if (!res || res.urgency === 'none') return;
+      const open = getBookingOpenInfo(aid, day.date);
+      if (open && open.date) {
+        events.push(icsEvent({
+          uid: `book-${aid}-${day.date}-${uid++}`,
+          summary: `🎫 예약: ${attr.name}`,
+          description: open.notes,
+          location: res.sites?.[0]?.url || '',
+          startDate: open.date,
+          allDay: true,
+        }));
+      }
+      // 예약 완료된 경우 방문 시간 이벤트
+      const booking = getBookingData(trip, aid);
+      if (booking && booking.status === 'booked' && booking.slotTime) {
+        const [hh, mm] = booking.slotTime.split(':');
+        const start = new Date(day.date);
+        start.setHours(parseInt(hh), parseInt(mm), 0, 0);
+        const end = new Date(start.getTime() + (attr.overview?.duration_min || 60) * 60 * 1000);
+        const fmt = (d) => `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}T${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}00`;
+        events.push(icsEvent({
+          uid: `visit-${aid}-${day.date}-${uid++}`,
+          summary: `🎫 ${attr.name} 입장`,
+          description: [
+            booking.confirmation ? `확인번호: ${booking.confirmation}` : '',
+            booking.notes || '',
+            '도착 30분 전 처리 권장',
+          ].filter(Boolean).join('\n'),
+          location: res.sites?.[0]?.url || '',
+          allDay: false,
+          dtStart: fmt(start),
+          dtEnd: fmt(end),
+        }));
+      }
+    });
+  });
+
+  // 3. 도시간 이동 알람 (60일 전)
+  for (let i = 1; i < trip.days.length; i++) {
+    const day = trip.days[i];
+    const prev = trip.days[i - 1];
+    if (!day.attractionIds.length || !prev.attractionIds.length) continue;
+    const dayCity = (day.attractionIds.map((aid) => findAttraction(aid)?.city).filter(Boolean)[0]);
+    const prevCity = (prev.attractionIds.map((aid) => findAttraction(aid)?.city).filter(Boolean)[0]);
+    if (!dayCity || !prevCity || dayCity === prevCity) continue;
+    const transit = getTransitInfo(prevCity, dayCity);
+    if (!transit) continue;
+    const remind = new Date(day.date);
+    remind.setDate(remind.getDate() - 60);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (remind < today) remind.setTime(today.getTime());
+    events.push(icsEvent({
+      uid: `transit-${i}-${uid++}`,
+      summary: `🚆 예약: ${transit.name} (60일 전 권장)`,
+      description: `${transit.distance} · 최저 ${transit.options[0]?.priceRange}\nTrenitalia/Italo 가격 비교: Trainline·Omio`,
+      location: 'https://www.trenitalia.com/en.html',
+      startDate: remind.toISOString().slice(0, 10),
+      allDay: true,
+    }));
+  }
+
+  // 4. ICS 파일 wrapper
+  const calendar = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Docent//Italy Trip//KO',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    `X-WR-CALNAME:도슨트 이탈리아 여행 (${trip.startDate} ~ ${trip.endDate})`,
+    'X-WR-TIMEZONE:Europe/Rome',
+    ...events,
+    'END:VCALENDAR',
+  ].join('\r\n');
+
+  return calendar;
+}
+
+export function downloadICS(trip, findAttraction) {
+  const ics = generateICS(trip, findAttraction);
+  if (!ics) return false;
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `docent-trip-${trip.startDate}.ics`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return true;
+}
+
+// Web Share API (있으면 시스템 공유 시트, 없으면 클립보드)
+export async function shareTrip(trip) {
+  const url = buildShareUrl(trip);
+  const text = `이탈리아 여행 일정 (${trip.startDate} ~ ${trip.endDate})`;
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: '도슨트 일정', text, url });
+      return { method: 'share', url };
+    }
+    // 폴백: 클립보드
+    await navigator.clipboard.writeText(url);
+    return { method: 'clipboard', url };
+  } catch (e) {
+    // 사용자 취소 또는 실패
+    return { method: 'failed', url, error: String(e) };
+  }
 }

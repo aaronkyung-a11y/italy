@@ -19,6 +19,7 @@ import {
   analyzeTripWithMode, loadKidMode, saveKidMode, getKidFriendly,
   getBookingOpenInfo, attractionReminderUrlV2, visitCalendarUrl,
   getBookingStatus, getBookingData, updateBooking,
+  buildShareUrl, decodeTripFromShare, downloadICS, shareTrip,
 } from './data/trip.js';
 
 // ─────────────────────────────────────────────────────────
@@ -259,6 +260,23 @@ export default function App() {
   const view = useViewStack();
   const audio = useAudio();
   const favorites = useFavorites();
+
+  // URL ?trip=base64 — 공유 받은 일정 자동 임포트
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const encoded = params.get('trip');
+    if (!encoded) return;
+    const decoded = decodeTripFromShare(encoded);
+    if (!decoded) return;
+    const existing = loadTrip();
+    const proceed = !existing || window.confirm('이미 저장된 일정이 있습니다. 공유된 일정으로 덮어쓰시겠습니까?');
+    if (proceed) {
+      saveTrip(decoded);
+      view.push({ name: 'trip' });
+    }
+    const cleanUrl = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, '', cleanUrl);
+  }, []);
 
   // Stop audio on view change
   useEffect(() => { audio.stop(); }, [view.current.name]);
@@ -503,6 +521,28 @@ function TripView({ pop }) {
             if (d < 0 && daysUntil(trip.endDate) >= 0) return '여행 중 ✈️';
             return '여행 완료';
           })()}
+        </div>
+
+        <div className="dc-trip-share-row">
+          <button
+            className="dc-trip-share-btn"
+            onClick={async () => {
+              const result = await shareTrip(trip);
+              if (result.method === 'clipboard') window.alert('공유 URL이 클립보드에 복사되었습니다');
+              else if (result.method === 'failed' && !String(result.error).includes('AbortError')) window.alert('공유 실패: ' + result.error);
+            }}
+          >
+            🔗 일정 공유
+          </button>
+          <button
+            className="dc-trip-share-btn"
+            onClick={() => {
+              const ok = downloadICS(trip, findAttraction);
+              if (ok) window.alert('docent-trip-' + trip.startDate + '.ics 파일이 다운로드되었습니다.\n캘린더 앱에서 가져오기 메뉴로 열어주세요.');
+            }}
+          >
+            📥 .ics 내보내기
+          </button>
         </div>
       </div>
 
@@ -878,6 +918,16 @@ function BookingPanel({ attr, visitDate, res, trip, onUpdateBooking, onRemove })
   return (
     <div className="dc-trip-attr-detail">
       {res.notes && <div className="dc-trip-attr-notes">{res.notes}</div>}
+
+      {/* 예약 팁 (디테일) */}
+      {res.tips && res.tips.length > 0 && (
+        <details className="dc-book-tips">
+          <summary>💡 예약 팁 ({res.tips.length})</summary>
+          <ul className="dc-book-tips-list">
+            {res.tips.map((tip, i) => <li key={i}>{tip}</li>)}
+          </ul>
+        </details>
+      )}
 
       {/* 정확한 예약 오픈 시점 안내 */}
       {openInfo && (
@@ -6867,7 +6917,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.43</div>
+      <div>도슨트 · Docent v0.44</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
