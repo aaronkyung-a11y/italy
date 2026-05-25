@@ -561,7 +561,7 @@ function AttractionView({ attractionId, initialView, push, pop, replace, favorit
   if (!attraction) return <div>명소를 찾을 수 없습니다.</div>;
 
   const accent = attraction.coverHue;
-  const hasFloorPlan = attractionId === 'borghese' || attractionId === 'vatican' || attractionId === 'uffizi' || attractionId === 'foro' || attractionId === 'colosseum' || attractionId === 'duomo-milan' || attractionId === 'capitolini' || attractionId === 'vecchio' || attractionId === 'duomo';
+  const hasFloorPlan = attractionId === 'borghese' || attractionId === 'vatican' || attractionId === 'uffizi' || attractionId === 'foro' || attractionId === 'colosseum' || attractionId === 'duomo-milan' || attractionId === 'capitolini' || attractionId === 'vecchio' || attractionId === 'duomo' || attractionId === 'castel' || attractionId === 'sforzesco';
   const hasRoutes = !!attraction.routes && attraction.routes.length > 0;
 
   return (
@@ -705,6 +705,22 @@ function AttractionView({ attractionId, initialView, push, pop, replace, favorit
 
         {view === 'floorplan' && attractionId === 'duomo' && (
           <DuomoFlorenceFloorPlan
+            points={attraction.points}
+            accent={accent}
+            onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
+          />
+        )}
+
+        {view === 'floorplan' && attractionId === 'castel' && (
+          <CastelFloorPlan
+            points={attraction.points}
+            accent={accent}
+            onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
+          />
+        )}
+
+        {view === 'floorplan' && attractionId === 'sforzesco' && (
+          <SforzescoFloorPlan
             points={attraction.points}
             accent={accent}
             onPointClick={(pid) => push({ name: 'point', attractionId, pointId: pid })}
@@ -3142,6 +3158,693 @@ function DuomoFlorenceFloorPlan({ points, accent, onPointClick }) {
   );
 }
 
+// ─────────────────────────────────────────────────────────
+// CastelFloorPlan — 산탄젤로 성 수직 다층 + 다리 + 패세토 (2뷰 토글)
+// ─────────────────────────────────────────────────────────
+function CastelFloorPlan({ points, accent, onPointClick }) {
+  const [view, setView] = useState('section'); // 'section' or 'plan'
+
+  const POINT_TO_AREA = {
+    // Section view (vertical)
+    'castel-exterior': 'exterior',
+    'castel-prisoners': 'prisoners',
+    'castel-papal-apartments': 'apartments',
+    'castel-rooftop': 'rooftop',
+    'tosca-puccini-spot': 'tosca',
+    // Plan view (top-down)
+    'ponte-angeli': 'bridge',
+    'passetto-di-borgo': 'passetto',
+  };
+
+  const pointMap = {};
+  points.forEach((p, i) => { pointMap[p.id] = { ...p, idx: i + 1 }; });
+
+  const pointsByArea = {};
+  points.forEach((p, i) => {
+    const a = POINT_TO_AREA[p.id];
+    if (a) {
+      if (!pointsByArea[a]) pointsByArea[a] = [];
+      pointsByArea[a].push({ ...p, idx: i + 1 });
+    }
+  });
+
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+
+  return (
+    <div className="dc-floorplan-svg" style={{ '--accent': accent }}>
+      <div className="dc-floor-toggle">
+        <button
+          className={`dc-floor-btn ${view === 'section' ? 'active' : ''}`}
+          onClick={() => setView('section')}
+        >
+          단면도 (수직 5층)
+        </button>
+        <button
+          className={`dc-floor-btn ${view === 'plan' ? 'active' : ''}`}
+          onClick={() => setView('plan')}
+        >
+          평면도 (다리·패세토)
+        </button>
+      </div>
+
+      <div className="dc-floor-label">
+        <div className="dc-floor-label-title">
+          {view === 'section' ? '산탄젤로 성 — 수직 단면 (5층 + 옥상)' : '산탄젤로 성 — 위에서 (다리 + 패세토)'}
+        </div>
+        <div className="dc-floor-label-sub">
+          {view === 'section'
+            ? '하드리아누스 영묘(135) → 중세 요새 → 교황 거주지 → 19세기 박물관'
+            : '테베레 강변 + 산탄젤로 다리 (베르니니 천사 10) + 바티칸 비밀 통로 800m'}
+        </div>
+      </div>
+
+      <div className="dc-svg-wrapper">
+        <svg viewBox="0 0 600 500" className="dc-floor-svg" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <pattern id="castel-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="600" height="500" fill="url(#castel-grid)" />
+
+          {view === 'section' && (
+            <>
+              {/* Height scale on left */}
+              <text x="20" y="65" fontSize="9" fill="var(--text-faint)" fontFamily="DM Sans" opacity="0.7">옥상</text>
+              <text x="20" y="155" fontSize="9" fill="var(--text-faint)" fontFamily="DM Sans" opacity="0.7">교황</text>
+              <text x="20" y="245" fontSize="9" fill="var(--text-faint)" fontFamily="DM Sans" opacity="0.7">감옥</text>
+              <text x="20" y="330" fontSize="9" fill="var(--text-faint)" fontFamily="DM Sans" opacity="0.7">하부</text>
+              <text x="20" y="410" fontSize="9" fill="var(--text-faint)" fontFamily="DM Sans" opacity="0.7">지면</text>
+
+              <line x1="50" y1="50" x2="50" y2="425" stroke="var(--line)" strokeWidth="1" strokeDasharray="2 4" opacity="0.4" />
+
+              {/* Tower/Angelo statue at top */}
+              <g>
+                <polygon
+                  points="295,30 305,30 300,50"
+                  fill="var(--gold)"
+                  stroke="var(--gold)"
+                  strokeWidth="1"
+                />
+                <text x="350" y="42" fontSize="9" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                  San Michele Arcangelo
+                </text>
+                <text x="350" y="54" fontSize="8" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                  대천사 미카엘 (1753 청동)
+                </text>
+              </g>
+
+              {/* Rooftop / Tosca spot */}
+              <g>
+                <rect
+                  x="140" y="55" width="320" height="50" rx="3"
+                  fill="rgba(184,91,63,0.08)"
+                  stroke={(pointsByArea['rooftop'] || pointsByArea['tosca']) ? 'var(--accent)' : 'var(--line)'}
+                  strokeWidth={(pointsByArea['rooftop'] || pointsByArea['tosca']) ? 1.5 : 1}
+                />
+                <text x="160" y="75" fontSize="10" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                  Terrazza
+                </text>
+                <text x="160" y="88" fontSize="8.5" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                  옥상 · 360도 로마 뷰
+                </text>
+                <text x="160" y="100" fontSize="7.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                  동쪽 난간 = 푸치니 〈토스카〉 투신 장면
+                </text>
+                {/* East railing accent */}
+                <line x1="440" y1="55" x2="440" y2="105" stroke="var(--gold)" strokeWidth="1.5" opacity="0.8" />
+                <text x="445" y="80" fontSize="7" fill="var(--gold)" fontFamily="Noto Sans KR">동→</text>
+              </g>
+
+              {/* Papal Apartments */}
+              <g>
+                <rect
+                  x="140" y="115" width="320" height="80" rx="3"
+                  fill="rgba(201,169,97,0.06)"
+                  stroke={pointsByArea['apartments'] ? 'var(--accent)' : 'var(--line)'}
+                  strokeWidth={pointsByArea['apartments'] ? 1.5 : 1}
+                />
+                <text x="160" y="138" fontSize="10" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                  Appartamenti Papali
+                </text>
+                <text x="160" y="151" fontSize="8.5" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                  교황 거주 공간 (16세기)
+                </text>
+                <text x="160" y="168" fontSize="7.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                  · Sala Paolina (Pierin del Vaga 프레스코)
+                </text>
+                <text x="160" y="181" fontSize="7.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                  · 클레멘스 7세 침실 (1527 사코 디 로마)
+                </text>
+              </g>
+
+              {/* Prisoners (middle level) */}
+              <g>
+                <rect
+                  x="140" y="205" width="320" height="70" rx="3"
+                  fill="rgba(184,91,63,0.05)"
+                  stroke={pointsByArea['prisoners'] ? 'var(--accent)' : 'var(--line)'}
+                  strokeWidth={pointsByArea['prisoners'] ? 1.5 : 1}
+                />
+                <text x="160" y="228" fontSize="10" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                  Prigioni
+                </text>
+                <text x="160" y="241" fontSize="8.5" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                  감옥 (중층)
+                </text>
+                <text x="160" y="257" fontSize="7.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                  · 베네벤토 추기경 · 베아트리체 첸치 · 카글리오스트로 ·
+                </text>
+                <text x="160" y="269" fontSize="7.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                  · 〈토스카〉의 카바라도시 (오페라 허구)
+                </text>
+              </g>
+
+              {/* Lower levels (Hadrian's mausoleum core) */}
+              <g>
+                <rect
+                  x="140" y="285" width="320" height="65" rx="3"
+                  fill="rgba(184,91,63,0.04)"
+                  stroke="var(--line)"
+                  strokeWidth="1"
+                  strokeDasharray="3 3"
+                  opacity="0.7"
+                />
+                <text x="160" y="305" fontSize="9.5" fill="var(--text-soft)" fontFamily="Cormorant Garamond, serif" fontStyle="italic">
+                  Mausoleo di Adriano (135 AD 핵심)
+                </text>
+                <text x="160" y="320" fontSize="7.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                  하드리아누스 원형 영묘 — 64m 직경
+                </text>
+                <text x="160" y="333" fontSize="7.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                  · 나선 경사로 (군대 행진용) · 영묘실 (현재 비어 있음)
+                </text>
+              </g>
+
+              {/* Cylindrical exterior (visual indicator) */}
+              <g>
+                {/* Round wall hint - simplified to vertical lines */}
+                <line x1="135" y1="55" x2="135" y2="395" stroke="var(--line)" strokeWidth="2" />
+                <line x1="465" y1="55" x2="465" y2="395" stroke="var(--line)" strokeWidth="2" />
+                <text x="115" y="225" fontSize="7" fill="var(--text-faint)" fontFamily="Noto Sans KR" transform="rotate(-90, 115, 225)">
+                  원통형 외벽
+                </text>
+              </g>
+
+              {/* Ground level */}
+              <g>
+                <rect
+                  x="140" y="360" width="320" height="35" rx="3"
+                  fill="rgba(201,169,97,0.03)"
+                  stroke={pointsByArea['exterior'] ? 'var(--accent)' : 'var(--line)'}
+                  strokeWidth={pointsByArea['exterior'] ? 1.5 : 1}
+                />
+                <text x="160" y="380" fontSize="9.5" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                  외관 + 입구
+                </text>
+                <text x="160" y="393" fontSize="7.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                  테베레 강변 — 다리에서 진입
+                </text>
+              </g>
+
+              <line x1="80" y1="398" x2="520" y2="398" stroke="var(--text-faint)" strokeWidth="1.5" />
+              <text x="535" y="402" fontSize="8" fill="var(--text-faint)" fontFamily="Noto Sans KR">지면</text>
+
+              {/* Tiber river indicator */}
+              <g>
+                <rect x="80" y="405" width="440" height="20" fill="rgba(80,140,180,0.1)" stroke="rgba(80,140,180,0.3)" strokeWidth="0.5" />
+                <text x="300" y="419" textAnchor="middle" fontSize="8" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.8">
+                  ~~~ 테베레 강 (Tevere) ~~~
+                </text>
+              </g>
+            </>
+          )}
+
+          {view === 'plan' && (
+            <>
+              {/* Plan view — top-down */}
+              {/* Vatican (top left, off-edge marker) */}
+              <g>
+                <rect x="20" y="55" width="100" height="55" rx="3" fill="rgba(255,255,255,0.03)" stroke="var(--line)" strokeWidth="0.8" strokeDasharray="3 3" />
+                <text x="70" y="78" textAnchor="middle" fontSize="9" fill="var(--text-faint)" fontFamily="Cormorant Garamond, serif" fontStyle="italic">
+                  Vaticano
+                </text>
+                <text x="70" y="92" textAnchor="middle" fontSize="8" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                  바티칸
+                </text>
+                <text x="70" y="103" textAnchor="middle" fontSize="7" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                  (북서쪽)
+                </text>
+              </g>
+
+              {/* Passetto di Borgo — wall connecting Vatican to Castel */}
+              <g>
+                <line x1="120" y1="80" x2="350" y2="240" stroke={pointsByArea['passetto'] ? 'var(--accent)' : 'var(--gold)'} strokeWidth={pointsByArea['passetto'] ? 2.5 : 2} strokeDasharray="8 3" opacity="0.85" />
+                <text x="220" y="145" fontSize="9" fill={pointsByArea['passetto'] ? 'var(--accent)' : 'var(--gold)'} fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500" transform="rotate(35, 220, 145)">
+                  Passetto di Borgo
+                </text>
+                <text x="225" y="160" fontSize="7.5" fill="var(--text-soft)" fontFamily="Noto Sans KR" transform="rotate(35, 225, 160)">
+                  교황 비밀 통로 (800m, 1277)
+                </text>
+              </g>
+
+              {/* Castel Sant'Angelo — cylindrical */}
+              <g>
+                <circle
+                  cx="370" cy="260" r="85"
+                  fill="rgba(184,91,63,0.06)"
+                  stroke={pointsByArea['exterior'] ? 'var(--accent)' : 'var(--line)'}
+                  strokeWidth={pointsByArea['exterior'] ? 1.8 : 1.2}
+                />
+                {/* Inner core (Hadrian's mausoleum original) */}
+                <circle
+                  cx="370" cy="260" r="50"
+                  fill="rgba(184,91,63,0.10)"
+                  stroke="var(--line)"
+                  strokeWidth="1"
+                  strokeDasharray="3 3"
+                  opacity="0.7"
+                />
+                {/* Center marker */}
+                <circle cx="370" cy="260" r="6" fill="var(--gold)" stroke="var(--gold)" strokeWidth="1" />
+                
+                <text x="370" y="195" textAnchor="middle" fontSize="10" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                  Castel Sant'Angelo
+                </text>
+                <text x="370" y="208" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+                  산탄젤로 성 (64m 직경)
+                </text>
+                <text x="370" y="273" textAnchor="middle" fontSize="7" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                  ↑ 단면도에서 5층 확인
+                </text>
+              </g>
+
+              {/* Ponte Sant'Angelo */}
+              <g>
+                <rect
+                  x="295" y="370" width="150" height="20" rx="2"
+                  fill="rgba(201,169,97,0.10)"
+                  stroke={pointsByArea['bridge'] ? 'var(--accent)' : 'var(--gold)'}
+                  strokeWidth={pointsByArea['bridge'] ? 1.5 : 1}
+                />
+                {/* 10 angels indicators on bridge sides */}
+                <g opacity="0.7">
+                  {[305, 320, 335, 350, 365, 380, 395, 410, 425, 440].map((x, i) => (
+                    <circle key={i} cx={x} cy={i % 2 ? 365 : 395} r="2" fill="var(--gold)" />
+                  ))}
+                </g>
+                <text x="370" y="357" textAnchor="middle" fontSize="9" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+                  Ponte Sant'Angelo
+                </text>
+                <text x="370" y="383" textAnchor="middle" fontSize="7.5" fill="var(--bg)" fontFamily="Noto Sans KR" fontWeight="500">
+                  베르니니 천사상 10
+                </text>
+                <text x="370" y="412" textAnchor="middle" fontSize="7" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+                  ↑ 다리에서 성으로 진입 (도보)
+                </text>
+              </g>
+
+              {/* Tiber river */}
+              <g>
+                <rect x="220" y="345" width="300" height="65" fill="rgba(80,140,180,0.08)" stroke="rgba(80,140,180,0.25)" strokeWidth="0.5" />
+                <text x="240" y="425" fontSize="8" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.8">
+                  ~~~ 테베레 강 (Tevere) ~~~
+                </text>
+              </g>
+
+              {/* Direction labels */}
+              <text x="540" y="200" fontSize="7" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.7">
+                동→
+              </text>
+              <text x="540" y="220" fontSize="7" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.7">
+                (시내)
+              </text>
+
+              {/* North arrow */}
+              <g transform="translate(560, 30)">
+                <circle r="14" fill="rgba(0,0,0,0.3)" stroke="var(--text-faint)" strokeWidth="0.5" />
+                <path d="M 0,-8 L 4,4 L 0,0 L -4,4 Z" fill="var(--gold)" />
+                <text y="-18" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="DM Sans">N</text>
+              </g>
+            </>
+          )}
+
+          {/* Point dots */}
+          {(() => {
+            const positions = view === 'section' ? {
+              'tosca': { cx: 440, cy: 78 },
+              'rooftop': { cx: 200, cy: 78 },
+              'apartments': { cx: 300, cy: 155 },
+              'prisoners': { cx: 300, cy: 240 },
+              'exterior': { cx: 300, cy: 378 },
+            } : {
+              'passetto': { cx: 225, cy: 155 },
+              'exterior': { cx: 370, cy: 260 },
+              'bridge': { cx: 370, cy: 380 },
+            };
+            return Object.entries(pointsByArea).flatMap(([area, pts]) => {
+              const pos = positions[area];
+              if (!pos) return [];
+              return pts.map((p, i) => {
+                const offset = pts.length === 1 ? 0 : (i - (pts.length - 1) / 2) * 24;
+                return (
+                  <g
+                    key={p.id}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => onPointClick(p.id)}
+                    onMouseEnter={() => setHoveredPoint(p.id)}
+                    onMouseLeave={() => setHoveredPoint(null)}
+                  >
+                    <circle
+                      cx={pos.cx + offset} cy={pos.cy}
+                      r={hoveredPoint === p.id ? 14 : 11}
+                      fill="var(--accent)" stroke="var(--bg)" strokeWidth="2"
+                      style={{ transition: 'all 0.15s' }}
+                    />
+                    <text
+                      x={pos.cx + offset} y={pos.cy + 4}
+                      fontSize="10" fill="var(--bg)"
+                      fontFamily="DM Sans" fontWeight="600"
+                      textAnchor="middle" pointerEvents="none"
+                    >
+                      {String(p.idx).padStart(2, '0')}
+                    </text>
+                  </g>
+                );
+              });
+            });
+          })()}
+        </svg>
+      </div>
+
+      <div className="dc-floorplan-note">
+        {view === 'section' ? '단면 — 지면부터 옥상 + 천사상까지 5층' : '평면 — 강 + 다리 + 성 + 패세토 (바티칸 800m 연결)'}
+      </div>
+
+      <div className="dc-floor-pointlist">
+        <div className="dc-floor-pointlist-title">전체 7점:</div>
+        {points.map((p, i) => (
+          <button
+            key={p.id}
+            className="dc-floor-room-list-point"
+            onClick={() => onPointClick(p.id)}
+          >
+            <span className="dc-floor-room-list-num">{String(i + 1).padStart(2, '0')}</span>
+            <span className="dc-floor-room-list-name-text">{p.name}</span>
+            <span className="dc-floor-room-list-artist">{p.artist || ''}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────
+// SforzescoFloorPlan — 3 중정 가로 배치 (Armi → Rocchetta → Ducale)
+// ─────────────────────────────────────────────────────────
+function SforzescoFloorPlan({ points, accent, onPointClick }) {
+  const POINT_TO_AREA = {
+    'sforzesco-exterior': 'exterior',
+    'filarete-tower': 'filarete',
+    'cortile-armi': 'cortile-armi',
+    'pieta-rondanini': 'pieta-museum',
+    'sala-asse': 'sala-asse',
+    'sforzesco-museum-pinacoteca': 'pinacoteca',
+  };
+
+  const pointMap = {};
+  points.forEach((p, i) => { pointMap[p.id] = { ...p, idx: i + 1 }; });
+
+  const pointsByArea = {};
+  points.forEach((p, i) => {
+    const a = POINT_TO_AREA[p.id];
+    if (a) {
+      if (!pointsByArea[a]) pointsByArea[a] = [];
+      pointsByArea[a].push({ ...p, idx: i + 1 });
+    }
+  });
+
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+
+  return (
+    <div className="dc-floorplan-svg" style={{ '--accent': accent }}>
+      <div className="dc-floor-label">
+        <div className="dc-floor-label-title">
+          스포르체스코 성 — 3 중정 + 11 박물관
+        </div>
+        <div className="dc-floor-label-sub">
+          비스콘티 요새 (1370) → 스포르차 궁전 (1450) → 1893 벨트라미 복원 · 두오모 도보 15분
+        </div>
+      </div>
+
+      <div className="dc-svg-wrapper">
+        <svg viewBox="0 0 600 500" className="dc-floor-svg" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <pattern id="sforza-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="600" height="500" fill="url(#sforza-grid)" />
+
+          {/* North arrow */}
+          <g transform="translate(560, 30)">
+            <circle r="14" fill="rgba(0,0,0,0.3)" stroke="var(--text-faint)" strokeWidth="0.5" />
+            <path d="M 0,-8 L 4,4 L 0,0 L -4,4 Z" fill="var(--gold)" />
+            <text y="-18" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="DM Sans">N</text>
+          </g>
+
+          {/* Duomo direction (south, off-edge) */}
+          <text x="300" y="475" textAnchor="middle" fontSize="8" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.8">
+            ↓ 두오모 광장 (도보 15분, 트램 1호선)
+          </text>
+
+          {/* Sempione Park (north, off-edge) */}
+          <text x="300" y="28" textAnchor="middle" fontSize="8" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.8">
+            ↑ 셈피오네 공원 (성 뒤편)
+          </text>
+
+          {/* Castle main outer rectangle */}
+          <rect
+            x="55" y="105" width="490" height="285" rx="6"
+            fill="rgba(184,91,63,0.04)"
+            stroke={pointsByArea['exterior'] ? 'var(--accent)' : 'var(--line)'}
+            strokeWidth={pointsByArea['exterior'] ? 1.8 : 1.2}
+          />
+
+          {/* 4 corner towers */}
+          <g>
+            <rect x="40" y="90" width="35" height="35" rx="2" fill="rgba(184,91,63,0.10)" stroke="var(--line)" strokeWidth="1" />
+            <rect x="525" y="90" width="35" height="35" rx="2" fill="rgba(184,91,63,0.10)" stroke="var(--line)" strokeWidth="1" />
+            <rect x="40" y="370" width="35" height="35" rx="2" fill="rgba(184,91,63,0.10)" stroke="var(--line)" strokeWidth="1" />
+            <rect x="525" y="370" width="35" height="35" rx="2" fill="rgba(184,91,63,0.10)" stroke="var(--line)" strokeWidth="1" />
+            <text x="32" y="113" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">4탑</text>
+          </g>
+
+          {/* Filarete Tower (south entrance, center bottom) */}
+          <g>
+            <rect
+              x="280" y="370" width="50" height="30" rx="3"
+              fill="rgba(201,169,97,0.12)"
+              stroke={pointsByArea['filarete'] ? 'var(--accent)' : 'var(--gold)'}
+              strokeWidth={pointsByArea['filarete'] ? 1.8 : 1.2}
+            />
+            <text x="305" y="389" textAnchor="middle" fontSize="9" fill="var(--gold)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+              Torre del
+            </text>
+            <text x="305" y="400" textAnchor="middle" fontSize="9" fill="var(--gold)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+              Filarete
+            </text>
+            <text x="305" y="420" textAnchor="middle" fontSize="7.5" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              필라레테 탑 (70m)
+            </text>
+            <text x="305" y="431" textAnchor="middle" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              1521 폭발 → 1905 재건
+            </text>
+            {/* Entry arrow */}
+            <line x1="305" y1="450" x2="305" y2="440" stroke="var(--gold)" strokeWidth="1.5" markerEnd="url(#sforza-arrow)" />
+            <defs>
+              <marker id="sforza-arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+                <path d="M 0 0 L 6 3 L 0 6 z" fill="var(--gold)" />
+              </marker>
+            </defs>
+          </g>
+
+          {/* Cortile delle Armi (largest, first courtyard — south half) */}
+          <g>
+            <rect
+              x="75" y="220" width="450" height="150" rx="4"
+              fill="rgba(184,91,63,0.06)"
+              stroke={pointsByArea['cortile-armi'] ? 'var(--accent)' : 'var(--line)'}
+              strokeWidth={pointsByArea['cortile-armi'] ? 1.5 : 1}
+            />
+            <text x="300" y="248" textAnchor="middle" fontSize="11" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+              Cortile delle Armi
+            </text>
+            <text x="300" y="263" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              무기 정원 (가장 큰 중정)
+            </text>
+            <text x="300" y="295" textAnchor="middle" fontSize="8" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              15세기 병사 훈련장 → 오늘 노천 페스티벌 무대
+            </text>
+            <text x="300" y="312" textAnchor="middle" fontSize="7" fill="var(--text-faint)" fontFamily="Noto Sans KR" opacity="0.8">
+              Estate Sforzesca (여름 6~9월)
+            </text>
+            
+            {/* Center marker */}
+            <circle cx="300" cy="295" r="3" fill="var(--text-faint)" opacity="0.5" />
+          </g>
+
+          {/* Inner walls/dividers (between courtyards) */}
+          <line x1="220" y1="125" x2="220" y2="220" stroke="var(--line)" strokeWidth="1.2" />
+          <line x1="380" y1="125" x2="380" y2="220" stroke="var(--line)" strokeWidth="1.2" />
+
+          {/* Cortile della Rocchetta (middle small) */}
+          <g>
+            <rect
+              x="225" y="130" width="155" height="85" rx="3"
+              fill="rgba(255,255,255,0.02)"
+              stroke="var(--line)"
+              strokeWidth="0.8"
+              strokeDasharray="3 3"
+              opacity="0.6"
+            />
+            <text x="302" y="158" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="Cormorant Garamond, serif" fontStyle="italic">
+              Cortile della
+            </text>
+            <text x="302" y="171" textAnchor="middle" fontSize="9" fill="var(--text-soft)" fontFamily="Cormorant Garamond, serif" fontStyle="italic">
+              Rocchetta
+            </text>
+            <text x="302" y="186" textAnchor="middle" fontSize="7.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              둘째 중정
+            </text>
+            <text x="302" y="199" textAnchor="middle" fontSize="7" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              (사적 공간 — 통과)
+            </text>
+          </g>
+
+          {/* Pinacoteca + Sala Asse (Corte Ducale — east, 3rd courtyard) */}
+          <g>
+            <rect
+              x="385" y="130" width="140" height="85" rx="3"
+              fill="rgba(201,169,97,0.06)"
+              stroke={(pointsByArea['sala-asse'] || pointsByArea['pinacoteca']) ? 'var(--accent)' : 'var(--line)'}
+              strokeWidth={(pointsByArea['sala-asse'] || pointsByArea['pinacoteca']) ? 1.5 : 1}
+            />
+            <text x="455" y="148" textAnchor="middle" fontSize="9" fill="var(--accent)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+              Corte Ducale
+            </text>
+            <text x="455" y="161" textAnchor="middle" fontSize="8" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              공작 거주 (셋째 중정)
+            </text>
+            <line x1="385" y1="180" x2="525" y2="180" stroke="var(--line)" strokeWidth="0.5" strokeDasharray="2 2" opacity="0.5" />
+            <text x="395" y="195" fontSize="7.5" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              · Sala delle Asse (레오나르도 1498)
+            </text>
+            <text x="395" y="208" fontSize="7.5" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              · Pinacoteca (위층)
+            </text>
+          </g>
+
+          {/* Pietà Rondanini Museum (west — separate building inside castle, 2015 신축) */}
+          <g>
+            <rect
+              x="80" y="130" width="135" height="85" rx="3"
+              fill="rgba(201,169,97,0.08)"
+              stroke={pointsByArea['pieta-museum'] ? 'var(--accent)' : 'var(--gold)'}
+              strokeWidth={pointsByArea['pieta-museum'] ? 1.8 : 1.2}
+            />
+            <text x="147" y="150" textAnchor="middle" fontSize="9" fill="var(--gold)" fontFamily="Cormorant Garamond, serif" fontStyle="italic" fontWeight="500">
+              Pietà Rondanini
+            </text>
+            <text x="147" y="163" textAnchor="middle" fontSize="8" fill="var(--text-soft)" fontFamily="Noto Sans KR">
+              미켈란젤로 박물관
+            </text>
+            <text x="147" y="180" textAnchor="middle" fontSize="7" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              2015 별도 신축
+            </text>
+            <text x="147" y="195" textAnchor="middle" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              (89세 미켈란젤로 미완성)
+            </text>
+            <text x="147" y="207" textAnchor="middle" fontSize="6.5" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              사망 6일 전까지 작업
+            </text>
+          </g>
+
+          {/* 11 박물관 통합권 indicator */}
+          <g>
+            <rect x="80" y="424" width="450" height="22" rx="3" fill="rgba(255,255,255,0.02)" stroke="var(--line)" strokeWidth="0.5" />
+            <text x="305" y="439" textAnchor="middle" fontSize="8" fill="var(--text-faint)" fontFamily="Noto Sans KR">
+              11개 박물관 통합권 €10 · 월요일 휴관 (외부는 무료)
+            </text>
+          </g>
+
+          {/* Point dots */}
+          {(() => {
+            const positions = {
+              'exterior': { cx: 75, cy: 380 },
+              'filarete': { cx: 305, cy: 385 },
+              'cortile-armi': { cx: 300, cy: 335 },
+              'pieta-museum': { cx: 147, cy: 175 },
+              'sala-asse': { cx: 420, cy: 195 },
+              'pinacoteca': { cx: 490, cy: 195 },
+            };
+            return Object.entries(pointsByArea).flatMap(([area, pts]) => {
+              const pos = positions[area];
+              if (!pos) return [];
+              return pts.map((p, i) => {
+                const offset = pts.length === 1 ? 0 : (i - (pts.length - 1) / 2) * 24;
+                return (
+                  <g
+                    key={p.id}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => onPointClick(p.id)}
+                    onMouseEnter={() => setHoveredPoint(p.id)}
+                    onMouseLeave={() => setHoveredPoint(null)}
+                  >
+                    <circle
+                      cx={pos.cx + offset} cy={pos.cy}
+                      r={hoveredPoint === p.id ? 14 : 11}
+                      fill="var(--accent)" stroke="var(--bg)" strokeWidth="2"
+                      style={{ transition: 'all 0.15s' }}
+                    />
+                    <text
+                      x={pos.cx + offset} y={pos.cy + 4}
+                      fontSize="10" fill="var(--bg)"
+                      fontFamily="DM Sans" fontWeight="600"
+                      textAnchor="middle" pointerEvents="none"
+                    >
+                      {String(p.idx).padStart(2, '0')}
+                    </text>
+                  </g>
+                );
+              });
+            });
+          })()}
+        </svg>
+      </div>
+
+      <div className="dc-floorplan-note">
+        남쪽 필라레테 탑 입장 → 무기 정원 → 좌측 피에타 박물관 + 우측 코르테 두칼레 (살라 아세 + 피나코테카)
+      </div>
+
+      <div className="dc-floor-pointlist">
+        <div className="dc-floor-pointlist-title">전체 6점:</div>
+        {points.map((p, i) => (
+          <button
+            key={p.id}
+            className="dc-floor-room-list-point"
+            onClick={() => onPointClick(p.id)}
+          >
+            <span className="dc-floor-room-list-num">{String(i + 1).padStart(2, '0')}</span>
+            <span className="dc-floor-room-list-name-text">{p.name}</span>
+            <span className="dc-floor-room-list-artist">{p.artist || ''}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // BorgheseFloorPlan — 정확한 SVG 평면도
 // ─────────────────────────────────────────────────────────
 function BorgheseFloorPlan({ points, accent, onPointClick }) {
@@ -4256,7 +4959,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.33</div>
+      <div>도슨트 · Docent v0.34</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
