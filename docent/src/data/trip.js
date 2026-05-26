@@ -667,6 +667,17 @@ export function getTransitTiming(prevDay, transitDay, transitInfo, findAttractio
   const newCity = dominantCity(transitDay);
   if (!prevCity || !newCity || prevCity === newCity) return null;
 
+  const cityKo = (c) => ({ rome: '로마', florence: '피렌체', milan: '밀라노', venice: '베네치아' }[c] || c);
+  const prevCityKo = cityKo(prevCity);
+  const newCityKo = cityKo(newCity);
+
+  // Date helpers
+  const formatDate = (iso) => {
+    const d = new Date(iso);
+    const days = ['일', '월', '화', '수', '목', '금', '토'];
+    return `${d.getMonth() + 1}/${d.getDate()} (${days[d.getDay()]})`;
+  };
+
   // Fastest train duration
   const trainOpts = transitInfo.options.filter(o =>
     (o.type || '').includes('train') ||
@@ -677,6 +688,14 @@ export function getTransitTiming(prevDay, transitDay, transitInfo, findAttractio
 
   const checkoutBuffer = 60; // 1h: hotel checkout + station transfer
   const arrivalBuffer = 60;  // 1h: station + check-in + transit to first attraction
+
+  // Round time UP to next :00 or :30 for realistic train schedule
+  const roundToHalf = (min) => {
+    const rem = min % 60;
+    if (rem === 0) return min;
+    if (rem <= 30) return Math.floor(min / 60) * 60 + 30;
+    return (Math.floor(min / 60) + 1) * 60;
+  };
 
   // Case 1: SAME-DAY-DURING transit on transitDay (mixed cities)
   const prevCityAttrsOnTransitDay = transitDay.attractionIds.filter(
@@ -691,53 +710,90 @@ export function getTransitTiming(prevDay, transitDay, transitInfo, findAttractio
     });
     const morningEnd = 9 * 60 + morningMin;
     const earliestDep = morningEnd + checkoutBuffer;
-    const recDep = Math.max(earliestDep, 11 * 60); // not before 11
+    const recDep = roundToHalf(Math.max(earliestDep, 11 * 60));
     const recArr = recDep + trainMin;
     return {
       feasible: 'ok',
-      mode: '같은 날 오전→오후',
+      mode: `${formatDate(transitDay.date)} 오전→오후`,
+      date: transitDay.date,
+      dateStr: formatDate(transitDay.date),
+      prevCityKo,
+      newCityKo,
       morningEndStr: fmtTimeOfDay(morningEnd),
       trainMin,
       depRecommended: fmtTimeOfDay(recDep),
       arrRecommended: fmtTimeOfDay(recArr),
-      message: `오전 일정 ${fmtTimeOfDay(morningEnd)} 종료 후 1시간 여유로 ${fmtTimeOfDay(recDep)} 열차 권장`,
+      message: `${formatDate(transitDay.date)} 오전 ${prevCityKo} 일정 ${fmtTimeOfDay(morningEnd)} 종료 → ${fmtTimeOfDay(recDep)} 열차 → ${newCityKo} ${fmtTimeOfDay(recArr)} 도착`,
       warning: morningEnd >= 14 * 60 ? '오전 일정이 길어 오후 일정 시간 빠듯' : null,
+      alternative: null,
     };
   }
 
   // Case 2 or 3: transitDay has only newCity attractions
-  // Decide: same-day evening of prevDay OR next-morning of transitDay
   const prevEnd = estimateDayEndMin(prevDay, findAttraction);
-  const nextStart = 9 * 60; // default 09:00
+  const nextStart = 9 * 60;
 
-  if (prevEnd > 16 * 60) {
-    // Prev day ends late → overnight, travel next morning
-    const morningDep = Math.max(7 * 60, nextStart - arrivalBuffer - trainMin);
+  // Compute BOTH options + pick primary
+
+  // Option A: same-day-evening (transit on prevDay afternoon)
+  const eveningDep = roundToHalf(Math.max(prevEnd + checkoutBuffer, 13 * 60));
+  const eveningArr = eveningDep + trainMin;
+
+  // Option B: overnight (transit on transitDay morning)
+  const morningDep = roundToHalf(Math.max(7 * 60, nextStart - arrivalBuffer - trainMin));
+  const morningArr = morningDep + trainMin;
+
+  // Decision: if prev ends late or there's only a 1-day gap, recommend overnight
+  // Otherwise recommend same-day-evening (more time in dest)
+  const isOvernight = prevEnd > 16 * 60;
+
+  if (isOvernight) {
     return {
       feasible: 'overnight',
-      mode: '다음 날 아침',
+      mode: `${formatDate(transitDay.date)} 아침`,
+      date: transitDay.date,
+      dateStr: formatDate(transitDay.date),
+      prevCityKo,
+      newCityKo,
       prevEndStr: fmtTimeOfDay(prevEnd),
       trainMin,
       depRecommended: fmtTimeOfDay(morningDep),
-      arrRecommended: fmtTimeOfDay(morningDep + trainMin),
-      message: `이전 일정 ${fmtTimeOfDay(prevEnd)} 종료 → 호텔 1박 → 다음 날 ${fmtTimeOfDay(morningDep)} 열차`,
+      arrRecommended: fmtTimeOfDay(morningArr),
+      message: `${formatDate(prevDay.date)} ${prevCityKo} 일정 ${fmtTimeOfDay(prevEnd)} 종료 → 호텔 1박 → ${formatDate(transitDay.date)} ${fmtTimeOfDay(morningDep)} 열차 → ${newCityKo} ${fmtTimeOfDay(morningArr)} 도착`,
       warning: prevEnd > 19 * 60 ? '이전 일정 매우 늦게 종료' : null,
+      alternative: {
+        mode: `${formatDate(prevDay.date)} 늦은 오후`,
+        depDate: prevDay.date,
+        depRecommended: fmtTimeOfDay(eveningDep),
+        arrRecommended: fmtTimeOfDay(eveningArr),
+        message: `${formatDate(prevDay.date)} ${fmtTimeOfDay(eveningDep)} 열차 → ${newCityKo} ${fmtTimeOfDay(eveningArr)} 도착`,
+      },
     };
   }
 
-  // Prev ends early afternoon → travel same evening (more time on prev day to do final things)
-  const eveningDep = Math.max(prevEnd + checkoutBuffer, 13 * 60);
   return {
     feasible: 'ok',
-    mode: '이전 일정 후 오후',
+    mode: `${formatDate(prevDay.date)} 오후`,
+    date: prevDay.date,
+    dateStr: formatDate(prevDay.date),
+    prevCityKo,
+    newCityKo,
     prevEndStr: fmtTimeOfDay(prevEnd),
     trainMin,
     depRecommended: fmtTimeOfDay(eveningDep),
-    arrRecommended: fmtTimeOfDay(eveningDep + trainMin),
-    message: `이전 일정 ${fmtTimeOfDay(prevEnd)} 종료 → ${fmtTimeOfDay(eveningDep)} 열차 → ${fmtTimeOfDay(eveningDep + trainMin)} 도착`,
+    arrRecommended: fmtTimeOfDay(eveningArr),
+    message: `${formatDate(prevDay.date)} ${prevCityKo} 일정 ${fmtTimeOfDay(prevEnd)} 종료 → ${fmtTimeOfDay(eveningDep)} 열차 → ${newCityKo} ${fmtTimeOfDay(eveningArr)} 도착`,
     warning: null,
+    alternative: {
+      mode: `${formatDate(transitDay.date)} 아침 (대안)`,
+      depDate: transitDay.date,
+      depRecommended: fmtTimeOfDay(morningDep),
+      arrRecommended: fmtTimeOfDay(morningArr),
+      message: `${formatDate(prevDay.date)} ${prevCityKo} 종일 + 호텔 1박 → ${formatDate(transitDay.date)} ${fmtTimeOfDay(morningDep)} 열차 → ${newCityKo} ${fmtTimeOfDay(morningArr)} 도착`,
+    },
   };
 }
+
 
 
 // ─────────────────────────────────────────────────────────

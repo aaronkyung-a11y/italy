@@ -629,6 +629,38 @@ function TripView({ pop }) {
         findAttraction={findAttraction}
       />
 
+      {/* 도시별 박일 수 요약 */}
+      {(() => {
+        const cityCounts = {};
+        const cityOrder = [];
+        trip.days.forEach(d => {
+          const c = getDayCity(d);
+          if (!c) return;
+          if (!(c in cityCounts)) cityOrder.push(c);
+          cityCounts[c] = (cityCounts[c] || 0) + 1;
+        });
+        if (cityOrder.length < 2) return null;
+        return (
+          <div className="dc-trip-city-summary">
+            <div className="dc-trip-city-summary-label">📍 도시별 머묾</div>
+            <div className="dc-trip-city-summary-cities">
+              {cityOrder.map((c, i) => {
+                const ko = { rome: '로마', florence: '피렌체', milan: '밀라노', venice: '베네치아' }[c] || c;
+                return (
+                  <span key={c} className="dc-trip-city-chip">
+                    {ko} <strong>{cityCounts[c]}일</strong>
+                    {i < cityOrder.length - 1 && <span className="dc-trip-city-arrow"> → </span>}
+                  </span>
+                );
+              })}
+            </div>
+            <div className="dc-trip-city-summary-note">
+              ※ 〈N일〉 = 해당 도시에서 일정이 잡힌 날짜 수. 이동날은 출발 도시로 카운트.
+            </div>
+          </div>
+        );
+      })()}
+
       <div className="dc-trip-days">
         {trip.days.map((day, dayIdx) => {
           const dayCity = getDayCity(day);
@@ -667,6 +699,15 @@ function TripView({ pop }) {
                           <div className="dc-trip-transit-timing-window">{transitTiming.message}</div>
                           {transitTiming.warning && (
                             <div className="dc-trip-transit-timing-warn">⚠️ {transitTiming.warning}</div>
+                          )}
+                          {transitTiming.alternative && (
+                            <div className="dc-trip-transit-timing-alt">
+                              <div className="dc-trip-transit-timing-alt-head">대안: {transitTiming.alternative.mode}</div>
+                              <div className="dc-trip-transit-timing-alt-body">
+                                🕐 {transitTiming.alternative.depRecommended} 출발 → {transitTiming.alternative.arrRecommended} 도착<br/>
+                                <span style={{ color: '#999', fontSize: 11 }}>{transitTiming.alternative.message}</span>
+                              </div>
+                            </div>
                           )}
                         </div>
                       )}
@@ -7197,7 +7238,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.53</div>
+      <div>도슨트 · Docent v0.54</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>

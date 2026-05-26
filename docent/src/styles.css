@@ -4533,3 +4533,58 @@ img {
   color: #FFA500;
   font-weight: 500;
 }
+
+/* Transit timing - alternative option */
+.dc-trip-transit-timing-alt {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.10);
+}
+.dc-trip-transit-timing-alt-head {
+  font-size: 10px;
+  color: #888;
+  font-weight: 600;
+  margin-bottom: 3px;
+  letter-spacing: 0.3px;
+}
+.dc-trip-transit-timing-alt-body {
+  font-size: 11px;
+  color: #B0B0B0;
+  line-height: 1.5;
+}
+
+/* City stay summary */
+.dc-trip-city-summary {
+  margin: 16px 0;
+  padding: 12px 14px;
+  background: rgba(201, 169, 97, 0.06);
+  border: 1px solid rgba(201, 169, 97, 0.20);
+  border-radius: 10px;
+}
+.dc-trip-city-summary-label {
+  font-size: 11px;
+  color: #999;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+.dc-trip-city-summary-cities {
+  font-size: 14px;
+  color: #E8E8E8;
+  line-height: 1.6;
+}
+.dc-trip-city-chip {
+  display: inline-block;
+}
+.dc-trip-city-chip strong {
+  color: #C9A961;
+}
+.dc-trip-city-arrow {
+  color: #555;
+  margin: 0 4px;
+}
+.dc-trip-city-summary-note {
+  margin-top: 6px;
+  font-size: 10px;
+  color: #666;
+  font-style: italic;
+}
