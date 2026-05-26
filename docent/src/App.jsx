@@ -729,6 +729,7 @@ function TripView({ pop }) {
                         {dayCity === 'rome' && '로마'}
                         {dayCity === 'florence' && '피렌체'}
                         {dayCity === 'milan' && '밀라노'}
+                        {dayCity === 'venice' && '베네치아'}
                       </span>
                     )}
                   </div>
@@ -809,7 +810,7 @@ function TripView({ pop }) {
                         {(() => {
                           const inferred = inferCityForDay(trip, dayIdx, getDayCity);
                           if (!inferred) return null;
-                          const cityLabel = { rome: '로마', florence: '피렌체', milan: '밀라노' }[inferred];
+                          const cityLabel = { rome: '로마', florence: '피렌체', milan: '밀라노', venice: '베네치아' }[inferred];
                           return (
                             <button
                               className="dc-trip-auto-btn"
@@ -7179,7 +7180,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.51</div>
+      <div>도슨트 · Docent v0.52</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>

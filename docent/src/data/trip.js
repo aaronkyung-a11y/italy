@@ -335,6 +335,143 @@ export const TRANSIT_INFO = {
       },
     ],
   },
+  'florence-venice': {
+    name: '피렌체 ↔ 베네치아',
+    distance: '255km',
+    options: [
+      {
+        type: 'train-highspeed',
+        provider: 'Trenitalia Frecciarossa',
+        duration: '2시간 5분',
+        priceRange: '€25~95',
+        urgency: 'medium',
+        leadTimeDays: 60,
+        notes: '직행, 매시 1회 정도. 60일 전 〈Super Economy〉 €25부터',
+        bookingSites: [
+          { name: 'Trenitalia 공식', url: 'https://www.trenitalia.com/', official: true },
+        ],
+      },
+      {
+        type: 'train-highspeed',
+        provider: 'Italo',
+        duration: '2시간 5분',
+        priceRange: '€20~85',
+        urgency: 'medium',
+        leadTimeDays: 60,
+        notes: 'Italo도 직행 운행. 〈Low Cost〉 요금이 가장 저렴',
+        bookingSites: [
+          { name: 'Italo 공식', url: 'https://www.italotreno.com/en', official: true },
+        ],
+      },
+      {
+        type: 'aggregator',
+        provider: '비교 사이트',
+        duration: '-',
+        priceRange: '-',
+        urgency: 'none',
+        notes: 'Trenitalia + Italo 한 화면에서 비교',
+        bookingSites: [
+          { name: 'Trainline', url: 'https://www.thetrainline.com', official: false },
+          { name: 'Omio', url: 'https://www.omio.com', official: false },
+        ],
+      },
+    ],
+  },
+  'milan-venice': {
+    name: '베네치아 ↔ 밀라노',
+    distance: '270km',
+    options: [
+      {
+        type: 'train-highspeed',
+        provider: 'Trenitalia Frecciarossa',
+        duration: '2시간 15분',
+        priceRange: '€20~90',
+        urgency: 'medium',
+        leadTimeDays: 60,
+        notes: '직행 매시 1~2회. 60일 전 〈Super Economy〉 €20부터',
+        bookingSites: [
+          { name: 'Trenitalia 공식', url: 'https://www.trenitalia.com/', official: true },
+        ],
+      },
+      {
+        type: 'train-highspeed',
+        provider: 'Italo',
+        duration: '2시간 10분',
+        priceRange: '€18~85',
+        urgency: 'medium',
+        leadTimeDays: 60,
+        notes: 'Italo도 매시 1회 정도. Frecciarossa보다 약간 더 빠를 때 있음',
+        bookingSites: [
+          { name: 'Italo 공식', url: 'https://www.italotreno.com/en', official: true },
+        ],
+      },
+      {
+        type: 'aggregator',
+        provider: '비교 사이트',
+        duration: '-',
+        priceRange: '-',
+        urgency: 'none',
+        notes: '두 운영사 비교',
+        bookingSites: [
+          { name: 'Trainline', url: 'https://www.thetrainline.com', official: false },
+          { name: 'Omio', url: 'https://www.omio.com', official: false },
+        ],
+      },
+    ],
+  },
+  'rome-venice': {
+    name: '로마 ↔ 베네치아',
+    distance: '525km',
+    options: [
+      {
+        type: 'train-highspeed',
+        provider: 'Trenitalia Frecciarossa',
+        duration: '3시간 45분',
+        priceRange: '€30~130',
+        urgency: 'medium',
+        leadTimeDays: 60,
+        notes: '직행 매시 1회. 60일 전 〈Super Economy〉 €30부터',
+        bookingSites: [
+          { name: 'Trenitalia 공식', url: 'https://www.trenitalia.com/', official: true },
+        ],
+      },
+      {
+        type: 'train-highspeed',
+        provider: 'Italo',
+        duration: '3시간 45분',
+        priceRange: '€28~120',
+        urgency: 'medium',
+        leadTimeDays: 60,
+        notes: 'Italo도 직행 운행',
+        bookingSites: [
+          { name: 'Italo 공식', url: 'https://www.italotreno.com/en', official: true },
+        ],
+      },
+      {
+        type: 'flight',
+        provider: '국내선 (보통 불필요)',
+        duration: '1시간 15분 + 공항 2시간',
+        priceRange: '€60~200',
+        notes: '기차가 보통 더 빠름/편리. 비행기는 시간 절약 안 됨',
+        bookingSites: [
+          { name: 'ITA Airways', url: 'https://www.ita-airways.com', official: true },
+          { name: 'Ryanair', url: 'https://www.ryanair.com', official: true },
+        ],
+      },
+      {
+        type: 'aggregator',
+        provider: '비교 사이트',
+        duration: '-',
+        priceRange: '-',
+        urgency: 'none',
+        notes: '기차 + 비행기 한 화면 비교',
+        bookingSites: [
+          { name: 'Trainline', url: 'https://www.thetrainline.com', official: false },
+          { name: 'Omio', url: 'https://www.omio.com', official: false },
+        ],
+      },
+    ],
+  },
   'milan-rome': {
     name: '로마 ↔ 밀라노',
     distance: '575km',
