@@ -11,7 +11,7 @@ import {
 import { CITIES, ATTRACTIONS, findAttraction, findPoint, TOTAL_POINTS } from './data/attractions.js';
 import {
   loadTrip, saveTrip, clearTrip, createEmptyTrip,
-  getReservationInfo, getTransitInfo,
+  getReservationInfo, getTransitInfo, getTransitTiming,
   attractionReminderUrl, transitReminderUrl,
   getClosureStatus, getRecommendedCourses,
   inferCityForDay, getAssignedAttractionIds,
@@ -637,6 +637,9 @@ function TripView({ pop }) {
           const transitInfo = (prevCity && dayCity && prevCity !== dayCity)
             ? getTransitInfo(prevCity, dayCity)
             : null;
+          const transitTiming = (transitInfo && prevDay)
+            ? getTransitTiming(prevDay, day, transitInfo, findAttraction)
+            : null;
 
           return (
             <div key={day.date}>
@@ -653,6 +656,20 @@ function TripView({ pop }) {
                       <div className="dc-trip-transit-sub">
                         {transitInfo.distance} · {transitInfo.options[0].duration} ({transitInfo.options[0].provider} 기준)
                       </div>
+                      {transitTiming && (
+                        <div className={`dc-trip-transit-timing ${transitTiming.feasible === 'overnight' ? 'overnight' : ''} ${transitTiming.warning ? 'tight' : ''}`}>
+                          <div className="dc-trip-transit-timing-row">
+                            <span className="dc-trip-transit-timing-tag">{transitTiming.mode}</span>
+                            <span className="dc-trip-transit-timing-time">
+                              🕐 <strong>{transitTiming.depRecommended}</strong> 출발 → <strong>{transitTiming.arrRecommended}</strong> 도착
+                            </span>
+                          </div>
+                          <div className="dc-trip-transit-timing-window">{transitTiming.message}</div>
+                          {transitTiming.warning && (
+                            <div className="dc-trip-transit-timing-warn">⚠️ {transitTiming.warning}</div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <ChevronRight
                       size={16}
@@ -7180,7 +7197,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.52</div>
+      <div>도슨트 · Docent v0.53</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>

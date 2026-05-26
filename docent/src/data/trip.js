@@ -603,6 +603,144 @@ export function getTransitInfo(city1, city2) {
 }
 
 // ─────────────────────────────────────────────────────────
+// 이동 시간 추천 (앞뒤 일정 기반)
+// ─────────────────────────────────────────────────────────
+
+function parseTrainDurationMin(str) {
+  // "1시간 32분" → 92, "2시간 5분" → 125
+  const h = (str.match(/(\d+)\s*시간/) || [0, 0])[1];
+  const m = (str.match(/(\d+)\s*분/) || [0, 0])[1];
+  return parseInt(h) * 60 + parseInt(m);
+}
+
+function fmtTimeOfDay(totalMin) {
+  // totalMin in minutes since 00:00 → "HH:MM"
+  let m = Math.round(totalMin);
+  // Handle next-day overflow
+  if (m >= 24 * 60) m -= 24 * 60;
+  if (m < 0) m += 24 * 60;
+  const h = Math.floor(m / 60);
+  const mm = m % 60;
+  return `${String(h).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+}
+
+function estimateDayEndMin(day, findAttraction) {
+  // Returns minutes since 00:00 for estimated end of day's activities
+  if (!day.attractionIds.length) return 9 * 60; // empty day → 09:00
+  const startMin = 9 * 60; // default day start
+  let total = 0;
+  day.attractionIds.forEach((aid, i) => {
+    const a = findAttraction(aid);
+    const dur = a?.overview?.duration_min ?? 90;
+    total += dur;
+    if (i > 0) total += 30; // transit/break between attractions
+  });
+  // Lunch break if > 4h activities
+  if (total > 240) total += 60;
+  return Math.min(20 * 60, startMin + total);
+}
+
+function estimateDayStartMin(day, findAttraction) {
+  // Default 09:00 (most museums open 08:15~10:00, default to 09:00)
+  return 9 * 60;
+}
+
+// Returns suggested departure timing for transit between consecutive days
+// Handles 3 cases:
+// 1. same-day-during: transitDay has activities in BOTH cities (transit happens midday on transitDay)
+// 2. same-day-evening: prevDay ends early (<=16:00), travel evening of prevDay
+// 3. overnight-morning: prevDay ends late, travel next morning
+export function getTransitTiming(prevDay, transitDay, transitInfo, findAttraction) {
+  if (!transitInfo) return null;
+
+  // Identify dominant cities
+  const dominantCity = (day) => {
+    if (!day.attractionIds.length) return null;
+    const counts = {};
+    day.attractionIds.forEach((id) => {
+      const c = findAttraction(id)?.city;
+      if (c) counts[c] = (counts[c] || 0) + 1;
+    });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+  };
+  const prevCity = dominantCity(prevDay);
+  const newCity = dominantCity(transitDay);
+  if (!prevCity || !newCity || prevCity === newCity) return null;
+
+  // Fastest train duration
+  const trainOpts = transitInfo.options.filter(o =>
+    (o.type || '').includes('train') ||
+    /Trenitalia|Italo/.test(o.provider || '')
+  );
+  if (!trainOpts.length) return null;
+  const trainMin = Math.min(...trainOpts.map(o => parseTrainDurationMin(o.duration)));
+
+  const checkoutBuffer = 60; // 1h: hotel checkout + station transfer
+  const arrivalBuffer = 60;  // 1h: station + check-in + transit to first attraction
+
+  // Case 1: SAME-DAY-DURING transit on transitDay (mixed cities)
+  const prevCityAttrsOnTransitDay = transitDay.attractionIds.filter(
+    id => findAttraction(id)?.city === prevCity
+  );
+  if (prevCityAttrsOnTransitDay.length > 0) {
+    let morningMin = 0;
+    prevCityAttrsOnTransitDay.forEach((aid, i) => {
+      const a = findAttraction(aid);
+      morningMin += a?.overview?.duration_min ?? 90;
+      if (i > 0) morningMin += 30;
+    });
+    const morningEnd = 9 * 60 + morningMin;
+    const earliestDep = morningEnd + checkoutBuffer;
+    const recDep = Math.max(earliestDep, 11 * 60); // not before 11
+    const recArr = recDep + trainMin;
+    return {
+      feasible: 'ok',
+      mode: '같은 날 오전→오후',
+      morningEndStr: fmtTimeOfDay(morningEnd),
+      trainMin,
+      depRecommended: fmtTimeOfDay(recDep),
+      arrRecommended: fmtTimeOfDay(recArr),
+      message: `오전 일정 ${fmtTimeOfDay(morningEnd)} 종료 후 1시간 여유로 ${fmtTimeOfDay(recDep)} 열차 권장`,
+      warning: morningEnd >= 14 * 60 ? '오전 일정이 길어 오후 일정 시간 빠듯' : null,
+    };
+  }
+
+  // Case 2 or 3: transitDay has only newCity attractions
+  // Decide: same-day evening of prevDay OR next-morning of transitDay
+  const prevEnd = estimateDayEndMin(prevDay, findAttraction);
+  const nextStart = 9 * 60; // default 09:00
+
+  if (prevEnd > 16 * 60) {
+    // Prev day ends late → overnight, travel next morning
+    const morningDep = Math.max(7 * 60, nextStart - arrivalBuffer - trainMin);
+    return {
+      feasible: 'overnight',
+      mode: '다음 날 아침',
+      prevEndStr: fmtTimeOfDay(prevEnd),
+      trainMin,
+      depRecommended: fmtTimeOfDay(morningDep),
+      arrRecommended: fmtTimeOfDay(morningDep + trainMin),
+      message: `이전 일정 ${fmtTimeOfDay(prevEnd)} 종료 → 호텔 1박 → 다음 날 ${fmtTimeOfDay(morningDep)} 열차`,
+      warning: prevEnd > 19 * 60 ? '이전 일정 매우 늦게 종료' : null,
+    };
+  }
+
+  // Prev ends early afternoon → travel same evening (more time on prev day to do final things)
+  const eveningDep = Math.max(prevEnd + checkoutBuffer, 13 * 60);
+  return {
+    feasible: 'ok',
+    mode: '이전 일정 후 오후',
+    prevEndStr: fmtTimeOfDay(prevEnd),
+    trainMin,
+    depRecommended: fmtTimeOfDay(eveningDep),
+    arrRecommended: fmtTimeOfDay(eveningDep + trainMin),
+    message: `이전 일정 ${fmtTimeOfDay(prevEnd)} 종료 → ${fmtTimeOfDay(eveningDep)} 열차 → ${fmtTimeOfDay(eveningDep + trainMin)} 도착`,
+    warning: null,
+  };
+}
+
+
+// ─────────────────────────────────────────────────────────
 // Google Calendar URL 생성기
 // ─────────────────────────────────────────────────────────
 
