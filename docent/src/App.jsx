@@ -286,7 +286,7 @@ export default function App() {
   return (
     <div className="dc-app">
       {view.current.name === 'home' && <HomeView push={view.push} favorites={favorites} />}
-      {view.current.name === 'trip' && <TripView pop={view.pop} />}
+      {view.current.name === 'trip' && <TripView pop={view.pop} push={view.push} />}
       {view.current.name === 'city' && (
         <CityView cityId={view.current.cityId} push={view.push} pop={view.pop} />
       )}
@@ -328,7 +328,7 @@ export default function App() {
 // ─────────────────────────────────────────────────────────
 // TripView — 내 일정 관리 (일정 + 예약 + 도시간 이동 + 캘린더)
 // ─────────────────────────────────────────────────────────
-function TripView({ pop }) {
+function TripView({ pop, push }) {
   const [trip, setTripState] = useState(() => loadTrip());
   const [showPicker, setShowPicker] = useState(null); // null or { dayIdx }
   const [showCourses, setShowCourses] = useState(null); // null or { dayIdx }
@@ -844,6 +844,7 @@ function TripView({ pop }) {
                               addAttractionToDay(dayIdx, attractionId);
                               setExpandedAttraction(null);
                             }}
+                            onOpenDocent={() => push({ name: 'attraction', attractionId })}
                           />
                         )}
                       </div>
@@ -924,7 +925,7 @@ function TripView({ pop }) {
 // ─────────────────────────────────────────────────────────
 // BookingPanel — 예약 상태 추적 + 캘린더 통합
 // ─────────────────────────────────────────────────────────
-function BookingPanel({ attr, visitDate, res, trip, onUpdateBooking, onRemove }) {
+function BookingPanel({ attr, visitDate, res, trip, onUpdateBooking, onRemove, onOpenDocent }) {
   const booking = getBookingData(trip, attr.id) || {};
   const status = booking.status || 'unbooked';
   const openInfo = getBookingOpenInfo(attr.id, visitDate);
@@ -985,6 +986,13 @@ function BookingPanel({ attr, visitDate, res, trip, onUpdateBooking, onRemove })
 
   return (
     <div className="dc-trip-attr-detail">
+      {/* 도슨트 (오디오 가이드) 바로가기 */}
+      {onOpenDocent && (
+        <button className="dc-trip-attr-docent-btn" onClick={onOpenDocent}>
+          🎧 도슨트로 보기 — 오디오 가이드 · 포인트 · 평면도
+        </button>
+      )}
+
       {res.notes && <div className="dc-trip-attr-notes">{res.notes}</div>}
 
       {/* 예약 팁 (디테일) */}
@@ -7238,7 +7246,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.56</div>
+      <div>도슨트 · Docent v0.57</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>

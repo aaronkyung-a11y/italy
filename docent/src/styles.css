@@ -4588,3 +4588,29 @@ img {
   color: #666;
   font-style: italic;
 }
+
+/* 도슨트 바로가기 버튼 (BookingPanel 안) */
+.dc-trip-attr-docent-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin: 0 0 12px 0;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, rgba(201, 169, 97, 0.18), rgba(184, 91, 63, 0.14));
+  border: 1px solid rgba(201, 169, 97, 0.40);
+  border-radius: 10px;
+  color: #C9A961;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.2px;
+}
+.dc-trip-attr-docent-btn:hover, .dc-trip-attr-docent-btn:active {
+  background: linear-gradient(135deg, rgba(201, 169, 97, 0.28), rgba(184, 91, 63, 0.22));
+  border-color: rgba(201, 169, 97, 0.60);
+  color: #E0BC6E;
+  transform: translateY(-1px);
+}
