@@ -11,7 +11,7 @@ import {
 import { CITIES, ATTRACTIONS, findAttraction, findPoint, TOTAL_POINTS } from './data/attractions.js';
 import {
   loadTrip, saveTrip, clearTrip, createEmptyTrip,
-  getReservationInfo, getTransitInfo, getTransitTiming,
+  getReservationInfo, getTransitInfo, getTransitTiming, computeDaySchedule,
   attractionReminderUrl, transitReminderUrl,
   getClosureStatus, getRecommendedCourses,
   inferCityForDay, getAssignedAttractionIds,
@@ -794,11 +794,37 @@ function TripView({ pop, push }) {
                 </div>
 
                 <div className="dc-trip-day-attractions">
-                  {day.attractionIds.map((attractionId) => {
+                  {(() => {
+                    const schedule = computeDaySchedule(day, findAttraction, trip);
+                    const hasAny = schedule.length > 0;
+                    const dayEnd = hasAny ? schedule[schedule.length - 1].endStr : null;
+                    const dayStart = hasAny ? schedule[0].startStr : null;
+                    const hasFixed = schedule.some(s => s.fixed);
+                    const hasConflict = schedule.some(s => s.conflict);
+                    if (!hasAny) return null;
+                    return (
+                      <div className={`dc-trip-day-timeline ${hasConflict ? 'has-conflict' : ''}`}>
+                        <span className="dc-trip-day-timeline-time">
+                          🕐 {dayStart} ~ {dayEnd}
+                        </span>
+                        {hasFixed && (
+                          <span className="dc-trip-day-timeline-locked" title="예약 확정된 슬롯">
+                            🔒 {schedule.filter(s => s.fixed).length}개 고정
+                          </span>
+                        )}
+                        {hasConflict && (
+                          <span className="dc-trip-day-timeline-conflict">⚠️ 시간 충돌</span>
+                        )}
+                      </div>
+                    );
+                  })()}
+                  {day.attractionIds.map((attractionId, attrIdx) => {
                     const attr = findAttraction(attractionId);
                     if (!attr) return null;
                     const res = getReservationInfo(attractionId);
                     const expanded = expandedAttraction === `${dayIdx}-${attractionId}`;
+                    const schedule = computeDaySchedule(day, findAttraction, trip);
+                    const sched = schedule[attrIdx];
                     const urgencyEmoji = {
                       critical: '🔴', high: '🟠', medium: '🟡', low: '🟢', none: ''
                     }[res.urgency] || '';
@@ -809,11 +835,16 @@ function TripView({ pop, push }) {
                     const closure = getClosureStatus(attractionId, day.date);
 
                     return (
-                      <div key={attractionId} className={`dc-trip-attr ${closure?.status === 'closed' ? 'closed' : ''}`}>
+                      <div key={attractionId} className={`dc-trip-attr ${closure?.status === 'closed' ? 'closed' : ''} ${sched?.conflict ? 'conflict' : ''}`}>
                         <button
                           className="dc-trip-attr-row"
                           onClick={() => setExpandedAttraction(expanded ? null : `${dayIdx}-${attractionId}`)}
                         >
+                          {sched && (
+                            <span className={`dc-trip-attr-time ${sched.fixed ? 'fixed' : ''}`}>
+                              {sched.fixed ? '🔒 ' : ''}{sched.startStr}
+                            </span>
+                          )}
                           <span className="dc-trip-attr-emoji">{attr.emoji}</span>
                           <span className="dc-trip-attr-name">{attr.name}</span>
                           {urgencyEmoji && (
@@ -827,6 +858,9 @@ function TripView({ pop, push }) {
                             style={{ transform: expanded ? 'rotate(90deg)' : 'none' }}
                           />
                         </button>
+                        {sched?.conflict && (
+                          <div className="dc-trip-conflict">⚠️ {sched.conflict}</div>
+                        )}
                         {closure && (
                           <div className={`dc-trip-closure ${closure.status}`}>
                             {closure.status === 'closed' ? '⚠️ 휴관일!' : '⏰ 시간 제한'} — {closure.notes}
@@ -7246,7 +7280,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.58</div>
+      <div>도슨트 · Docent v0.59</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>

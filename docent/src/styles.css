@@ -4614,3 +4614,67 @@ img {
   color: #E0BC6E;
   transform: translateY(-1px);
 }
+
+/* 일정 시간 표시 */
+.dc-trip-day-timeline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  margin: 0 0 8px 0;
+  background: rgba(201, 169, 97, 0.06);
+  border: 1px solid rgba(201, 169, 97, 0.18);
+  border-radius: 8px;
+  font-size: 12px;
+}
+.dc-trip-day-timeline.has-conflict {
+  background: rgba(255, 80, 80, 0.08);
+  border-color: rgba(255, 80, 80, 0.30);
+}
+.dc-trip-day-timeline-time {
+  color: #C9A961;
+  font-weight: 600;
+  font-size: 13px;
+}
+.dc-trip-day-timeline-locked {
+  color: #88c0d0;
+  font-size: 11px;
+  padding: 2px 7px;
+  background: rgba(136, 192, 208, 0.12);
+  border-radius: 4px;
+}
+.dc-trip-day-timeline-conflict {
+  color: #ff8080;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* attr-row 시간 prefix */
+.dc-trip-attr-time {
+  display: inline-block;
+  min-width: 56px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #A8A8A8;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+}
+.dc-trip-attr-time.fixed {
+  color: #88c0d0;
+}
+
+.dc-trip-attr.conflict .dc-trip-attr-row {
+  background: rgba(255, 80, 80, 0.06);
+  border-left: 3px solid #ff5555;
+}
+
+.dc-trip-conflict {
+  padding: 6px 10px;
+  margin-top: 4px;
+  background: rgba(255, 80, 80, 0.10);
+  border: 1px solid rgba(255, 80, 80, 0.30);
+  border-radius: 6px;
+  font-size: 11px;
+  color: #ffaaaa;
+}

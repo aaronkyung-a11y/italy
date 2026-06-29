@@ -640,6 +640,91 @@ function estimateDayEndMin(day, findAttraction) {
   return Math.min(20 * 60, startMin + total);
 }
 
+// ─────────────────────────────────────────────────────────
+// 일정표 시간 계산 (예약 시간 anchor + 자동 배치)
+// ─────────────────────────────────────────────────────────
+
+function parseTimeToMin(timeStr) {
+  if (!timeStr || !/^\d{1,2}:\d{2}$/.test(timeStr)) return null;
+  const [h, m] = timeStr.split(':').map(Number);
+  return h * 60 + m;
+}
+
+// 하루 일정 시간 자동 계산
+// - booking.slotTime 있는 명소는 그 시간을 고정점으로
+// - 나머지는 09:00부터 duration_min + 30분 버퍼로 순서대로
+// - 4시간 활동 후 점심 1시간
+// - 고정 일정과 충돌 시 conflict 표시
+export function computeDaySchedule(day, findAttraction, trip) {
+  if (!day.attractionIds.length) return [];
+
+  const items = day.attractionIds.map((id) => {
+    const a = findAttraction(id);
+    const booking = trip?.bookings?.[id] || {};
+    const duration = a?.overview?.duration_min ?? 90;
+    const slotTime = (booking.status === 'booked' && booking.slotTime) ? booking.slotTime : null;
+    const slotMin = parseTimeToMin(slotTime);
+    return {
+      id,
+      name: a?.name || id,
+      duration,
+      slotTime,
+      slotMin,
+      fixed: slotMin !== null,
+      confirmation: booking.confirmation || null,
+    };
+  });
+
+  const buffer = 30; // 명소 간 이동 30분
+  const lunchMin = 60; // 점심 60분
+  const result = [];
+  let cursor = 9 * 60; // 기본 시작 09:00
+  let totalActivityMin = 0;
+  let hadLunch = false;
+
+  // 첫 명소가 fixed면 그 시간 사용
+  if (items[0]?.fixed) {
+    cursor = items[0].slotMin;
+  }
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    let startMin;
+    let conflict = null;
+
+    if (item.fixed) {
+      startMin = item.slotMin;
+      if (cursor > startMin) {
+        const overMin = cursor - startMin;
+        conflict = `이전 일정 ${fmtTimeOfDay(cursor)} 종료 → ${item.slotTime} 시작과 ${overMin}분 충돌`;
+      }
+    } else {
+      startMin = cursor;
+    }
+
+    const endMin = startMin + item.duration;
+    result.push({
+      ...item,
+      startMin,
+      endMin,
+      startStr: fmtTimeOfDay(startMin),
+      endStr: fmtTimeOfDay(endMin),
+      conflict,
+    });
+
+    cursor = endMin + buffer;
+    totalActivityMin += item.duration;
+
+    // 점심: 4시간 누적 + cursor가 11:30~14:30 사이일 때
+    if (!hadLunch && totalActivityMin >= 4 * 60 && cursor >= 11 * 60 + 30 && cursor <= 14 * 60 + 30) {
+      cursor += lunchMin;
+      hadLunch = true;
+    }
+  }
+
+  return result;
+}
+
 function estimateDayStartMin(day, findAttraction) {
   // Default 09:00 (most museums open 08:15~10:00, default to 09:00)
   return 9 * 60;
