@@ -4678,3 +4678,25 @@ img {
   font-size: 11px;
   color: #ffaaaa;
 }
+
+.dc-trip-day-timeline-reorder {
+  color: #b5d99c;
+  font-size: 11px;
+  padding: 2px 7px;
+  background: rgba(181, 217, 156, 0.12);
+  border-radius: 4px;
+  font-weight: 600;
+}
+.dc-trip-day-timeline-overflow {
+  color: #ffb066;
+  font-size: 11px;
+  font-weight: 600;
+}
+.dc-trip-attr.overflow .dc-trip-attr-row {
+  background: rgba(255, 176, 102, 0.06);
+  border-left: 3px solid #ffb066;
+  opacity: 0.7;
+}
+.dc-trip-attr-time.overflow {
+  color: #ffb066;
+}

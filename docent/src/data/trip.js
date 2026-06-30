@@ -650,15 +650,15 @@ function parseTimeToMin(timeStr) {
   return h * 60 + m;
 }
 
-// 하루 일정 시간 자동 계산
-// - booking.slotTime 있는 명소는 그 시간을 고정점으로
-// - 나머지는 09:00부터 duration_min + 30분 버퍼로 순서대로
-// - 4시간 활동 후 점심 1시간
-// - 고정 일정과 충돌 시 conflict 표시
+// 하루 일정 자동 재정렬 + 시간 계산
+// - 예약 시간 있는 명소를 anchor로 잡고
+// - 자유 명소를 빈 시간 슬롯에 원래 순서대로 채워넣음
+// - 시간 부족하면 빈 슬롯 다음으로 밀어내거나 overflow 처리
+// - 4시간 활동 후 점심 1시간 자동 추가
 export function computeDaySchedule(day, findAttraction, trip) {
   if (!day.attractionIds.length) return [];
 
-  const items = day.attractionIds.map((id) => {
+  const items = day.attractionIds.map((id, idx) => {
     const a = findAttraction(id);
     const booking = trip?.bookings?.[id] || {};
     const duration = a?.overview?.duration_min ?? 90;
@@ -666,6 +666,7 @@ export function computeDaySchedule(day, findAttraction, trip) {
     const slotMin = parseTimeToMin(slotTime);
     return {
       id,
+      originalIdx: idx,
       name: a?.name || id,
       duration,
       slotTime,
@@ -675,51 +676,88 @@ export function computeDaySchedule(day, findAttraction, trip) {
     };
   });
 
-  const buffer = 30; // 명소 간 이동 30분
-  const lunchMin = 60; // 점심 60분
+  const fixed = items.filter(i => i.fixed).sort((a, b) => a.slotMin - b.slotMin);
+  const free = items.filter(i => !i.fixed); // 원래 순서 유지
+
+  const buffer = 30;
+  const lunchMin = 60;
+  const dayStart = 9 * 60;
+  const dayEnd = 22 * 60;
+
+  // 시간 슬롯 구성: free 슬롯과 fixed 슬롯 번갈아
+  const slots = [];
+  let cursor = (fixed[0] && fixed[0].slotMin < dayStart) ? fixed[0].slotMin : dayStart;
+  for (const f of fixed) {
+    if (cursor < f.slotMin) {
+      slots.push({ type: 'free', start: cursor, end: f.slotMin });
+    }
+    slots.push({ type: 'fixed', item: f, start: f.slotMin, end: f.slotMin + f.duration });
+    cursor = f.slotMin + f.duration + buffer;
+  }
+  if (cursor < dayEnd) {
+    slots.push({ type: 'free', start: cursor, end: dayEnd });
+  }
+
+  // free 슬롯에 자유 명소 채우기 (원래 순서)
   const result = [];
-  let cursor = 9 * 60; // 기본 시작 09:00
+  let freePtr = 0;
   let totalActivityMin = 0;
   let hadLunch = false;
 
-  // 첫 명소가 fixed면 그 시간 사용
-  if (items[0]?.fixed) {
-    cursor = items[0].slotMin;
+  for (const slot of slots) {
+    if (slot.type === 'fixed') {
+      const prevEnd = result.length ? Math.max(...result.map(r => r.endMin || 0)) : 0;
+      const conflict = (prevEnd > slot.item.slotMin)
+        ? `이전 일정 ${fmtTimeOfDay(prevEnd)} 종료 → ${slot.item.slotTime} 시작과 ${prevEnd - slot.item.slotMin}분 충돌`
+        : null;
+      result.push({
+        ...slot.item,
+        startMin: slot.start,
+        endMin: slot.end,
+        startStr: fmtTimeOfDay(slot.start),
+        endStr: fmtTimeOfDay(slot.end),
+        conflict,
+      });
+      totalActivityMin += slot.item.duration;
+    } else {
+      let slotCursor = slot.start;
+      while (freePtr < free.length) {
+        const item = free[freePtr];
+        // 점심 체크
+        if (!hadLunch && totalActivityMin >= 4 * 60 && slotCursor >= 11 * 60 + 30 && slotCursor <= 14 * 60 + 30) {
+          if (slotCursor + lunchMin + item.duration <= slot.end) {
+            slotCursor += lunchMin;
+            hadLunch = true;
+          }
+        }
+        const itemEnd = slotCursor + item.duration;
+        if (itemEnd > slot.end) break; // 안 들어감 → 다음 슬롯
+        result.push({
+          ...item,
+          startMin: slotCursor,
+          endMin: itemEnd,
+          startStr: fmtTimeOfDay(slotCursor),
+          endStr: fmtTimeOfDay(itemEnd),
+          conflict: null,
+        });
+        slotCursor = itemEnd + buffer;
+        totalActivityMin += item.duration;
+        freePtr++;
+      }
+    }
   }
 
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    let startMin;
-    let conflict = null;
-
-    if (item.fixed) {
-      startMin = item.slotMin;
-      if (cursor > startMin) {
-        const overMin = cursor - startMin;
-        conflict = `이전 일정 ${fmtTimeOfDay(cursor)} 종료 → ${item.slotTime} 시작과 ${overMin}분 충돌`;
-      }
-    } else {
-      startMin = cursor;
-    }
-
-    const endMin = startMin + item.duration;
+  // 안 들어간 자유 명소 = overflow
+  for (let i = freePtr; i < free.length; i++) {
     result.push({
-      ...item,
-      startMin,
-      endMin,
-      startStr: fmtTimeOfDay(startMin),
-      endStr: fmtTimeOfDay(endMin),
-      conflict,
+      ...free[i],
+      startMin: null,
+      endMin: null,
+      startStr: '—',
+      endStr: '—',
+      conflict: '오늘 시간 안에 안 들어감',
+      overflow: true,
     });
-
-    cursor = endMin + buffer;
-    totalActivityMin += item.duration;
-
-    // 점심: 4시간 누적 + cursor가 11:30~14:30 사이일 때
-    if (!hadLunch && totalActivityMin >= 4 * 60 && cursor >= 11 * 60 + 30 && cursor <= 14 * 60 + 30) {
-      cursor += lunchMin;
-      hadLunch = true;
-    }
   }
 
   return result;

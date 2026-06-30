@@ -797,13 +797,15 @@ function TripView({ pop, push }) {
                   {(() => {
                     const schedule = computeDaySchedule(day, findAttraction, trip);
                     const hasAny = schedule.length > 0;
-                    const dayEnd = hasAny ? schedule[schedule.length - 1].endStr : null;
-                    const dayStart = hasAny ? schedule[0].startStr : null;
+                    const dayEnd = hasAny ? schedule.filter(s => s.endStr !== '—').slice(-1)[0]?.endStr : null;
+                    const dayStart = hasAny ? schedule.filter(s => s.startStr !== '—')[0]?.startStr : null;
                     const hasFixed = schedule.some(s => s.fixed);
                     const hasConflict = schedule.some(s => s.conflict);
+                    const hasOverflow = schedule.some(s => s.overflow);
+                    const reorderedFromOriginal = schedule.some((s, i) => s.id !== day.attractionIds[i]);
                     if (!hasAny) return null;
                     return (
-                      <div className={`dc-trip-day-timeline ${hasConflict ? 'has-conflict' : ''}`}>
+                      <div className={`dc-trip-day-timeline ${hasConflict || hasOverflow ? 'has-conflict' : ''}`}>
                         <span className="dc-trip-day-timeline-time">
                           🕐 {dayStart} ~ {dayEnd}
                         </span>
@@ -812,55 +814,65 @@ function TripView({ pop, push }) {
                             🔒 {schedule.filter(s => s.fixed).length}개 고정
                           </span>
                         )}
+                        {reorderedFromOriginal && !hasOverflow && (
+                          <span className="dc-trip-day-timeline-reorder" title="예약 시간 맞춰 자동 재배치">
+                            ✨ 자동 재정렬
+                          </span>
+                        )}
+                        {hasOverflow && (
+                          <span className="dc-trip-day-timeline-overflow">⚠️ 일정 초과 — {schedule.filter(s => s.overflow).length}개 미배치</span>
+                        )}
                         {hasConflict && (
                           <span className="dc-trip-day-timeline-conflict">⚠️ 시간 충돌</span>
                         )}
                       </div>
                     );
                   })()}
-                  {day.attractionIds.map((attractionId, attrIdx) => {
-                    const attr = findAttraction(attractionId);
-                    if (!attr) return null;
-                    const res = getReservationInfo(attractionId);
-                    const expanded = expandedAttraction === `${dayIdx}-${attractionId}`;
+                  {(() => {
                     const schedule = computeDaySchedule(day, findAttraction, trip);
-                    const sched = schedule[attrIdx];
-                    const urgencyEmoji = {
-                      critical: '🔴', high: '🟠', medium: '🟡', low: '🟢', none: ''
-                    }[res.urgency] || '';
-                    const urgencyLabel = {
-                      critical: '지금 예약!', high: '1개월 전', medium: '2~3주 전', low: '1주 전 OK', none: '예약 불필요'
-                    }[res.urgency];
+                    const reorderedFromOriginal = schedule.some((s, i) => s.id !== day.attractionIds[i]);
+                    return schedule.map((sched) => {
+                      const attractionId = sched.id;
+                      const attr = findAttraction(attractionId);
+                      if (!attr) return null;
+                      const res = getReservationInfo(attractionId);
+                      const expanded = expandedAttraction === `${dayIdx}-${attractionId}`;
+                      const urgencyEmoji = {
+                        critical: '🔴', high: '🟠', medium: '🟡', low: '🟢', none: ''
+                      }[res.urgency] || '';
+                      const urgencyLabel = {
+                        critical: '지금 예약!', high: '1개월 전', medium: '2~3주 전', low: '1주 전 OK', none: '예약 불필요'
+                      }[res.urgency];
 
-                    const closure = getClosureStatus(attractionId, day.date);
+                      const closure = getClosureStatus(attractionId, day.date);
 
-                    return (
-                      <div key={attractionId} className={`dc-trip-attr ${closure?.status === 'closed' ? 'closed' : ''} ${sched?.conflict ? 'conflict' : ''}`}>
-                        <button
-                          className="dc-trip-attr-row"
-                          onClick={() => setExpandedAttraction(expanded ? null : `${dayIdx}-${attractionId}`)}
-                        >
-                          {sched && (
-                            <span className={`dc-trip-attr-time ${sched.fixed ? 'fixed' : ''}`}>
-                              {sched.fixed ? '🔒 ' : ''}{sched.startStr}
-                            </span>
+                      return (
+                        <div key={attractionId} className={`dc-trip-attr ${closure?.status === 'closed' ? 'closed' : ''} ${sched?.conflict ? 'conflict' : ''} ${sched?.overflow ? 'overflow' : ''}`}>
+                          <button
+                            className="dc-trip-attr-row"
+                            onClick={() => setExpandedAttraction(expanded ? null : `${dayIdx}-${attractionId}`)}
+                          >
+                            {sched && (
+                              <span className={`dc-trip-attr-time ${sched.fixed ? 'fixed' : ''} ${sched.overflow ? 'overflow' : ''}`}>
+                                {sched.fixed ? '🔒 ' : ''}{sched.overflow ? '⚠️' : sched.startStr}
+                              </span>
+                            )}
+                            <span className="dc-trip-attr-emoji">{attr.emoji}</span>
+                            <span className="dc-trip-attr-name">{attr.name}</span>
+                            {urgencyEmoji && (
+                              <span className={`dc-trip-attr-badge urg-${res.urgency}`}>
+                                {urgencyEmoji} {urgencyLabel}
+                              </span>
+                            )}
+                            <ChevronRight
+                              size={14}
+                              className="dc-trip-attr-chev"
+                              style={{ transform: expanded ? 'rotate(90deg)' : 'none' }}
+                            />
+                          </button>
+                          {sched?.conflict && (
+                            <div className="dc-trip-conflict">⚠️ {sched.conflict}</div>
                           )}
-                          <span className="dc-trip-attr-emoji">{attr.emoji}</span>
-                          <span className="dc-trip-attr-name">{attr.name}</span>
-                          {urgencyEmoji && (
-                            <span className={`dc-trip-attr-badge urg-${res.urgency}`}>
-                              {urgencyEmoji} {urgencyLabel}
-                            </span>
-                          )}
-                          <ChevronRight
-                            size={14}
-                            className="dc-trip-attr-chev"
-                            style={{ transform: expanded ? 'rotate(90deg)' : 'none' }}
-                          />
-                        </button>
-                        {sched?.conflict && (
-                          <div className="dc-trip-conflict">⚠️ {sched.conflict}</div>
-                        )}
                         {closure && (
                           <div className={`dc-trip-closure ${closure.status}`}>
                             {closure.status === 'closed' ? '⚠️ 휴관일!' : '⏰ 시간 제한'} — {closure.notes}
@@ -883,7 +895,8 @@ function TripView({ pop, push }) {
                         )}
                       </div>
                     );
-                  })}
+                  });
+                  })()}
 
                   <div className="dc-trip-day-actions">
                     <button
@@ -7280,7 +7293,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.59</div>
+      <div>도슨트 · Docent v0.60</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
