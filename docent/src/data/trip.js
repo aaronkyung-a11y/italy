@@ -243,6 +243,87 @@ export const RESERVATION_INFO = {
       'Traghetto €2 — 〈서서 타는 곤돌라〉 1분 대운하 횡단 (현지인 일상)',
     ],
   },
+  'accademia-venezia': {
+    urgency: 'medium',
+    leadTimeDays: 14,
+    notes: '€15 성인 (18~25세 €2, 18세 미만 무료). 화~일 08:15~19:15. 월요일 오전 휴관',
+    sites: [
+      { name: 'Gallerie dell\'Accademia 공식', url: 'https://www.gallerieaccademia.it/en/tickets', official: true },
+      { name: 'Tickets.it (재판매)', url: 'https://www.tickets.it/en/tickets/venice/gallerie-dellaccademia/', official: false },
+    ],
+    tips: [
+      '€15 (18~25세 €2, 미만 무료 — 딸 무료)',
+      '월요일 08:15~14:00 휴관, 화~일 08:15~19:15 (마지막 입장 18:15)',
+      'Frari + San Rocco와 함께 Dorsoduro 클러스터 (도보 15분)',
+      '베로네세 〈Feast in the House of Levi〉 — Sala 10 (필수)',
+      '벨리니 성모자 시리즈 — Sala 2, 4, 5',
+      '대규모 미술관 — 최소 2시간 확보',
+    ],
+  },
+  'peggy-guggenheim': {
+    urgency: 'medium',
+    leadTimeDays: 14,
+    notes: '€16 성인. 수·목·금·토·일 10:00~18:00. 화요일 휴관!',
+    sites: [
+      { name: 'Peggy Guggenheim 공식', url: 'https://www.guggenheim-venice.it/en/plan-your-visit/tickets-and-prices/', official: true },
+    ],
+    tips: [
+      '€16 (10세 이하 무료 — 딸 무료. 10~26세 €9)',
+      '화요일 휴관 — 요일 확인 필수',
+      '규모 작음 — 1.5시간이면 여유',
+      '조각 정원 + 대운하 테라스가 하이라이트 (Marino Marini 〈Angel of the City〉)',
+      'Palazzo Venier dei Leoni 자체가 볼거리 (미완성 1층 궁)',
+      '아카데미아 다리 남쪽 200m — Accademia와 세트로 가능',
+    ],
+  },
+  salute: {
+    urgency: 'none',
+    notes: '본당 입장 무료. 성구실(Sacrestia) €4 — 티치아노 8점 + 틴토레토 소장',
+    sites: [
+      { name: 'Basilica della Salute 공식', url: 'http://www.basilicasalutevenezia.it/', official: true },
+    ],
+    tips: [
+      '본당 무료 / 성구실 €4 (티치아노 팬은 필수)',
+      '매일 09:30~12:00, 15:00~17:30',
+      '점심 시간(12~15) 폐관 주의',
+      '11월 21일 〈Festa della Salute〉 — 임시 다리로 대운하 순례 (400년 전통)',
+      '대운하 남단 랜드마크 — 바포레토 Salute 정류장',
+      '옷 규정: 어깨 · 무릎 노출 금지',
+    ],
+  },
+  frari: {
+    urgency: 'low',
+    leadTimeDays: 7,
+    notes: '€5 성인. 월~토 09:00~18:00, 일 13:00~18:00',
+    sites: [
+      { name: 'Basilica dei Frari 공식', url: 'https://www.basilicadeifrari.it/en/', official: true },
+    ],
+    tips: [
+      '€5 (COVID 이후 유료화, 이전엔 무료였음)',
+      '티치아노 〈Assunta〉 — 중앙 제단 뒤 원위치 (500년 이동 없음)',
+      '티치아노 무덤 + 카노바 피라미드 무덤 마주 봄',
+      'San Rocco와 도보 5분 — 세트 방문 필수',
+      '옷 규정 엄격: 어깨 · 무릎 커버',
+      '베네치아 최대 고딕 성당 (1250~1338)',
+    ],
+  },
+  'san-rocco': {
+    urgency: 'low',
+    leadTimeDays: 7,
+    notes: '€10 매일 09:30~17:30. 예약 불필요',
+    sites: [
+      { name: 'Scuola San Rocco 공식', url: 'https://www.scuolagrandesanrocco.org/en/', official: true },
+    ],
+    tips: [
+      '€10 (18세 미만 무료)',
+      '매일 09:30~17:30 무휴',
+      '거울 대여 무료 — 천장화 목 안 아프게 감상',
+      '〈베네치아의 시스티나 예배당〉 — 틴토레토 60여 점 원위치',
+      'Frari와 도보 5분 — 세트 방문 필수',
+      '알베르고 방(3층)의 〈십자가에 못박힘〉 12.2m — 최고 걸작',
+      '천장화가 너무 많아 목 아픔 → 거울 사용',
+    ],
+  },
 };
 
 // ─────────────────────────────────────────────────────────
@@ -1394,6 +1475,7 @@ export const KID_FRIENDLY = {
   cenacolo: 3, 'duomo-milan': 5, sforzesco: 4, 'galleria-scala': 4, brera: 2,
   // 베네치아
   'san-marco': 5, 'palazzo-ducale': 4, rialto: 4, 'murano-burano': 5, gondola: 5,
+  'accademia-venezia': 3, 'peggy-guggenheim': 4, salute: 4, frari: 3, 'san-rocco': 3,
 };
 
 export function getKidFriendly(attractionId) {
