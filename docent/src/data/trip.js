@@ -324,6 +324,85 @@ export const RESERVATION_INFO = {
       '천장화가 너무 많아 목 아픔 → 거울 사용',
     ],
   },
+  'santa-maria-maggiore': {
+    urgency: 'none',
+    notes: '무료 입장 (본당). 매일 07:00~18:45. 예약 불필요',
+    sites: [
+      { name: 'Basilica S. Maria Maggiore 공식', url: 'https://www.vatican.va/various/basiliche/sm_maggiore/index_it.html', official: true },
+    ],
+    tips: [
+      '본당 무료 · 지하 고고학 통로 별도 예약 €5',
+      'Termini 역에서 도보 5분',
+      '옷 규정 엄격 — 어깨 · 무릎 커버',
+      '5C 나이브 모자이크는 쌍안경 지참 강력 권장',
+      '매년 8월 5일 〈눈의 기적〉 재현 미사 (흰 꽃잎 뿌림)',
+      '4대 교황급 대성전 중 하나',
+    ],
+  },
+  'palazzo-barberini': {
+    urgency: 'medium',
+    leadTimeDays: 14,
+    notes: '€15 (18세 미만 무료, 18~25세 €2). 화~일 10:00~19:00, 월 휴관. Palazzo Corsini 공동권 €25 유효 5일',
+    sites: [
+      { name: 'Barberini Corsini 공식', url: 'https://www.barberinicorsini.org/en/', official: true },
+    ],
+    tips: [
+      '€15 (아들 무료 — 여권 지참)',
+      'Palazzo Corsini 공동권 €25 (5일 유효)',
+      '월요일 휴관 주의',
+      '트레비 분수 도보 10분',
+      'Pietro da Cortona 천장화는 중앙 벤치에 누워 감상',
+      'Caravaggio 3점 (Judith · Narcissus · St. Francis) 필수',
+    ],
+  },
+  'san-clemente': {
+    urgency: 'low',
+    leadTimeDays: 3,
+    notes: '상층 무료 · 하층 €10. 월~토 09:00~12:30, 15:00~17:30 · 일 12:00~17:30',
+    sites: [
+      { name: 'San Clemente 공식', url: 'https://basilicasanclemente.com/', official: true },
+    ],
+    tips: [
+      '상층 무료 · 하층 지하 €10 (필수 관람)',
+      '콜로세움에서 도보 5분',
+      '지하 습도 높음 — 얇은 상의 지참',
+      '점심 시간 12:30~15:00 폐관',
+      '아일랜드 도미니코회 관리 (영어 유창)',
+      "'수직 고고학' — 3층 시간 여행 로마 최고 코스",
+    ],
+  },
+  'villa-farnesina': {
+    urgency: 'low',
+    leadTimeDays: 7,
+    notes: '€10 (18세 미만 무료). 월~토 09:00~14:00, 두 번째 일요일 09:00~17:00',
+    sites: [
+      { name: 'Villa Farnesina 공식', url: 'https://www.villafarnesina.it/?lang=en', official: true },
+    ],
+    tips: [
+      '€10 (아들 무료)',
+      '월~토 오전만 (09:00~14:00) — 오후 폐관 주의',
+      '트라스테베레 지구 — 대운하 강변',
+      'Raphael 〈Galatea〉 · Peruzzi 원근방 필수',
+      '주 1회 정문 사이트(Farnesina Estatica) 정원 개방',
+      '북쪽 팔라초 코르시니와 함께 방문 좋음 (도보 3분)',
+    ],
+  },
+  'palazzo-massimo': {
+    urgency: 'low',
+    leadTimeDays: 7,
+    notes: '€10 · Museo Nazionale Romano 통합권 €12 (4지점, 1주 유효). 화~일 09:30~19:00, 월 휴관',
+    sites: [
+      { name: 'Museo Nazionale Romano 공식', url: 'https://museonazionaleromano.beniculturali.it/en/', official: true },
+    ],
+    tips: [
+      '€10 단독 / €12 통합권 (4지점 1주)',
+      'Termini 역 옆 — 접근성 최고',
+      '월요일 휴관 주의',
+      '리비아 별장 정원방 (2층) 필수',
+      'Boxer at Rest 청동상 세계 유일',
+      '통합권으로 Palazzo Altemps · Diocleziano 목욕탕까지 방문 강력 추천',
+    ],
+  },
 };
 
 // ─────────────────────────────────────────────────────────
@@ -1467,6 +1546,8 @@ export const KID_FRIENDLY = {
   vatican: 4, castel: 5,
   borghese: 3,
   pantheon: 4, trevi: 5, navona: 5, spagna: 4, popolo: 3,
+  'santa-maria-maggiore': 3, 'palazzo-barberini': 3, 'san-clemente': 5,
+  'villa-farnesina': 3, 'palazzo-massimo': 4,
   // 피렌체
   uffizi: 2, accademia: 3, vecchio: 4, bargello: 3, santacroce: 3, duomo: 4,
   'medici-chapels': 3, 'pitti-boboli': 5, brancacci: 2,
