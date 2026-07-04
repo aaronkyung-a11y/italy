@@ -625,6 +625,152 @@ export const RESERVATION_INFO = {
       '전 세계 최고 무료 걸작 중 하나로 평가',
     ],
   },
+  'san-giovanni-laterano': {
+    urgency: 'low',
+    leadTimeDays: 3,
+    notes: '무료 (대성전). Scala Santa €10 별도. 4대 papal basilica 중 최상위',
+    sites: [
+      { name: '대성전 공식', url: 'https://www.vatican.va/various/basiliche/san_giovanni/index_it.htm', official: true },
+    ],
+    tips: [
+      '대성전 무료 · 매일 07:00~18:30',
+      'Scala Santa €10 · 4~10월만 개방',
+      '4대 papal basilica 중 최상위 (교황 실제 성좌)',
+      '12사도 대형 조각 (5m) 필수',
+      '지하 4C 세례당까지 시간 여유 필요',
+      '지하철 A라인 San Giovanni 역',
+    ],
+  },
+  'san-paolo-fuori': {
+    urgency: 'none',
+    notes: '무료. 매일 07:00~18:30. 지하철 B라인 Basilica S. Paolo',
+    sites: [
+      { name: '대성전 공식', url: 'https://www.basilicasanpaolo.org/', official: true },
+    ],
+    tips: [
+      '무료 · 예약 불필요',
+      '지하철 B라인 접근 · 도심 밖',
+      '사도 바울 무덤 (지하)',
+      '265 교황 초상 메달리온 (베드로 → 프란치스코)',
+      '13C 원본 Cosmatesque 회랑 (화재 생존)',
+    ],
+  },
+  'san-luigi-francesi': {
+    urgency: 'none',
+    notes: '무료. 월~일 09:30~12:45, 14:30~18:30. 조명 €2 코인',
+    sites: [
+      { name: '성당 공식', url: 'https://saintlouis-rome.net/', official: true },
+    ],
+    tips: [
+      '무료 · Piazza Navona 도보 3분',
+      'Sant\'Agostino와 세트 방문 (도보 5분)',
+      'Contarelli 예배당 - 왼쪽 5번째',
+      '조명 코인 (€2) 필수 - Caravaggio 3점 관찰',
+      '오후 대기 시간 있을 수 있음 · 오전 방문 권장',
+    ],
+  },
+  'sant-agostino': {
+    urgency: 'none',
+    notes: '무료. 매일 07:30~12:00, 16:00~19:30',
+    sites: [
+      { name: '성당 공식', url: 'https://www.santagostinoinroma.it/', official: true },
+    ],
+    tips: [
+      '무료 · San Luigi와 세트 방문 (도보 5분)',
+      'Caravaggio 〈순례자의 마돈나〉 왼쪽 첫 예배당',
+      'Raphael 〈이사야 예언자〉 3번째 기둥',
+      '조용한 성당 · 관광객 적음',
+    ],
+  },
+  'terme-diocleziano': {
+    urgency: 'low',
+    leadTimeDays: 3,
+    notes: '성당 무료 · 박물관 부분 €10 · Museo Nazionale Romano 통합권 €12 (4지점 1주)',
+    sites: [
+      { name: '박물관 공식', url: 'https://museonazionaleromano.beniculturali.it/en/', official: true },
+    ],
+    tips: [
+      '성당 무료 · 박물관 부분 €10',
+      '통합권으로 Palazzo Massimo · Altemps 함께 (권장)',
+      'Termini 역 광장 반대편 (걸어서 5분)',
+      'Michelangelo 개조 로마 목욕탕 (86세 유작)',
+      '태양 미리디언 정오 관측 특별 순간',
+    ],
+  },
+  'baths-caracalla': {
+    urgency: 'low',
+    leadTimeDays: 7,
+    notes: '€8 (18세 미만 무료). Foro/Palatine 통합권 €18',
+    sites: [
+      { name: '공식', url: 'https://www.coopculture.it/en/heritage/baths-of-caracalla/', official: true },
+    ],
+    tips: [
+      '€8 (18세 미만 무료)',
+      '지하철 B라인 Circo Massimo 역 · 도보 5분',
+      '3C 로마 최대 목욕탕 규모 · 여가 문명 이해',
+      '여름 오페라는 6~8월 (Aaron 9월 방문시 시즌 종료 확인 필요)',
+      '유적에서 원본 모자이크 볼 수 있음',
+    ],
+  },
+  'palazzo-doria-pamphilj': {
+    urgency: 'low',
+    leadTimeDays: 3,
+    notes: '€16 (오디오 가이드 포함). 매일 09:00~19:00 (성탄 · 부활 휴관)',
+    sites: [
+      { name: '공식', url: 'https://www.doriapamphilj.it/roma/en/', official: true },
+    ],
+    tips: [
+      '€16 - 오디오 가이드 포함',
+      '오디오는 상속인 조나단 도리아 팜필리 본인 목소리',
+      'Via del Corso 305 · Piazza Venezia 근처',
+      'Velázquez 〈Innocent X〉 필수',
+      'Caravaggio 초기 2점 · Bernini 흉상까지',
+    ],
+  },
+  'chiesa-del-gesu': {
+    urgency: 'none',
+    notes: '무료. 매일 07:00~19:30',
+    sites: [
+      { name: '성당 공식', url: 'https://chiesadelgesu.org/', official: true },
+    ],
+    tips: [
+      '무료 · Piazza del Gesù · Piazza Venezia 도보 5분',
+      '바로크 예수회 성당의 원형',
+      'Baciccio 천장화 - 특별 지점에서 3D 착시',
+      '성 이나시오 예배당 (Andrea Pozzo) 필수',
+      'Palazzo Doria Pamphilj와 세트 방문 (도보 3분)',
+    ],
+  },
+  'cripta-cappuccini': {
+    urgency: 'low',
+    leadTimeDays: 3,
+    notes: '€10 (수도원 박물관 포함). 매일 10:00~19:00, 부활 · 성탄 휴관',
+    sites: [
+      { name: '공식', url: 'https://www.cappucciniviaveneto.it/', official: true },
+    ],
+    tips: [
+      '€10 - 수도원 박물관 포함',
+      'Piazza Barberini 근처 · Trevi 도보 10분',
+      '지하 6방 유골 예술 (사진 촬영 금지)',
+      'Guido Reni 〈성 미카엘 대천사〉 원본',
+      '10세 아들에게 사전 심리적 준비 필요 (유골 예술)',
+    ],
+  },
+  'aventino': {
+    urgency: 'none',
+    notes: '무료 (정원 · 열쇠구멍 · Santa Sabina 모두)',
+    sites: [
+      { name: 'Santa Sabina 공식', url: 'https://www.basilicasantasabina.it/', official: true },
+    ],
+    tips: [
+      '무료 · 예약 불필요',
+      '지하철 B라인 Circo Massimo 역 · 도보 10분',
+      '오렌지 정원 - 로마 최고 파노라마 지점 중 하나',
+      'Malta 열쇠구멍 - 성 베드로 돔 프레임',
+      'Santa Sabina - 5C 원본 성당',
+      '일몰 시간 최적 · 관광객 덜 몰림',
+    ],
+  },
 };
 
 // ─────────────────────────────────────────────────────────
@@ -1770,6 +1916,11 @@ export const KID_FRIENDLY = {
   pantheon: 4, trevi: 5, navona: 5, spagna: 4, popolo: 3,
   'santa-maria-maggiore': 3, 'palazzo-barberini': 3, 'san-clemente': 5,
   'villa-farnesina': 3, 'palazzo-massimo': 4,
+  'san-giovanni-laterano': 3, 'san-paolo-fuori': 3,
+  'san-luigi-francesi': 2, 'sant-agostino': 2,
+  'terme-diocleziano': 4, 'baths-caracalla': 5,
+  'palazzo-doria-pamphilj': 3, 'chiesa-del-gesu': 3,
+  'cripta-cappuccini': 4, aventino: 5,
   // 피렌체
   uffizi: 2, accademia: 3, vecchio: 4, bargello: 3, santacroce: 3, duomo: 4,
   'medici-chapels': 3, 'pitti-boboli': 5, brancacci: 2,
