@@ -403,6 +403,228 @@ export const RESERVATION_INFO = {
       '통합권으로 Palazzo Altemps · Diocleziano 목욕탕까지 방문 강력 추천',
     ],
   },
+  'battistero': {
+    urgency: 'medium',
+    leadTimeDays: 21,
+    notes: '두오모 통합권 필요 (€30~). 예약 필수 (특히 세례당 접근 창구)',
+    sites: [
+      { name: 'Grande Museo del Duomo 공식', url: 'https://duomo.firenze.it/en/', official: true },
+    ],
+    tips: [
+      '두오모 통합권으로 5개 시설 (세례당 · 두오모 · 종탑 · 박물관 · 발굴)',
+      '통합권 유효 3일 · 시간대별 예약',
+      '동쪽 〈천국의 문〉은 복제 · 원본은 박물관',
+      '내부 팔각 돔 모자이크 쌍안경 도움',
+      '두오모 광장 한복판',
+    ],
+  },
+  'campanile': {
+    urgency: 'medium',
+    leadTimeDays: 21,
+    notes: '두오모 통합권 필요 (€30~). 414계단 등반 · 예약제',
+    sites: [
+      { name: 'Grande Museo del Duomo 공식', url: 'https://duomo.firenze.it/en/', official: true },
+    ],
+    tips: [
+      '두오모 등반 대신 종탑 등반 추천 (사진 · 붐빔 · 접근성 우수)',
+      '414 계단 · 엘리베이터 없음',
+      '10세 아들: 30~40분 소요 · 등반 가능',
+      '오전 10시 이전 · 일몰 1시간 전 최적',
+      '3층 테라스에서 두오모 정면',
+    ],
+  },
+  'opera-duomo': {
+    urgency: 'medium',
+    leadTimeDays: 21,
+    notes: '두오모 통합권 포함 (€30~). 세계 최고 대성당 박물관 평',
+    sites: [
+      { name: 'Grande Museo del Duomo 공식', url: 'https://duomo.firenze.it/en/', official: true },
+    ],
+    tips: [
+      '두오모 통합권으로 세례당 · 종탑과 함께 방문',
+      '기베르티 〈천국의 문〉 원본 10패널 필수',
+      '미켈란젤로 피에타 반디니 (자화상)',
+      '도나텔로 마리아 막달레나 (극한 사실주의)',
+      '2015 재개관 후 세계 최고 두오모 박물관 평',
+    ],
+  },
+  'piazzale-san-miniato': {
+    urgency: 'none',
+    notes: '무료. 매일 개방 (San Miniato 성당 특히 저녁 5:30 그레고리안 성가)',
+    sites: [
+      { name: 'San Miniato al Monte 공식', url: 'https://www.sanminiatoalmonte.it/', official: true },
+    ],
+    tips: [
+      '무료 · 예약 불필요',
+      '버스 12번 (계단 등반 대신 · 10세 아들 편의)',
+      '일몰 1시간 전 도착 최적',
+      'San Miniato 매일 17:30 그레고리안 성가 (계절별)',
+      '베네딕토회 자체 리큐어 판매',
+    ],
+  },
+  'santa-maria-novella': {
+    urgency: 'low',
+    leadTimeDays: 3,
+    notes: '€7.5. 월~목 09:30~17:30, 금 11:00~17:30, 토·일 13:00~17:30',
+    sites: [
+      { name: 'Santa Maria Novella 공식', url: 'https://www.smn.it/en/', official: true },
+    ],
+    tips: [
+      '€7.5 (18세 미만 무료)',
+      '피렌체 S.M.N 역 바로 앞',
+      '마사초 〈삼위일체〉 원근법 최초 완전 구현',
+      '기를란다요 토르나부오니 예배당 (미켈란젤로 견습장)',
+      '알베르티 파사드 (르네상스 성당의 원형)',
+    ],
+  },
+  'museo-san-marco': {
+    urgency: 'low',
+    leadTimeDays: 3,
+    notes: '€8. 월~금 08:15~13:50, 토·일 08:15~19:00',
+    sites: [
+      { name: 'Museo San Marco 공식', url: 'https://cultura.gov.it/luogo/museo-di-san-marco', official: true },
+    ],
+    tips: [
+      '€8 (18세 미만 무료)',
+      '아카데미아에서 도보 5분 · 세트 방문',
+      'Fra Angelico 수태고지 (계단 정상)',
+      '44개 방마다 프레스코 (특히 셀 3, 6, 25, 34)',
+      'Savonarola 방 (그의 십자가 · 옷 · 화형 유물)',
+      'Cenacolo Sant\'Apollonia와 세트 방문 좋음 (도보 3분)',
+    ],
+  },
+  'san-lorenzo': {
+    urgency: 'low',
+    leadTimeDays: 3,
+    notes: '€10. 월~토 10:00~17:30. 메디치 예배당(medici-chapels)은 별도 티켓',
+    sites: [
+      { name: 'Basilica San Lorenzo 공식', url: 'https://operamedicealaurenziana.org/en/', official: true },
+    ],
+    tips: [
+      '€10 (18세 미만 무료)',
+      '외관 파사드 미완성 (미켈란젤로 설계 취소)',
+      'Old Sacristy — 브루넬레스키 첫 완성 건축',
+      'Laurentian Library — 미켈란젤로 매너리즘 걸작',
+      '메디치 예배당(New Sacristy)은 뒤편 별도 입구 (별도 티켓)',
+    ],
+  },
+  'orsanmichele': {
+    urgency: 'low',
+    leadTimeDays: 3,
+    notes: '무료 (성당). 위층 박물관은 월요일만 개방',
+    sites: [
+      { name: 'Orsanmichele 공식', url: 'https://cultura.gov.it/luogo/museo-di-orsanmichele', official: true },
+    ],
+    tips: [
+      '1층 성당 무료',
+      '위층 원본 조각 박물관은 월요일 한정',
+      '외관 14개 니치의 조각은 대부분 복제 (원본은 위층)',
+      '도나텔로 성 게오르기우스 원본은 Bargello',
+      'Via Calzaiuoli 도보 관광 중 자연스럽게 방문',
+    ],
+  },
+  'ognissanti': {
+    urgency: 'low',
+    leadTimeDays: 3,
+    notes: '무료. 최후의 만찬 접근: 화·목·토 09:00~12:00만',
+    sites: [
+      { name: 'Ognissanti 공식', url: 'https://www.chiesaognissanti.it/', official: true },
+    ],
+    tips: [
+      '무료 입장',
+      '기를란다요 최후의 만찬 (다빈치보다 15년 앞선)',
+      '보티첼리 무덤 · 시모네타 베스푸치',
+      '어린 아메리고 베스푸치 초상',
+      '최후의 만찬은 오전 시간 제한 주의',
+    ],
+  },
+  'palazzo-medici-riccardi': {
+    urgency: 'medium',
+    leadTimeDays: 14,
+    notes: '€10. 목~화 09:00~18:00, 수 휴관. 동방박사 예배당 예약 필수',
+    sites: [
+      { name: 'Palazzo Medici Riccardi 공식', url: 'https://www.palazzomediciriccardi.it/en/', official: true },
+    ],
+    tips: [
+      '€10 (18세 미만 무료)',
+      '수요일 휴관 주의',
+      'Cappella dei Magi 예약 필수 (시간별 30명)',
+      'Benozzo Gozzoli 동방박사 프레스코 (메디치 가족 초상)',
+      '유럽 궁전 건축의 원형',
+    ],
+  },
+  'casa-buonarroti': {
+    urgency: 'low',
+    leadTimeDays: 3,
+    notes: '€8. 수~월 10:00~16:30, 화 휴관',
+    sites: [
+      { name: 'Casa Buonarroti 공식', url: 'https://www.casabuonarroti.it/en/', official: true },
+    ],
+    tips: [
+      '€8 (18세 미만 무료)',
+      '화요일 휴관',
+      '미켈란젤로 15세 〈계단의 성모〉 (최초 조각)',
+      '17세 〈켄타우로스와의 전투〉 ("가장 자랑스러운" 유언)',
+      '산타 크로체 근처 · 산타 크로체와 세트 방문 좋음',
+    ],
+  },
+  'museo-galileo': {
+    urgency: 'low',
+    leadTimeDays: 3,
+    notes: '€10. 화·목·토 09:30~18:00, 다른 요일 시간 확인 필요',
+    sites: [
+      { name: 'Museo Galileo 공식', url: 'https://www.museogalileo.it/en/', official: true },
+    ],
+    tips: [
+      '€10 (18세 미만 무료)',
+      'Uffizi에서 도보 3분 (Uffizi 티켓과 세트)',
+      '갈릴레오 원본 망원경 2점',
+      '갈릴레오 손가락 유물 (오른손 중지)',
+      '10세 아들 관심 최고 (인터랙티브 전시)',
+    ],
+  },
+  'palazzo-strozzi': {
+    urgency: 'variable',
+    notes: '특별전 시 €15~20 예상 (특별전 없을 때 무료 중정만). 특별전 일정 확인 필요',
+    sites: [
+      { name: 'Palazzo Strozzi 공식', url: 'https://www.palazzostrozzi.org/en/', official: true },
+    ],
+    tips: [
+      '특별전 스케줄에 따라 방문 결정',
+      '중정(cortile)은 무료 · 항상 개방',
+      '중정 안 카페 Strozzi (커피 · 간단한 식사)',
+      '15세기 상인 필리포 스트로치의 야망',
+      '메디치 궁과 비교 감상 필수',
+    ],
+  },
+  'santa-trinita': {
+    urgency: 'none',
+    notes: '무료. 매일 07:00~12:00, 16:00~19:00',
+    sites: [
+      { name: 'Santa Trinita 공식', url: 'https://www.basilicasantatrinita.org/', official: true },
+    ],
+    tips: [
+      '무료 입장',
+      '기를란다요 Sassetti 예배당 (산 프란체스코 6장면)',
+      '규칙 승인 장면에 로렌초 데 메디치 + 아들 3명 초상',
+      '15C 시뇨리아 광장 재현 배경',
+      'Ponte Santa Trinita (유럽 최초 타원형 아치)',
+    ],
+  },
+  'cenacolo-santapollonia': {
+    urgency: 'none',
+    notes: '무료. 화·목·토 08:15~13:50 (다른 요일 확인)',
+    sites: [
+      { name: 'Cenacolo Sant\'Apollonia 공식', url: 'https://cultura.gov.it/luogo/cenacolo-di-santapollonia', official: true },
+    ],
+    tips: [
+      '무료 입장 · 대부분 관광객 놓침',
+      'San Marco에서 도보 3분 · 세트 방문 강력 추천',
+      'Andrea del Castagno 최후의 만찬 (다빈치보다 50년 앞선)',
+      '30분 방문 가능',
+      '전 세계 최고 무료 걸작 중 하나로 평가',
+    ],
+  },
 };
 
 // ─────────────────────────────────────────────────────────
@@ -1552,6 +1774,10 @@ export const KID_FRIENDLY = {
   uffizi: 2, accademia: 3, vecchio: 4, bargello: 3, santacroce: 3, duomo: 4,
   'medici-chapels': 3, 'pitti-boboli': 5, brancacci: 2,
   'ponte-vecchio': 5, 'san-lorenzo-market': 5, oltrarno: 4,
+  battistero: 4, campanile: 5, 'opera-duomo': 3, 'piazzale-san-miniato': 5,
+  'santa-maria-novella': 3, 'museo-san-marco': 3, 'san-lorenzo': 3, orsanmichele: 3,
+  ognissanti: 2, 'palazzo-medici-riccardi': 3, 'casa-buonarroti': 3,
+  'museo-galileo': 5, 'palazzo-strozzi': 3, 'santa-trinita': 2, 'cenacolo-santapollonia': 2,
   // 밀라노
   cenacolo: 3, 'duomo-milan': 5, sforzesco: 4, 'galleria-scala': 4, brera: 2,
   // 베네치아
