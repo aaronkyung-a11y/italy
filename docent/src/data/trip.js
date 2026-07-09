@@ -1624,29 +1624,30 @@ export const AARON_CONFIRMED_TRIP = {
     // 9/20 (일) 피렌체 Uffizi 데이
     {
       date: '2026-09-20',
-      attractionIds: ['uffizi', 'vecchio', 'duomo'],
+      attractionIds: ['uffizi', 'pitti-boboli'],
       dayInfo: {
-        title: '우피치 + 시뇨리아 데이',
+        title: '우피치 + Pitti 데이 (일요일 폐관 회피)',
         reservations: [
           { time: '10:00', label: '🎨 Uffizi 입장 · 3매 · PNR WAGG1CYE · 성인 €29×2 + 미성년(Ian) 무료' },
         ],
+        note: '⚠️ 원래 계획 Duomo는 일요일 대성당 내부 관광 불가 → 월요일로 이동. Pitti Palace는 월요일 폐관이라 일요일에 배치. 동선: Uffizi 10:00~12:30 → Oltrarno 점심 → Pitti 14:00~17:00 → Boboli 17:00~ 일몰',
       },
     },
-    // 9/21 (월) 피렌체 남부
+    // 9/21 (월) 피렌체 Duomo + 성당 데이 (월요일 개방 명소 위주)
     {
       date: '2026-09-21',
-      attractionIds: ['santacroce', 'medici-chapels', 'san-lorenzo-market', 'pitti-boboli'],
+      attractionIds: ['duomo', 'vecchio', 'santacroce', 'san-lorenzo-market'],
       dayInfo: {
-        title: '피렌체 문화 데이',
-        note: 'Santa Croce (미켈란젤로·갈릴레오·마키아벨리 무덤) → San Lorenzo Market 점심 → Medici Chapels → Pitti + Boboli 오후',
+        title: 'Duomo + 성당 데이 (월요일 개방 위주)',
+        note: '⚠️ 원래 계획 Medici Chapels는 월요일 폐관 · 화요일로 이동. Pitti Palace도 월요일 폐관. 대신 일요일 관광객 폐쇄됐던 Duomo 대성당 본체(무료)를 오늘 방문. 동선: 09:00 Duomo 대성당(무료 · 20분) → Baptistery + 종탑 등반 → San Lorenzo Market 점심 → Palazzo Vecchio → Santa Croce (미켈란젤로·갈릴레오 무덤)',
       },
     },
     // 9/22 (화) 피렌체 → 베네치아
     {
       date: '2026-09-22',
-      attractionIds: ['accademia', 'bargello'],
+      attractionIds: ['accademia', 'medici-chapels', 'bargello'],
       dayInfo: {
-        title: 'David + 피렌체→베네치아',
+        title: 'David + 이동 데이',
         reservations: [
           { time: '08:15', label: '🔴 Accademia 예약 필요 (아직 미예약! 다비드)' },
         ],
@@ -1654,6 +1655,7 @@ export const AARON_CONFIRMED_TRIP = {
           { type: 'train', label: '🚄 14:20 피렌체 S.M.N → 16:34 베네치아 S.Lucia · Frecciarossa 9420 · 2° Premium · 4호차 14D/15C/15D · PNR MYE9DN · €65' },
         ],
         hotel: '🏨 체크인: U-Visionary Venezia · 1박',
+        note: '⚠️ Medici Chapels를 월요일에서 화요일로 이동 (월 폐관). 동선: 08:15 Accademia(David) → 10:30 Medici Chapels(1h) → 11:45 Bargello(1.5h) → 13:15 호텔 픽업 → 14:20 열차',
       },
     },
     // 9/23 (수) 베네치아 반나절 + 밀라노 이동
