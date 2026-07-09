@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { CITIES, ATTRACTIONS, findAttraction, findPoint, TOTAL_POINTS } from './data/attractions.js';
 import {
-  loadTrip, saveTrip, clearTrip, createEmptyTrip,
+  loadTrip, saveTrip, clearTrip, createEmptyTrip, AARON_CONFIRMED_TRIP,
   getReservationInfo, getTransitInfo, getTransitTiming, computeDaySchedule,
   attractionReminderUrl, transitReminderUrl,
   getClosureStatus, getRecommendedCourses,
@@ -490,6 +490,28 @@ function TripView({ pop, push }) {
           <button className="dc-trip-setup-btn" onClick={handleCreate}>
             일정 만들기
           </button>
+
+          <div style={{marginTop: 20, padding: '16px 14px', background: 'linear-gradient(135deg, #fff5f0, #fef8f0)', borderRadius: 12, border: '1.5px solid #f0d5a5'}}>
+            <div style={{fontSize: 13, fontWeight: 700, color: '#8b5a2b', marginBottom: 8}}>
+              ⚡ Aaron 확정 여정 바로 불러오기
+            </div>
+            <div style={{fontSize: 11, color: '#7a5a3a', lineHeight: 1.5, marginBottom: 12}}>
+              9/16~9/25 로마→피렌체→베네치아→밀라노 10일 일정.<br/>
+              항공권 · 호텔 3곳 · 열차 3구간 · 예약 3건 (Vatican, Uffizi, Cenacolo) 반영. Borghese · Accademia 예약 필요 상태 포함.
+            </div>
+            <button
+              className="dc-trip-setup-btn"
+              style={{background: 'linear-gradient(135deg, #b85b3f, #c9a961)', color: 'white'}}
+              onClick={() => {
+                if (window.confirm('Aaron 확정 여정을 불러오시겠습니까?\n(기존 일정은 덮어씁니다)')) {
+                  update(AARON_CONFIRMED_TRIP);
+                  setShowSetup(false);
+                }
+              }}
+            >
+              📥 Aaron 확정 여정 불러오기 (9/16~9/25)
+            </button>
+          </div>
         </div>
 
         <div className="dc-trip-setup-info">
@@ -792,6 +814,46 @@ function TripView({ pop, push }) {
                     )}
                   </div>
                 </div>
+
+                {/* dayInfo — 확정된 항공/열차/호텔/예약 정보 (AARON_CONFIRMED_TRIP에서 로드된 데이터) */}
+                {day.dayInfo && (
+                  <div style={{
+                    margin: '10px 12px 0',
+                    padding: '10px 12px',
+                    background: 'linear-gradient(135deg, #fff5f0, #fef8f0)',
+                    borderLeft: '3px solid #b85b3f',
+                    borderRadius: 6,
+                    fontSize: 12,
+                    lineHeight: 1.5,
+                    color: '#4a3529',
+                  }}>
+                    {day.dayInfo.title && (
+                      <div style={{fontWeight: 700, marginBottom: 6, color: '#8b3a1e', fontSize: 12.5}}>
+                        📌 {day.dayInfo.title}
+                      </div>
+                    )}
+                    {day.dayInfo.reservations?.map((r, i) => (
+                      <div key={`r-${i}`} style={{marginBottom: 4, padding: '4px 8px', background: '#fff', borderRadius: 4, borderLeft: '2px solid #4a7c59'}}>
+                        <span style={{fontWeight: 600, color: '#4a7c59'}}>{r.time}</span> · {r.label}
+                      </div>
+                    ))}
+                    {day.dayInfo.transit?.map((t, i) => (
+                      <div key={`t-${i}`} style={{marginBottom: 4, padding: '4px 8px', background: '#fff', borderRadius: 4, borderLeft: '2px solid #7a9e8f'}}>
+                        {t.label}
+                      </div>
+                    ))}
+                    {day.dayInfo.hotel && (
+                      <div style={{marginBottom: 4, padding: '4px 8px', background: '#fff', borderRadius: 4, borderLeft: '2px solid #b8860b'}}>
+                        {day.dayInfo.hotel}
+                      </div>
+                    )}
+                    {day.dayInfo.note && (
+                      <div style={{marginTop: 4, fontSize: 11, color: '#7a5a3a', fontStyle: 'italic'}}>
+                        💡 {day.dayInfo.note}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div className="dc-trip-day-attractions">
                   {(() => {
@@ -7293,7 +7355,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.66</div>
+      <div>도슨트 · Docent v0.67</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
