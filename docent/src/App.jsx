@@ -683,12 +683,42 @@ function TripView({ pop, push }) {
         );
       })()}
 
+      {/* 숙소 커버리지 경고 — 마지막 날 제외한 모든 밤에 hotel 정보가 있는지 확인 */}
+      {(() => {
+        const nights = trip.days.slice(0, -1); // 마지막 날은 출국일(숙박 없음)
+        const missing = nights.filter((d) => !(d.dayInfo && d.dayInfo.hotel));
+        if (missing.length === 0) return null;
+        return (
+          <div style={{
+            margin: '0 12px 12px', padding: '12px 14px',
+            background: 'linear-gradient(135deg, #3a1a1a, #2a1515)',
+            border: '1.5px solid #c44536', borderRadius: 10,
+            fontSize: 12.5, color: '#ffb3a0', lineHeight: 1.6,
+          }}>
+            <div style={{ fontWeight: 700, marginBottom: 4, color: '#ff8060' }}>
+              ⚠️ 숙소 미배정 경고
+            </div>
+            {missing.map((d) => {
+              const dt = new Date(d.date);
+              const wd = ['일','월','화','수','목','금','토'][dt.getDay()];
+              return (
+                <div key={d.date}>
+                  🔴 {dt.getMonth()+1}/{dt.getDate()} ({wd}) 밤 — 예약된 숙소 없음
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
+
       <div className="dc-trip-days">
         {trip.days.map((day, dayIdx) => {
           const dayCity = getDayCity(day);
           const prevDay = dayIdx > 0 ? trip.days[dayIdx - 1] : null;
           const prevCity = prevDay ? getDayCity(prevDay) : null;
-          const transitInfo = (prevCity && dayCity && prevCity !== dayCity)
+          // 확정 여정에 열차/항공 정보가 이미 dayInfo에 있으면 자동 추천 카드는 숨김
+          const hasConfirmedTransit = !!(day.dayInfo && Array.isArray(day.dayInfo.transit) && day.dayInfo.transit.length > 0);
+          const transitInfo = (!hasConfirmedTransit && prevCity && dayCity && prevCity !== dayCity)
             ? getTransitInfo(prevCity, dayCity)
             : null;
           const transitTiming = (transitInfo && prevDay)
@@ -7355,7 +7385,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.68</div>
+      <div>도슨트 · Docent v0.69</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>

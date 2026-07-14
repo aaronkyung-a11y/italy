@@ -1579,19 +1579,20 @@ export const AARON_CONFIRMED_TRIP = {
         transit: [
           { type: 'flight', label: '✈️ KE931 인천 13:20 → FCO 로마 19:30 · Prestige' },
         ],
-        hotel: '🏨 체크인: H10 Palazzo Galla (콜로세오 & 포로 로마노 도보권) · 3박',
+        hotel: '🏨 H10 Palazzo Galla · 9/16~19 (3박) · 콜로세오 도보권',
         note: '입국심사 ~1시간 → 20:30 나옴 → 택시 €55 고정요금 (콜로세오 근처 자동 적용)',
       },
     },
-    // 9/17 (목) 고대 로마 풀데이
+    // 9/17 (목) 고대 로마
     {
       date: '2026-09-17',
       attractionIds: ['colosseum', 'foro', 'capitolini', 'vincoli'],
       dayInfo: {
         title: '고대 로마 데이',
         reservations: [
-          { time: '13:00', label: '🍽️ Aroma 레스토랑 (Palazzo Manfredi 옥상) · 3명 · SMART MENU €180/명 · Smart casual (남성 긴 바지 · 칼라 셔츠 · 발끝 있는 신발) · 10세+ 가능 ✓' },
+          { time: '13:00', label: '🍽️ Aroma 레스토랑 (Palazzo Manfredi 옥상) · 3명 · SMART MENU €180/명 · Smart casual · 10세+ 가능' },
         ],
+        hotel: '🏨 H10 Palazzo Galla (숙박 중)',
       },
     },
     // 9/18 (금) 로마 광장 + 바티칸
@@ -1601,86 +1602,91 @@ export const AARON_CONFIRMED_TRIP = {
       dayInfo: {
         title: '광장 도보 + 바티칸',
         reservations: [
-          { time: '14:30', label: '🎨 Vatican Museums 입장 · 3매 · 코드 2L2NFG7Y19XTF1TVG · Corridor 1 입구' },
+          { time: '14:30', label: '🎨 Vatican Museums · 3매 · 코드 2L2NFG7Y19XTF1TVG · Corridor 1 입구' },
         ],
-        note: '오전: 트레비→판테온→나보나→스페인 계단→산탄젤로 도보 · 점심 후 바티칸 시간대 맞춰 이동',
+        hotel: '🏨 H10 Palazzo Galla (숙박 중)',
+        note: '오전 트레비→판테온→나보나→스페인계단→산탄젤로 도보 · 점심 후 바티칸',
       },
     },
-    // 9/19 (토) 보르게세 + 이동
+    // 9/19 (토) 보르게세 + 로마→피렌체
     {
       date: '2026-09-19',
       attractionIds: ['borghese', 'popolo'],
       dayInfo: {
-        title: '보르게세 + 로마→피렌체 이동',
+        title: '보르게세 + 피렌체 이동',
         reservations: [
-          { time: '09:00', label: '🔴 Galleria Borghese 예약 필요 (아직 미예약!)' },
+          { time: '09:00', label: '🔴 Galleria Borghese · 미예약 · 즉시 예약 필요' },
         ],
         transit: [
-          { type: 'train', label: '🚄 15:25 로마 Termini → 17:01 피렌체 S.M.N · Frecciarossa 9320 · 2° Premium · 6호차 11A/12A/12B · PNR PBLCS5 · €60' },
+          { type: 'train', label: '🚄 15:25 로마 Termini → 17:01 피렌체 S.M.N · Frecciarossa 9320 · 6호차 11A/12A/12B · PNR PBLCS5 · €60' },
         ],
-        hotel: '🏨 체크인: Hotel Minerva (피렌체) · 3박',
+        hotel: '🏨 Hotel Minerva · 9/19~22 (3박) · Santa Maria Novella 광장',
+        note: '09:00 보르게세 → 11:00 Popolo 광장 → 점심 → 13:45 호텔 짐 → 14:00 Termini → 15:25 열차',
       },
     },
-    // 9/20 (일) 피렌체 Uffizi 데이
+    // 9/20 (일) 우피치 + Pitti
     {
       date: '2026-09-20',
       attractionIds: ['uffizi', 'pitti-boboli'],
       dayInfo: {
-        title: '우피치 + Pitti 데이 (일요일 폐관 회피)',
+        title: '우피치 + Pitti 데이',
         reservations: [
-          { time: '10:00', label: '🎨 Uffizi 입장 · 3매 · PNR WAGG1CYE · 성인 €29×2 + 미성년(Ian) 무료' },
+          { time: '10:00', label: '🎨 Uffizi · 3매 · PNR WAGG1CYE · 성인 €29×2 + 미성년(Ian) 무료' },
         ],
-        note: '⚠️ 원래 계획 Duomo는 일요일 대성당 내부 관광 불가 → 월요일로 이동. Pitti Palace는 월요일 폐관이라 일요일에 배치. 동선: Uffizi 10:00~12:30 → Oltrarno 점심 → Pitti 14:00~17:00 → Boboli 17:00~ 일몰',
+        hotel: '🏨 Hotel Minerva (숙박 중)',
+        note: 'Uffizi 10:00~12:30 → Oltrarno 점심 → Pitti 14:00~17:00 → Boboli 정원 일몰',
       },
     },
-    // 9/21 (월) 피렌체 Duomo + 성당 데이 (월요일 개방 명소 위주)
+    // 9/21 (월) Duomo + 성당
     {
       date: '2026-09-21',
       attractionIds: ['duomo', 'vecchio', 'santacroce', 'san-lorenzo-market'],
       dayInfo: {
-        title: 'Duomo + 성당 데이 (월요일 개방 위주)',
-        note: '⚠️ 원래 계획 Medici Chapels는 월요일 폐관 · 화요일로 이동. Pitti Palace도 월요일 폐관. 대신 일요일 관광객 폐쇄됐던 Duomo 대성당 본체(무료)를 오늘 방문. 동선: 09:00 Duomo 대성당(무료 · 20분) → Baptistery + 종탑 등반 → San Lorenzo Market 점심 → Palazzo Vecchio → Santa Croce (미켈란젤로·갈릴레오 무덤)',
+        title: 'Duomo + 성당 데이',
+        hotel: '🏨 Hotel Minerva (숙박 중)',
+        note: '09:00 Duomo 대성당(무료) → Baptistery + 종탑 등반 → San Lorenzo 시장 점심 → Palazzo Vecchio → Santa Croce (미켈란젤로·갈릴레오 무덤)',
       },
     },
-    // 9/22 (화) 피렌체 → 베네치아
+    // 9/22 (화) David + 피렌체→베네치아
     {
       date: '2026-09-22',
       attractionIds: ['accademia', 'medici-chapels', 'bargello'],
       dayInfo: {
-        title: 'David + 이동 데이',
+        title: 'David + 베네치아 이동',
         reservations: [
-          { time: '08:15', label: '🔴 Accademia 예약 필요 (아직 미예약! 다비드)' },
+          { time: '08:15', label: '🔴 Accademia (David) · 미예약 · 즉시 예약 필요' },
         ],
         transit: [
-          { type: 'train', label: '🚄 14:20 피렌체 S.M.N → 16:34 베네치아 S.Lucia · Frecciarossa 9420 · 2° Premium · 4호차 14D/15C/15D · PNR MYE9DN · €65' },
+          { type: 'train', label: '🚄 14:20 피렌체 S.M.N → 16:34 베네치아 S.Lucia · Frecciarossa 9420 · 4호차 14D/15C/15D · PNR MYE9DN · €65' },
         ],
-        hotel: '🏨 체크인: U-Visionary Venezia · 1박',
-        note: '⚠️ Medici Chapels를 월요일에서 화요일로 이동 (월 폐관). 동선: 08:15 Accademia(David) → 10:30 Medici Chapels(1h) → 11:45 Bargello(1.5h) → 13:15 호텔 픽업 → 14:20 열차',
+        hotel: '🏨 U-Visionary Venezia · 9/22~23 (1박) · 조식 포함',
+        note: '08:15 Accademia → 10:30 Medici Chapels → 11:45 Bargello → 13:15 호텔 짐 → 14:20 열차',
       },
     },
-    // 9/23 (수) 베네치아 반나절 + 밀라노 이동
+    // 9/23 (수) 베네치아 → 밀라노
     {
       date: '2026-09-23',
       attractionIds: ['san-marco', 'palazzo-ducale', 'rialto', 'gondola'],
       dayInfo: {
         title: '베네치아 (반나절) → 밀라노',
         transit: [
-          { type: 'train', label: '🚄 16:48 베네치아 S.Lucia → 19:15 밀라노 Centrale · Frecciarossa 9748 · 2° Premium · 4호차 5A/6A/6B · PNR NMC4W5 · €55' },
+          { type: 'train', label: '🚄 16:48 베네치아 S.Lucia → 19:15 밀라노 Centrale · Frecciarossa 9748 · 4호차 5A/6A/6B · PNR NMC4W5 · €55' },
         ],
-        hotel: '🏨 체크인: Heart Milan Apartments (Duomo District · 2BR/3욕실 아파트) · 2박 · €1,688.84',
-        note: '⚠️ 15:30까지 vaporetto 로마 광장/산타 루치아행 승선 필요. 아침 08:00 Palazzo Ducale 오픈런 권장',
+        hotel: '🏨 Heart Milan Apartments · 9/23~25 (2박) · Duomo 지구 · 2BR/3욕실 · €1,688.84',
+        note: '08:00 Palazzo Ducale 오픈런 → San Marco → Rialto → 곤돌라 → 15:30 산타루치아행 vaporetto → 16:48 열차',
       },
     },
-    // 9/24 (목) 밀라노 관광
+    // 9/24 (목) 밀라노
     {
       date: '2026-09-24',
       attractionIds: ['cenacolo', 'duomo-milan', 'galleria-scala', 'sforzesco'],
       dayInfo: {
         title: '체나콜로 + 두오모 데이',
         reservations: [
-          { time: '08:15', label: '🎨 Cenacolo (최후의 만찬) · 3매 · Ian/Hobin/Yoojin (TLCENV001210547876-01/02/03) · 07:45 티켓 오피스 도착 필요' },
+          { time: '08:15', label: '🎨 Cenacolo (최후의 만찬) · 3매 · TLCENV001210547876-01/02/03 · 07:45 티켓오피스 도착' },
         ],
-        note: '아파트 → Cadorna FN 도보 10분 → M1 Duomo → Santa Maria delle Grazie 도보 5분 (총 20분). 08:00 도착 목표',
+        hotel: '🏨 Heart Milan Apartments (숙박 중)',
+        note: '아파트 → Cadorna FN 도보 10분 → M1 Duomo → Santa Maria delle Grazie 도보 5분 (총 20분) · 08:00 도착 목표',
       },
     },
     // 9/25 (금) 출국일
@@ -1693,7 +1699,8 @@ export const AARON_CONFIRMED_TRIP = {
           { type: 'train', label: '🚉 Cadorna FN → Malpensa Express 40분 · €13/성인 (사전 예매 권장)' },
           { type: 'flight', label: '✈️ KE928 MXP 22:00 → 인천 9/26 16:40 · Prestige' },
         ],
-        note: '오전: Sforzesco 박물관 + Brera 미술관 · 18:30 아파트 출발 → Cadorna 19:00 → MXP 20:00 (국제선 2시간 전 도착)',
+        hotel: '🏨 Heart Milan Apartments · 오전 11시 체크아웃',
+        note: '오전 Sforzesco + Brera → 11시 체크아웃(짐 보관) → 오후 자유 → 18:30 아파트 출발 → Cadorna 19:00 → MXP 20:00',
       },
     },
   ],
