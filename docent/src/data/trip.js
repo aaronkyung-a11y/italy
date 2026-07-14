@@ -1624,17 +1624,18 @@ export const AARON_CONFIRMED_TRIP = {
         note: '09:00 보르게세 → 11:00 Popolo 광장 → 점심 → 13:45 호텔 짐 → 14:00 Termini → 15:25 열차',
       },
     },
-    // 9/20 (일) 우피치 + Pitti
+    // 9/20 (일) 우피치 + 아카데미아 (David) — 둘 다 확정 예약
     {
       date: '2026-09-20',
-      attractionIds: ['uffizi', 'pitti-boboli'],
+      attractionIds: ['uffizi', 'accademia'],
       dayInfo: {
-        title: '우피치 + Pitti 데이',
+        title: '우피치 + David 데이',
         reservations: [
           { time: '10:00', label: '🎨 Uffizi · 3매 · PNR WAGG1CYE · 성인 €29×2 + 미성년(Ian) 무료' },
+          { time: '15:00', label: '🎨 Accademia (David) · 3매 · 주문번호 23722663 · Cod.Cliente 4570765 · 성인(Intero) €20×2 + Ian(Gratuito) €0 · 총 €44' },
         ],
         hotel: '🏨 Hotel Minerva (숙박 중)',
-        note: 'Uffizi 10:00~12:30 → Oltrarno 점심 (여유롭게) → Pitti 14:30~16:30 → Boboli 정원에서 Ian 뛰어놀기 → 일몰. 박물관 2곳으로 아이 페이스 여유',
+        note: 'Uffizi 10:00~12:30 → Oltrarno 점심·휴식 (여유롭게) → 14:30 Accademia 도착 → 15:00 입장 (David·미완성 노예들, 1~1.5h) → 저녁 두오모 광장 젤라토. 아카데미아 15:00 확정이라 우피치 후 점심·휴식 버퍼 넉넉 · Pitti는 다음 방문으로 이동',
       },
     },
     // 9/21 (월) Duomo + 산 로렌초 (가볍게)
@@ -1647,20 +1648,17 @@ export const AARON_CONFIRMED_TRIP = {
         note: '오전 늦게 시작 OK. 10:00 Duomo 대성당(무료) → 종탑 or 세례당(선택 1개) → San Lorenzo 시장 점심 → 오후 Palazzo Vecchio → 저녁 두오모 광장 젤라토. Santa Croce는 9/22 오전으로 이동해 부담 분산',
       },
     },
-    // 9/22 (화) David + 산타크로체 + 이동 (박물관 2개로 축소)
+    // 9/22 (화) 산타크로체 + 베네치아 이동 (아카데미아는 9/20으로 이동 완료)
     {
       date: '2026-09-22',
-      attractionIds: ['accademia', 'santacroce'],
+      attractionIds: ['santacroce'],
       dayInfo: {
-        title: 'David + 베네치아 이동',
-        reservations: [
-          { time: '08:15', label: '🔴 Accademia (David) · 미예약 · 즉시 예약 필요' },
-        ],
+        title: '산타크로체 + 베네치아 이동',
         transit: [
           { type: 'train', label: '🚄 14:20 피렌체 S.M.N → 16:34 베네치아 S.Lucia · Frecciarossa 9420 · 4호차 14D/15C/15D · PNR MYE9DN · €65' },
         ],
         hotel: '🏨 U-Visionary Venezia · 9/22~23 (1박) · 조식 포함',
-        note: '08:15 Accademia(David, 1h) → 09:30 Santa Croce (미켈란젤로·갈릴레오 무덤, 여유) → 11:30 호텔 짐 → 점심 → 14:20 열차. 오전 명소 2개로 아이 부담↓ · Medici/Bargello는 이번 일정에서 제외(다음 방문)',
+        note: '09:30 Santa Croce (미켈란젤로·갈릴레오 무덤, 여유) → 11:00 두오모 광장 마지막 산책 → 11:30 호텔 짐 → 점심 → 14:20 열차. David는 9/20에 관람 완료 · 오전 여유로 아이 부담↓ · Medici/Bargello는 이번 일정에서 제외(다음 방문)',
       },
     },
     // 9/23 (수) 베네치아 → 밀라노
@@ -1733,10 +1731,11 @@ export const AARON_CONFIRMED_TRIP = {
       notes: '🔴 즉시 예약 필요 · galleriaborghese.beniculturali.it',
     },
     'accademia': {
-      status: 'pending',
-      slotTime: '08:15',
-      slotDate: '2026-09-22',
-      notes: '🔴 즉시 예약 필요 · b-ticket.com/b-ticket/uffizi/',
+      status: 'confirmed',
+      confirmationCode: '23722663',
+      slotTime: '15:00',
+      slotDate: '2026-09-20',
+      notes: '3매 · Cod.Cliente 4570765 · Hobin/Yoojin(Intero €20) + Ian(Gratuito €0) · 총 €44 · Via Ricasoli 58/60 · QR 스마트폰 지참',
     },
   },
 };
