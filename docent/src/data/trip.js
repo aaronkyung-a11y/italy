@@ -1057,7 +1057,7 @@ export const TRANSIT_INFO = {
   'medici-chapels': {
     urgency: 'medium',
     leadTimeDays: 14,
-    notes: '미켈란젤로 4 알레고리 — 2주 전 예약 권장. 화요일 + 매월 둘째·넷째 일요일 휴관',
+    notes: '미켈란젤로 4 알레고리 — 2주 전 예약 권장. 둘째·넷째 일요일 + 첫째·셋째·다섯째 월요일 휴관 (화요일은 정상 개장)',
     sites: [
       { name: 'Bargello Museum 공식 (예약)', url: 'https://www.museodelbargello.it/', official: true },
       { name: 'B-Ticket (공식 위탁)', url: 'https://www.museodelbargello.it/', official: true },
@@ -1634,23 +1634,23 @@ export const AARON_CONFIRMED_TRIP = {
           { time: '10:00', label: '🎨 Uffizi · 3매 · PNR WAGG1CYE · 성인 €29×2 + 미성년(Ian) 무료' },
         ],
         hotel: '🏨 Hotel Minerva (숙박 중)',
-        note: 'Uffizi 10:00~12:30 → Oltrarno 점심 → Pitti 14:00~17:00 → Boboli 정원 일몰',
+        note: 'Uffizi 10:00~12:30 → Oltrarno 점심 (여유롭게) → Pitti 14:30~16:30 → Boboli 정원에서 Ian 뛰어놀기 → 일몰. 박물관 2곳으로 아이 페이스 여유',
       },
     },
-    // 9/21 (월) Duomo + 성당
+    // 9/21 (월) Duomo + 산 로렌초 (가볍게)
     {
       date: '2026-09-21',
-      attractionIds: ['duomo', 'vecchio', 'santacroce', 'san-lorenzo-market'],
+      attractionIds: ['duomo', 'san-lorenzo-market', 'vecchio'],
       dayInfo: {
-        title: 'Duomo + 성당 데이',
+        title: 'Duomo + 시뇨리아 (여유 데이)',
         hotel: '🏨 Hotel Minerva (숙박 중)',
-        note: '09:00 Duomo 대성당(무료) → Baptistery + 종탑 등반 → San Lorenzo 시장 점심 → Palazzo Vecchio → Santa Croce (미켈란젤로·갈릴레오 무덤)',
+        note: '오전 늦게 시작 OK. 10:00 Duomo 대성당(무료) → 종탑 or 세례당(선택 1개) → San Lorenzo 시장 점심 → 오후 Palazzo Vecchio → 저녁 두오모 광장 젤라토. Santa Croce는 9/22 오전으로 이동해 부담 분산',
       },
     },
-    // 9/22 (화) David + 피렌체→베네치아
+    // 9/22 (화) David + 산타크로체 + 이동 (박물관 2개로 축소)
     {
       date: '2026-09-22',
-      attractionIds: ['accademia', 'medici-chapels', 'bargello'],
+      attractionIds: ['accademia', 'santacroce'],
       dayInfo: {
         title: 'David + 베네치아 이동',
         reservations: [
@@ -1660,33 +1660,33 @@ export const AARON_CONFIRMED_TRIP = {
           { type: 'train', label: '🚄 14:20 피렌체 S.M.N → 16:34 베네치아 S.Lucia · Frecciarossa 9420 · 4호차 14D/15C/15D · PNR MYE9DN · €65' },
         ],
         hotel: '🏨 U-Visionary Venezia · 9/22~23 (1박) · 조식 포함',
-        note: '08:15 Accademia → 10:30 Medici Chapels → 11:45 Bargello → 13:15 호텔 짐 → 14:20 열차',
+        note: '08:15 Accademia(David, 1h) → 09:30 Santa Croce (미켈란젤로·갈릴레오 무덤, 여유) → 11:30 호텔 짐 → 점심 → 14:20 열차. 오전 명소 2개로 아이 부담↓ · Medici/Bargello는 이번 일정에서 제외(다음 방문)',
       },
     },
     // 9/23 (수) 베네치아 → 밀라노
     {
       date: '2026-09-23',
-      attractionIds: ['san-marco', 'palazzo-ducale', 'rialto', 'gondola'],
+      attractionIds: ['san-marco', 'palazzo-ducale', 'gondola'],
       dayInfo: {
         title: '베네치아 (반나절) → 밀라노',
         transit: [
           { type: 'train', label: '🚄 16:48 베네치아 S.Lucia → 19:15 밀라노 Centrale · Frecciarossa 9748 · 4호차 5A/6A/6B · PNR NMC4W5 · €55' },
         ],
         hotel: '🏨 Heart Milan Apartments · 9/23~25 (2박) · Duomo 지구 · 2BR/3욕실 · €1,688.84',
-        note: '08:00 Palazzo Ducale 오픈런 → San Marco → Rialto → 곤돌라 → 15:30 산타루치아행 vaporetto → 16:48 열차',
+        note: '08:00 Palazzo Ducale 오픈런 → San Marco 광장·바실리카 → 점심 → 곤돌라(Ian 최고 좋아함) → 15:30 산타루치아행 vaporetto → 16:48 열차. Rialto는 도보 중 통과. 명소 3개로 여유',
       },
     },
-    // 9/24 (목) 밀라노
+    // 9/24 (목) 밀라노 (체나콜로 + 두오모, 가볍게)
     {
       date: '2026-09-24',
-      attractionIds: ['cenacolo', 'duomo-milan', 'galleria-scala', 'sforzesco'],
+      attractionIds: ['cenacolo', 'duomo-milan', 'sforzesco'],
       dayInfo: {
         title: '체나콜로 + 두오모 데이',
         reservations: [
           { time: '08:15', label: '🎨 Cenacolo (최후의 만찬) · 3매 · TLCENV001210547876-01/02/03 · 07:45 티켓오피스 도착' },
         ],
         hotel: '🏨 Heart Milan Apartments (숙박 중)',
-        note: '아파트 → Cadorna FN 도보 10분 → M1 Duomo → Santa Maria delle Grazie 도보 5분 (총 20분) · 08:00 도착 목표',
+        note: '08:15 Cenacolo(30분) → 오전 여유 → 점심 → 오후 Duomo 대성당+지붕 테라스(Ian 좋아함) → Sforzesco 성 안뜰에서 뛰어놀기. Galleria는 두오모 옆 자동 통과. 저녁 자유',
       },
     },
     // 9/25 (금) 출국일
@@ -1788,16 +1788,16 @@ const CLOSURE_RULES = {
   duomo: (d) => new Date(d).getDay() === 0 ? { status: 'partial', notes: '일요일 세례당 오전 미사 제한 (본당 OK)' } : null,
   'duomo-milan': (d) => new Date(d).getDay() === 0 ? { status: 'partial', notes: '일요일 오전 미사 (옥상·박물관 OK)' } : null,
 
-  // 메디치 채플: 화요일 + 둘째·넷째 일요일 휴관
+  // 메디치 채플: 둘째·넷째 일요일 + 첫째·셋째·다섯째 월요일 휴관 (화요일은 정상 개장)
   'medici-chapels': (d) => {
     const dd = new Date(d);
     const wd = dd.getDay();
-    if (wd === 2) return { status: 'closed', notes: '화요일 휴관' };
-    if (wd === 0) {
-      const sundayIdx = Math.ceil(dd.getDate() / 7);
-      if (sundayIdx === 2 || sundayIdx === 4) {
-        return { status: 'closed', notes: '둘째·넷째 일요일 휴관' };
-      }
+    const nth = Math.ceil(dd.getDate() / 7); // 그 달의 몇 번째 요일인지
+    if (wd === 0 && (nth === 2 || nth === 4)) {
+      return { status: 'closed', notes: '둘째·넷째 일요일 휴관' };
+    }
+    if (wd === 1 && (nth === 1 || nth === 3 || nth === 5)) {
+      return { status: 'closed', notes: '첫째·셋째·다섯째 월요일 휴관' };
     }
     return null;
   },

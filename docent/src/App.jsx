@@ -716,8 +716,12 @@ function TripView({ pop, push }) {
           const dayCity = getDayCity(day);
           const prevDay = dayIdx > 0 ? trip.days[dayIdx - 1] : null;
           const prevCity = prevDay ? getDayCity(prevDay) : null;
-          // 확정 여정에 열차/항공 정보가 이미 dayInfo에 있으면 자동 추천 카드는 숨김
-          const hasConfirmedTransit = !!(day.dayInfo && Array.isArray(day.dayInfo.transit) && day.dayInfo.transit.length > 0);
+          // 확정 여정에 열차/항공 정보가 dayInfo에 있으면 자동 추천 카드 숨김.
+          // 이동은 전날(prevDay) dayInfo.transit에 기록되므로 전날/당일 모두 확인.
+          const hasConfirmedTransit = !!(
+            (day.dayInfo && Array.isArray(day.dayInfo.transit) && day.dayInfo.transit.length > 0) ||
+            (prevDay && prevDay.dayInfo && Array.isArray(prevDay.dayInfo.transit) && prevDay.dayInfo.transit.length > 0)
+          );
           const transitInfo = (!hasConfirmedTransit && prevCity && dayCity && prevCity !== dayCity)
             ? getTransitInfo(prevCity, dayCity)
             : null;
@@ -936,6 +940,22 @@ function TripView({ pop, push }) {
                         critical: '지금 예약!', high: '1개월 전', medium: '2~3주 전', low: '1주 전 OK', none: '예약 불필요'
                       }[res.urgency];
 
+                      // 실제 예약 상태 확인 — 확정/대기 시 긴급도 대신 예약 상태를 뱃지로 표시
+                      const bk = getBookingData(trip, attractionId) || {};
+                      const bkStatus = bk.status; // 'confirmed' | 'pending' | 'booked' | undefined
+                      let badgeEmoji = urgencyEmoji;
+                      let badgeLabel = urgencyLabel;
+                      let badgeClass = `urg-${res.urgency}`;
+                      if (bkStatus === 'confirmed' || bkStatus === 'booked') {
+                        badgeEmoji = '✅';
+                        badgeLabel = bk.slotTime ? `예약완료 ${bk.slotTime}` : '예약완료';
+                        badgeClass = 'urg-low';
+                      } else if (bkStatus === 'pending') {
+                        badgeEmoji = '🔴';
+                        badgeLabel = '예약 필요';
+                        badgeClass = 'urg-critical';
+                      }
+
                       const closure = getClosureStatus(attractionId, day.date);
 
                       return (
@@ -951,9 +971,9 @@ function TripView({ pop, push }) {
                             )}
                             <span className="dc-trip-attr-emoji">{attr.emoji}</span>
                             <span className="dc-trip-attr-name">{attr.name}</span>
-                            {urgencyEmoji && (
-                              <span className={`dc-trip-attr-badge urg-${res.urgency}`}>
-                                {urgencyEmoji} {urgencyLabel}
+                            {badgeEmoji && (
+                              <span className={`dc-trip-attr-badge ${badgeClass}`}>
+                                {badgeEmoji} {badgeLabel}
                               </span>
                             )}
                             <ChevronRight
@@ -7385,7 +7405,7 @@ function SearchView({ pop, push }) {
 function Footer() {
   return (
     <footer className="dc-footer">
-      <div>도슨트 · Docent v0.69</div>
+      <div>도슨트 · Docent v0.70</div>
       <div>이미지: Wikimedia Commons (Public Domain)</div>
       <div>오디오: Microsoft Edge TTS · ko-KR-SunHi Neural</div>
       <div>오프라인 지원 · 카메라 인식 (Claude Vision)</div>
