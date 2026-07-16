@@ -1645,7 +1645,7 @@ export const AARON_CONFIRMED_TRIP = {
       dayInfo: {
         title: 'Duomo + 시뇨리아 (여유 데이)',
         hotel: '🏨 Hotel Minerva (숙박 중)',
-        note: '오전 늦게 시작 OK. 10:00 Duomo 대성당(무료) → 종탑 or 세례당(선택 1개) → San Lorenzo 시장 점심 → 오후 Palazzo Vecchio → 저녁 두오모 광장 젤라토. Santa Croce는 9/22 오전으로 이동해 부담 분산',
+        note: '오전 늦게 시작 OK. 🔴 두오모는 개별티켓 없음 — 패스 3종 중 선택 필수(Ghiberti €15/Giotto €20/Brunelleschi €30, Ian 7~14세는 €5/€7/€12). Giotto Pass 권장(3인 €47): 종탑+세례당+박물관. 종탑(414계단, 쉬는층 O)이 쿠폴라(463계단)보다 아이에게 현실적이고 두오모 사진도 더 좋음. 본당은 무료지만 줄 2시간+ — 패스로 크립트 쪽 입구 이용. 10:00 두오모 → San Lorenzo 시장 점심 → 오후 Palazzo Vecchio → 저녁 젤라토. ⚠️ 세례당 모자이크 복원 중(할인 없음)',
       },
     },
     // 9/22 (화) 산타크로체 + 베네치아 이동 (아카데미아는 9/20으로 이동 완료)
@@ -1684,7 +1684,7 @@ export const AARON_CONFIRMED_TRIP = {
           { time: '08:15', label: '🎨 Cenacolo (최후의 만찬) · 3매 · TLCENV001210547876-01/02/03 · 07:45 티켓오피스 도착' },
         ],
         hotel: '🏨 Heart Milan Apartments (숙박 중)',
-        note: '08:15 Cenacolo(30분) → 오전 여유 → 점심 → 오후 Duomo 대성당+지붕 테라스(Ian 좋아함) → Sforzesco 성 안뜰에서 뛰어놀기. Galleria는 두오모 옆 자동 통과. 저녁 자유',
+        note: '07:45 티켓오피스 → 08:15 Cenacolo(15분 관람) → 08:45 산타 마리아 델레 그라치에 성당(브라만테 후진, 바로 옆) → 오전 여유 → 점심 → 14:00 Sforzesco(안뜰에서 Ian 뛰어놀기 + 미켈란젤로 론다니니 피에타) → 16:30 Duomo+옥상 일몰(엘리베이터 권장, 251계단) → 저녁 Galleria 자동 통과. 옥상은 오후 늦게가 정답 — 석양에 첨탑이 물들고 오전 단체가 빠짐',
       },
     },
     // 9/25 (금) 출국일
@@ -1736,6 +1736,12 @@ export const AARON_CONFIRMED_TRIP = {
       slotTime: '15:00',
       slotDate: '2026-09-20',
       notes: '3매 · Cod.Cliente 4570765 · Hobin/Yoojin(Intero €20) + Ian(Gratuito €0) · 총 €44 · Via Ricasoli 58/60 · ⚠️ Ian 여권 지참(나이 증명 요구 가능)',
+    },
+    'duomo': {
+      status: 'pending',
+      slotTime: '10:00',
+      slotDate: '2026-09-21',
+      notes: '🔴 개별티켓 없음 · 패스 3종 중 선택 — Giotto Pass 권장(성인 €20×2 + Ian €7 = €47) · 쿠폴라 원하면 Brunelleschi €30(슬롯 2~3주전 매진, 463계단) · tickets.duomo.firenze.it',
     },
     'palazzo-ducale': {
       status: 'pending',
