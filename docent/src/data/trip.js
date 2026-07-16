@@ -1580,7 +1580,7 @@ export const AARON_CONFIRMED_TRIP = {
           { type: 'flight', label: '✈️ KE931 인천 13:20 → FCO 로마 19:30 · Prestige' },
         ],
         hotel: '🏨 H10 Palazzo Galla · 9/16~19 (3박) · 콜로세오 도보권',
-        note: '입국심사 ~1시간 → 20:30 나옴 → 택시 €55 고정요금 (콜로세오 근처 자동 적용)',
+        note: '입국심사 ~1시간 → 20:30 나옴 → 공식 택시 €55 고정 (아우렐리우스 성벽 안, 인원·짐·시간 무관 · 3인 그대로). ⚠️ 반드시 문에 \'COMUNE DI ROMA\' 표기 확인 — \'Comune di Fiumicino\' 택시는 같은 줄에 섞여 있고 €60을 받음. 터미널 안 호객꾼은 전원 무시(불법). Uber는 이탈리아에 UberX 없고 Uber Black만 있어 €55보다 비쌈',
       },
     },
     // 9/17 (목) 고대 로마
@@ -1635,7 +1635,7 @@ export const AARON_CONFIRMED_TRIP = {
           { time: '15:00', label: '🎨 Accademia (David) · 3매 · 주문번호 23722663 · Cod.Cliente 4570765 · 성인(Intero) €20×2 + Ian(Gratuito) €0 · 총 €44' },
         ],
         hotel: '🏨 Hotel Minerva (숙박 중)',
-        note: 'Uffizi 10:00~12:30 → Oltrarno 점심·휴식 (여유롭게) → 14:30 Accademia 도착 → 15:00 입장 (David·미완성 노예들, 1~1.5h) → 저녁 두오모 광장 젤라토. 아카데미아 15:00 확정이라 우피치 후 점심·휴식 버퍼 넉넉 · Pitti는 다음 방문으로 이동',
+        note: 'Uffizi 10:00~12:30 → Oltrarno 점심·휴식 (여유롭게) → 14:30 Accademia 도착(입구 Via Ricasoli 60번) → 15:00 입장 (David·노예 4점·집소테카·악기의 방, 90분) → 저녁 두오모 광장 젤라토. ⚠️ Ian 무료티켓은 나이 증명 서류 요구 가능 — 여권 지참 필수 · 일요일 오후는 혼잡, 집소테카/악기의 방으로 피신 · Pitti는 다음 방문으로',
       },
     },
     // 9/21 (월) Duomo + 산 로렌초 (가볍게)
@@ -1671,7 +1671,7 @@ export const AARON_CONFIRMED_TRIP = {
           { type: 'train', label: '🚄 16:48 베네치아 S.Lucia → 19:15 밀라노 Centrale · Frecciarossa 9748 · 4호차 5A/6A/6B · PNR NMC4W5 · €55' },
         ],
         hotel: '🏨 Heart Milan Apartments · 9/23~25 (2박) · Duomo 지구 · 2BR/3욕실 · €1,688.84',
-        note: '08:00 Palazzo Ducale 오픈런 → San Marco 광장·바실리카 → 점심 → 곤돌라(Ian 최고 좋아함) → 15:30 산타루치아행 vaporetto → 16:48 열차. Rialto는 도보 중 통과. 명소 3개로 여유',
+        note: '08:00 Palazzo Ducale 오픈런(첫 입장 가장 한산 — 파라디소 조용히 볼 유일한 기회, 최소 1.5h 필요) → San Marco 광장·바실리카 → 점심 → 곤돌라(Ian 최고 좋아함) → 15:30 산타루치아행 vaporetto → 16:48 열차. ⚠️ 두칼레는 산마르코 통합권만 가능(성인 €35/Ian €15 — 무료 아님). Rialto는 도보 중 통과',
       },
     },
     // 9/24 (목) 밀라노 (체나콜로 + 두오모, 가볍게)
@@ -1694,7 +1694,7 @@ export const AARON_CONFIRMED_TRIP = {
       dayInfo: {
         title: '출국일',
         transit: [
-          { type: 'train', label: '🚉 Cadorna FN → Malpensa Express 40분 · €13/성인 (사전 예매 권장)' },
+          { type: 'train', label: '🚉 Cadorna FN → Malpensa Express 40분 · 성인 €15 + Ian(4~13세) €7.50 = €37.50 (또는 Family 티켓 €36) · 2025.8.1 인상 반영 · 택시는 MXP 고정 €104' },
           { type: 'flight', label: '✈️ KE928 MXP 22:00 → 인천 9/26 16:40 · Prestige' },
         ],
         hotel: '🏨 Heart Milan Apartments · 오전 11시 체크아웃',
@@ -1735,7 +1735,13 @@ export const AARON_CONFIRMED_TRIP = {
       confirmationCode: '23722663',
       slotTime: '15:00',
       slotDate: '2026-09-20',
-      notes: '3매 · Cod.Cliente 4570765 · Hobin/Yoojin(Intero €20) + Ian(Gratuito €0) · 총 €44 · Via Ricasoli 58/60 · QR 스마트폰 지참',
+      notes: '3매 · Cod.Cliente 4570765 · Hobin/Yoojin(Intero €20) + Ian(Gratuito €0) · 총 €44 · Via Ricasoli 58/60 · ⚠️ Ian 여권 지참(나이 증명 요구 가능)',
+    },
+    'palazzo-ducale': {
+      status: 'pending',
+      slotTime: '08:00',
+      slotDate: '2026-09-23',
+      notes: '🔴 산마르코 광장 박물관 통합권으로만 입장 (2026 기준) · 성인 €35 + Ian(6~14세 할인) €15 = 약 €85 · Ian 무료 아님 · 코레르/마르치아나/고고학박물관 포함, MUVE 오디오가이드 무료',
     },
   },
 };
