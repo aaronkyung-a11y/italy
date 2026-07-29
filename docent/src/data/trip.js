@@ -1620,7 +1620,7 @@ export const AARON_CONFIRMED_TRIP = {
           { time: '09:00', label: '🔴 Galleria Borghese · 미예약 · 즉시 예약 필요' },
         ],
         transit: [
-          { type: 'train', label: '🚄 15:25 로마 Termini → 17:01 피렌체 S.M.N · Frecciarossa 9320 · 6호차 11A/12A/12B · PNR PBLCS5 · €60 · Frecciarossa 9320 · 6호차 11A/12A/12B · PNR PBLCS5 · €60' },
+          { type: 'train', label: '🚄 15:25 로마 Termini → 17:01 피렌체 S.M.N · Frecciarossa 9320 · 6호차 11A/12A/12B · PNR PBLCS5 · €60' },
         ],
         hotel: '🏨 Hotel Minerva · 9/19~22 (3박) · Santa Maria Novella 광장',
         note: '09:00 보르게세 → 11:00 Popolo 광장 → 점심 → 13:45 호텔 짐 → 14:00 Termini → 15:25 열차',
@@ -1669,11 +1669,14 @@ export const AARON_CONFIRMED_TRIP = {
       attractionIds: ['san-marco', 'palazzo-ducale', 'gondola'],
       dayInfo: {
         title: '베네치아 (반나절) → 밀라노',
+        reservations: [
+          { time: '12:30', label: '🦐 점심 Corte Sconta (Castello, 산마르코서 도보 12분 동쪽) · 3명 · 예약 JTXFN49A72R · 해산물 · 곤돌라·역 방향과 동선 일치' },
+        ],
         transit: [
-          { type: 'train', label: '🚄 16:48 베네치아 S.Lucia → 19:15 밀라노 Centrale · Frecciarossa 9748 · 4호차 5A/6A/6B · PNR NMC4W5 · €55 · Frecciarossa 9748 · 4호차 5A/6A/6B · PNR NMC4W5 · €55' },
+          { type: 'train', label: '🚄 16:48 베네치아 S.Lucia → 19:15 밀라노 Centrale · Frecciarossa 9748 · 4호차 5A/6A/6B · PNR NMC4W5 · €55' },
         ],
         hotel: '🏨 Heart Milan Apartments · Via Santa Tecla 3 (두오모 지구) · 9/23~25 (2박) · 코드 75494/2026 · 2BR/3욕실 · €1,688.84 · 이메일 체크인, 15:00~ · 도시세 €9.50/인/일(18세 미만 면제)',
-        note: '08:00 Palazzo Ducale 오픈런(첫 입장 가장 한산 — 파라디소 조용히 볼 유일한 기회, 최소 1.5h 필요) → San Marco 광장·바실리카 → 12:30 Corte Sconta 점심 → 곤돌라(Ian 최고 좋아함) → 15:30 산타루치아행 vaporetto → 16:48 열차. ⚠️ 두칼레는 산마르코 통합권만(성인 €35/Ian €15 — 무료 아님). Corte Sconta는 Castello 지역, 산마르코에서 도보 12분 동쪽 — 곤돌라·역 방향과 동선 일치. Rialto는 도보 중 통과',
+        note: '08:00 Palazzo Ducale 오픈런(첫 입장 가장 한산 — 파라디소 조용히 볼 유일한 기회, 최소 1.5h 필요) → San Marco 광장·바실리카 → 12:30 Corte Sconta 점심 → 곤돌라(Ian 최고 좋아함) → 15:30 산타루치아행 vaporetto → 16:48 열차. ⚠️ 두칼레는 산마르코 통합권만(성인 €35/Ian €15 — 무료 아님). Rialto는 도보 중 통과',
       },
     },
     // 9/24 (목) 밀라노 (체나콜로 + 두오모, 가볍게)
