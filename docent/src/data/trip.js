@@ -1646,8 +1646,11 @@ export const AARON_CONFIRMED_TRIP = {
       attractionIds: ['duomo', 'san-lorenzo-market', 'vecchio'],
       dayInfo: {
         title: 'Duomo + 시뇨리아 (여유 데이)',
+        reservations: [
+          { time: '18:30', label: '🍝 저녁 Trattoria Dall\'Oste (Cucina Toscana, Borgo S. Lorenzo 31, 산 로렌초 시장 근처) · 3명 · TheFork 예약번호 1705328610 · 토스카나 요리 · 세트메뉴/할인 없음 · 식당서 재확인 요청 올 수 있음' },
+        ],
         hotel: '🏨 Hotel Minerva (숙박 중)',
-        note: '오전 늦게 시작 OK. 🔴 두오모는 개별티켓 없음 — 패스 3종 중 선택 필수(Ghiberti €15/Giotto €20/Brunelleschi €30, Ian 7~14세는 €5/€7/€12). Giotto Pass 권장(3인 €47): 종탑+세례당+박물관. 종탑(414계단, 쉬는층 O)이 쿠폴라(463계단)보다 아이에게 현실적이고 두오모 사진도 더 좋음. 본당은 무료지만 줄 2시간+ — 패스로 크립트 쪽 입구 이용. 10:00 두오모 → San Lorenzo 시장 점심 → 오후 Palazzo Vecchio → 저녁 젤라토. ⚠️ 세례당 모자이크 복원 중(할인 없음)',
+        note: '오전 늦게 시작 OK. 🔴 두오모는 개별티켓 없음 — 패스 3종 중 선택 필수(Ghiberti €15/Giotto €20/Brunelleschi €30, Ian 7~14세는 €5/€7/€12). Giotto Pass 권장(3인 €47): 종탑+세례당+박물관. 종탑(414계단, 쉬는층 O)이 쿠폴라(463계단)보다 아이에게 현실적이고 두오모 사진도 더 좋음. 본당은 무료지만 줄 2시간+ — 패스로 크립트 쪽 입구 이용. 10:00 두오모 → San Lorenzo 시장 점심 → 오후 Palazzo Vecchio → 18:30 Trattoria Dall\'Oste 저녁(산 로렌초 근처, 동선 일치) → 두오모 광장 젤라토. ⚠️ 세례당 모자이크 복원 중(할인 없음)',
       },
     },
     // 9/22 (화) 산타크로체 + 베네치아 이동 (아카데미아는 9/20으로 이동 완료)
