@@ -1617,13 +1617,13 @@ export const AARON_CONFIRMED_TRIP = {
       dayInfo: {
         title: '보르게세 + 피렌체 이동',
         reservations: [
-          { time: '09:00', label: '🔴 Galleria Borghese · 미예약 · 즉시 예약 필요' },
+          { time: '09:00', label: '🏛️ Galleria Borghese · 09:00~11:00 (2시간 슬롯) · 3명 · 주문번호 1301914655 · Hobin(무료) + Yoojin/Ian(€16×2) · ⚠️PMR(거동불편자) 티켓으로 발권됨 — 입장 시 증빙 요구 가능, 확인 필요' },
         ],
         transit: [
           { type: 'train', label: '🚄 15:25 로마 Termini → 17:01 피렌체 S.M.N · Frecciarossa 9320 · 6호차 11A/12A/12B · PNR PBLCS5 · €60' },
         ],
         hotel: '🏨 Hotel Minerva · 9/19~22 (3박) · Santa Maria Novella 광장',
-        note: '09:00 보르게세 → 11:00 Popolo 광장 → 점심 → 13:45 호텔 짐 → 14:00 Termini → 15:25 열차',
+        note: '08:30 도착(보안검색+보관소, 지각시 입장거부) → 09:00 보르게세 입장(2시간, 1층 베르니니 조각에 절반) → 11:00 정각 퇴장(재입장 불가) → Popolo 광장 → 점심 → 13:45 호텔 짐 → 14:00 Termini → 15:25 열차. ⚠️가방 21×15cm 초과는 전부 보관소, 음식·물 반입 금지. Ian 여권 지참(무료 나이 증명)',
       },
     },
     // 9/20 (일) 우피치 + 아카데미아 (David) — 둘 다 확정 예약
@@ -1733,10 +1733,11 @@ export const AARON_CONFIRMED_TRIP = {
       notes: '3매 · 07:45 티켓 오피스 도착 · Hobin/Yoojin/Ian 각각 이름 지정',
     },
     'borghese': {
-      status: 'pending',
+      status: 'confirmed',
+      confirmationCode: '1301914655',
       slotTime: '09:00',
       slotDate: '2026-09-19',
-      notes: '🔴 즉시 예약 필요 · galleriaborghese.beniculturali.it',
+      notes: '09:00~11:00 2시간 슬롯 · 3명 · Hobin GRATUITO €0(+예약비€2) + Yoojin/Ian INTERO €16 · Stampa@casa · ⚠️ 3장 모두 PMR(거동불편자) 카테고리로 발권 — 입장 시 증빙 요구 가능성, 확인 권장 · 가방 21×15cm 초과 보관 의무',
     },
     'accademia': {
       status: 'confirmed',
