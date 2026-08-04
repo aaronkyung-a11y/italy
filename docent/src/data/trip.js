@@ -1617,7 +1617,7 @@ export const AARON_CONFIRMED_TRIP = {
       dayInfo: {
         title: '보르게세 + 피렌체 이동',
         reservations: [
-          { time: '09:00', label: '🏛️ Galleria Borghese · 09:00~11:00 (2시간 슬롯) · 3명 · 주문번호 1301914655 · Hobin(무료) + Yoojin/Ian(€16×2) · ⚠️PMR(거동불편자) 티켓으로 발권됨 — 입장 시 증빙 요구 가능, 확인 필요' },
+          { time: '09:00', label: '🏛️ Galleria Borghese · IN 09:00~OUT 11:00 (2시간 블록) · 3명 · 주문번호 1301914655 · Ian(만18세미만 무료, Seat 186) €0 + Hobin/Yoojin(Full Price, Seat 187·188) €16×2 · 예약비 €2×3 · 합계 €38 · ⚠️Ian 무료는 여권으로 나이 증명 필요' },
         ],
         transit: [
           { type: 'train', label: '🚄 15:25 로마 Termini → 17:01 피렌체 S.M.N · Frecciarossa 9320 · 6호차 11A/12A/12B · PNR PBLCS5 · €60' },
@@ -1737,7 +1737,7 @@ export const AARON_CONFIRMED_TRIP = {
       confirmationCode: '1301914655',
       slotTime: '09:00',
       slotDate: '2026-09-19',
-      notes: '09:00~11:00 2시간 슬롯 · 3명 · Hobin GRATUITO €0(+예약비€2) + Yoojin/Ian INTERO €16 · Stampa@casa · ⚠️ 3장 모두 PMR(거동불편자) 카테고리로 발권 — 입장 시 증빙 요구 가능성, 확인 권장 · 가방 21×15cm 초과 보관 의무',
+      notes: 'IN 09:00~OUT 11:00 (2시간 블록) · 3명 · Ian(Child under 18, Seat 186) €0 + Hobin/Yoojin(Full Price, Seat 187·188) €16×2 · 예약비 €2×3 · 합계 €38 · Stampa@casa(4S6D9T4N/2W6D9T4N/007D9T4N) · ⚠️Ian 무료는 입장 시 여권으로 나이 증명 · 가방 21×15cm 초과 보관 의무 · 지각 시 입장거부',
     },
     'accademia': {
       status: 'confirmed',
