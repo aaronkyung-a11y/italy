@@ -1587,27 +1587,29 @@ export const AARON_CONFIRMED_TRIP = {
     // 9/17 (목) 고대 로마
     {
       date: '2026-09-17',
-      attractionIds: ['colosseum', 'foro', 'capitolini', 'vincoli'],
+      attractionIds: ['pantheon', 'trevi', 'foro', 'colosseum', 'navona'],
       dayInfo: {
-        title: '고대 로마 데이',
+        title: '판테온·트레비 + 고대 로마',
         reservations: [
           { time: '13:00', label: '🍽️ 점심 Aroma (Palazzo Manfredi 옥상, 콜로세오 뷰) · 3명 · SMART MENU €180/명 · Smart casual(반바지·민소매·슬리퍼 불가) · 10세+ 가능 · +39 06 97615109' },
+          { time: '16:30', label: '🏛️ Colosseum 입장 (75분권) · 3매 · 예약번호 OCO4606122 · Hobin/Yoojin(Intero €18) + Ian(Under 18 무료) · 콜로세오-포로-팔라티노 24H 통합권 · 15분 전 도착, 여권 지참, 백팩·큰가방 반입금지' },
           { time: '19:00', label: '🍷 저녁 Roscioli (Via dei Giubbonari 21, 나보나 근처) · 3명 · 예약 BZ7XT2RX · Wine Cellar석 · 15분 늦으면 취소 · 당일 18:00까지 재확인 메일 필요 · 취소는 booking@salumeriaroscioli.com 메일만(전화·문자 불가), 미이행 시 인당 €20' },
         ],
         hotel: '🏨 H10 Palazzo Galla · Via IV Novembre 102 (트레비 근처, 숙박 중)',
+        note: '오전 판테온(€5, Ian무료·예약권장)→트레비 분수(도보 8분) → 13:00 Aroma 점심(콜로세오 옆) → 14:00 포로 로마노+팔라티노(도보 3분, 마지막입장 18:15) → 16:30 콜로세움(75분권) → 18:00 나보나 광장 산책(베르니니 분수) → 19:00 Roscioli 저녁(나보나서 도보 5분). 포로/팔라티노를 콜로세움 前에 두는 이유: 콜로세움 75분권이라 17:45 종료 후 재입장 촉박. 24H 통합권이라 순서 무관',
       },
     },
     // 9/18 (금) 로마 광장 + 바티칸
     {
       date: '2026-09-18',
-      attractionIds: ['trevi', 'pantheon', 'navona', 'spagna', 'castel', 'vatican'],
+      attractionIds: ['spagna', 'castel', 'vatican'],
       dayInfo: {
-        title: '광장 도보 + 바티칸',
+        title: '스페인계단 + 산탄젤로 + 바티칸',
         reservations: [
-          { time: '14:30', label: '🎨 Vatican Museums · 3매 · 코드 2L2NFG7Y19XTF1TVG · Corridor 1 입구' },
+          { time: '14:30', label: '🎨 Vatican Museums · 3매 · 코드 2L2NFG7Y19XTF1TVG · Corridor 1 입구 · 성인 €25급 + Ian 할인 · ⚠️3인 전원 어깨·무릎 가리기(스카프), 시스티나 사진·대화 금지' },
         ],
         hotel: '🏨 H10 Palazzo Galla (숙박 중)',
-        note: '오전 트레비→판테온→나보나→스페인계단→산탄젤로 도보 · 점심 후 바티칸',
+        note: '오전 스페인 계단 → 산탄젤로 성(바티칸 방향, 도보 이동) → 점심 → 14:30 바티칸(트레비·판테온·나보나는 9/17에 관람 완료). ⚠️바티칸 복장규정 엄격 — 9월 더위에도 어깨·무릎 필수, 스카프 지참. 성 베드로 성당 갈 거면 짐 보관소 이용 X',
       },
     },
     // 9/19 (토) 보르게세 + 로마→피렌체
@@ -1711,6 +1713,13 @@ export const AARON_CONFIRMED_TRIP = {
     },
   ],
   bookings: {
+    'colosseum': {
+      status: 'confirmed',
+      confirmationCode: 'OCO4606122',
+      slotTime: '16:30',
+      slotDate: '2026-09-17',
+      notes: '콜로세오-포로-팔라티노 24H 통합권 · 3매 · Hobin/Yoojin INTERO €18 + Ian(Under18) €0 · 콜로세움 75분권(16:30~17:45) · 포로/팔라티노는 24H 내 1회 입장(당일 오후 권장, 마지막입장 18:15) · 여권 지참, 백팩 반입금지',
+    },
     'vatican': {
       status: 'confirmed',
       confirmationCode: '2L2NFG7Y19XTF1TVG',
