@@ -950,6 +950,10 @@ function TripView({ pop, push }) {
                         badgeEmoji = '✅';
                         badgeLabel = bk.slotTime ? `예약완료 ${bk.slotTime}` : '예약완료';
                         badgeClass = 'urg-low';
+                      } else if (bkStatus === 'visit') {
+                        badgeEmoji = '🚶';
+                        badgeLabel = bk.slotTime ? `방문 ${bk.slotTime}` : '방문 예정';
+                        badgeClass = 'urg-low';
                       } else if (bkStatus === 'pending') {
                         badgeEmoji = '🔴';
                         badgeLabel = '예약 필요';

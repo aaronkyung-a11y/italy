@@ -1190,7 +1190,7 @@ export function computeDaySchedule(day, findAttraction, trip) {
     const a = findAttraction(id);
     const booking = trip?.bookings?.[id] || {};
     const duration = a?.overview?.duration_min ?? 90;
-    const slotTime = (booking.status === 'booked' && booking.slotTime) ? booking.slotTime : null;
+    const slotTime = ((booking.status === 'booked' || booking.status === 'confirmed' || booking.status === 'visit') && booking.slotTime) ? booking.slotTime : null;
     const slotMin = parseTimeToMin(slotTime);
     return {
       id,
@@ -1713,6 +1713,12 @@ export const AARON_CONFIRMED_TRIP = {
     },
   ],
   bookings: {
+    'navona': {
+      status: 'visit',
+      slotTime: '18:00',
+      slotDate: '2026-09-17',
+      notes: '예약 불필요 · 저녁 산책(베르니니 4대강 분수) · Roscioli 저녁 전, 도보 5분',
+    },
     'colosseum': {
       status: 'confirmed',
       confirmationCode: 'OCO4606122',
@@ -2524,7 +2530,7 @@ export function generateICS(trip, findAttraction) {
       }
       // 예약 완료된 경우 방문 시간 이벤트
       const booking = getBookingData(trip, aid);
-      if (booking && booking.status === 'booked' && booking.slotTime) {
+      if (booking && (booking.status === 'booked' || booking.status === 'confirmed' || booking.status === 'visit') && booking.slotTime) {
         const [hh, mm] = booking.slotTime.split(':');
         const start = new Date(day.date);
         start.setHours(parseInt(hh), parseInt(mm), 0, 0);
