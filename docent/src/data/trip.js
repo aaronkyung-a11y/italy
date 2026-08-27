@@ -1687,28 +1687,34 @@ export const AARON_CONFIRMED_TRIP = {
     // 9/24 (목) 밀라노 (체나콜로 + 두오모, 가볍게)
     {
       date: '2026-09-24',
-      attractionIds: ['cenacolo', 'duomo-milan', 'sforzesco'],
+      attractionIds: ['cenacolo', 'sforzesco', 'duomo-milan'],
       dayInfo: {
-        title: '체나콜로 + 두오모 데이',
+        title: '밀라노 풀 데이 (체나콜로·스포르체스코·두오모)',
         reservations: [
           { time: '08:15', label: '🎨 Cenacolo (최후의 만찬) · 3매 · TLCENV001210547876-01/02/03 · 07:45 티켓오피스 도착' },
+          { time: '13:00', label: '🦞 점심 Trattoria del Pescatore (Via Atto Vannucci 5, Porta Romana) · 3명 · 1977년 해산물 노포 · 카탈라나 랍스터 유명 · 일요일 휴무(목요일 OK)' },
+          { time: '19:00', label: '🍝 저녁 Il Solferino (Via Castelfidardo 2, 브레라/Porta Garibaldi) · 3명 · 예약 23BB-1EDD-EED7-62E8 · Google/SevenRooms · 클래식·모던 토스카나+와인 · 못가면 미리 취소' },
         ],
         hotel: '🏨 Heart Milan Apartments (숙박 중)',
-        note: '07:45 티켓오피스 → 08:15 Cenacolo(15분 관람) → 08:45 산타 마리아 델레 그라치에 성당(브라만테 후진, 바로 옆) → 오전 여유 → 점심 → 14:00 Sforzesco(안뜰에서 Ian 뛰어놀기 + 미켈란젤로 론다니니 피에타) → 16:30 Duomo+옥상 일몰(엘리베이터 권장, 251계단) → 저녁 Galleria 자동 통과. 옥상은 오후 늦게가 정답 — 석양에 첨탑이 물들고 오전 단체가 빠짐',
+        note: '07:45 티켓오피스 → 08:15 Cenacolo(15분) → 08:45 산타 마리아 델레 그라치에 성당(바로 옆) → 오전 여유 → 13:00 del Pescatore 점심(Porta Romana, 남쪽) → 14:30 Sforzesco(안뜰서 Ian 뛰어놀기+론다니니 피에타) → 16:30 Duomo+옥상 일몰(엘리베이터 권장) → 18:30 숙소 근처 정리 → 19:00 Solferino 저녁(브레라). ⚠️점심(남)·저녁(북) 반대편이라 이동 감안 · 옥상은 오후 늦게 석양 노림',
       },
     },
     // 9/25 (금) 출국일
     {
       date: '2026-09-25',
-      attractionIds: ['brera'],
+      attractionIds: [],
       dayInfo: {
-        title: '출국일',
-        transit: [
-          { type: 'train', label: '🚉 Cadorna FN → Malpensa Express 40분 · 성인 €15 + Ian(4~13세) €7.50 = €37.50 (또는 Family 티켓 €36) · 2025.8.1 인상 반영 · 택시는 MXP 고정 €104' },
-          { type: 'flight', label: '✈️ KE928 MXP 22:00 → 인천 9/26 16:40 · Prestige' },
+        title: '코모 호수 (프라이빗 택시) → 출국',
+        reservations: [
+          { time: '12:30', label: '🍽️ 점심 La Goletta (Via Roma 1, 벨라조 · Grand Hotel Villa Serbelloni) · 3명 · 호수 전망 테라스 · 정오~23시 논스톱 · TheFork 예약 · 야외(Esterno)석' },
         ],
-        hotel: '🏨 Heart Milan Apartments · 오전 11시 체크아웃',
-        note: '오전 Sforzesco + Brera → 11시 체크아웃(짐 보관) → 오후 자유 → 18:30 아파트 출발 → Cadorna 19:00 → MXP 20:00',
+        transit: [
+          { type: 'car', label: '🚗 프라이빗 택시(기사 대절) 종일 · 09:30 밀라노 출발 → 코모 시내 → 벨라조 → 저녁 MXP 직행 · 캐리어 트렁크 적재(짐 보관 불필요)' },
+          { type: 'boat', label: '⛵ 벨라조 프라이빗 보트 2시간 · 벨라조·바레나·트레메조·발비아넬로 물 위에서 · 임바르카데로(마치니 광장 옆) 선착장' },
+          { type: 'flight', label: '✈️ KE928 MXP 22:00 → 인천 9/26 16:40 · Prestige · 국제선 3시간 전(19:00) 도착' },
+        ],
+        hotel: '🏨 Heart Milan Apartments · 오전 11시 체크아웃(캐리어는 택시에)',
+        note: '09:30 밀라노 출발(기사 택시) → 11:00 코모 시내(대성당·호숫가 30~40분) → 호반 드라이브 북상 → 12:30 La Goletta 점심(벨라조, 호수뷰) → 14:00 벨라조 프라이빗 보트 2시간(골든 트라이앵글 핵심) → 벨라조 산책 → 17:00 출발 → MXP 직행(약 1.5h) → 19:00 도착 → 22:00 KE928. ⚠️캐리어는 오전 체크아웃 후 택시 트렁크에 싣고 다님 · 22시 국제선이라 벨라조 17:00 출발 엄수',
       },
     },
   ],
