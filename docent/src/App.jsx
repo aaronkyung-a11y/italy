@@ -866,16 +866,6 @@ function TripView({ pop, push }) {
                         📌 {day.dayInfo.title}
                       </div>
                     )}
-                    {day.dayInfo.reservations?.map((r, i) => (
-                      <div key={`r-${i}`} style={{marginBottom: 4, padding: '4px 8px', background: '#fff', borderRadius: 4, borderLeft: '2px solid #4a7c59'}}>
-                        <span style={{fontWeight: 600, color: '#4a7c59'}}>{r.time}</span> · {r.label}
-                      </div>
-                    ))}
-                    {day.dayInfo.transit?.map((t, i) => (
-                      <div key={`t-${i}`} style={{marginBottom: 4, padding: '4px 8px', background: '#fff', borderRadius: 4, borderLeft: '2px solid #7a9e8f'}}>
-                        {t.label}
-                      </div>
-                    ))}
                     {day.dayInfo.hotel && (
                       <div style={{marginBottom: 4, padding: '4px 8px', background: '#fff', borderRadius: 4, borderLeft: '2px solid #b8860b'}}>
                         {day.dayInfo.hotel}
@@ -927,7 +917,42 @@ function TripView({ pop, push }) {
                   {(() => {
                     const schedule = computeDaySchedule(day, findAttraction, trip);
                     const reorderedFromOriginal = schedule.some((s, i) => s.id !== day.attractionIds[i]);
-                    return schedule.map((sched) => {
+
+                    // ── 식당(reservations) + 이동(transit)을 명소와 시간순 병합 ──
+                    const parseMin = (str) => {
+                      const m = /([0-9]{1,2}):([0-9]{2})/.exec(str || '');
+                      return m ? (parseInt(m[1], 10) * 60 + parseInt(m[2], 10)) : null;
+                    };
+                    const extraItems = [];
+                    (day.dayInfo?.reservations || []).forEach((r, i) => {
+                      extraItems.push({ _kind: 'resv', _key: `resv-${i}`, sortMin: parseMin(r.time) ?? 9999, time: r.time, label: r.label });
+                    });
+                    (day.dayInfo?.transit || []).forEach((t, i) => {
+                      extraItems.push({ _kind: 'transit', _key: `transit-${i}`, sortMin: parseMin(t.label) ?? 9999, label: t.label });
+                    });
+                    const attrItems = schedule.map((s) => ({ _kind: 'attr', sched: s, sortMin: (s.startMin != null ? s.startMin : (parseMin(s.startStr) ?? 9999)) }));
+                    const merged = [...attrItems, ...extraItems].sort((a, b) => a.sortMin - b.sortMin);
+
+                    return merged.map((it) => {
+                      // 식당 항목 렌더링
+                      if (it._kind === 'resv') {
+                        return (
+                          <div key={it._key} className="dc-trip-attr" style={{padding: '6px 8px', borderLeft: '2px solid #4a7c59', background: 'rgba(74,124,89,0.06)', borderRadius: 4, marginBottom: 4}}>
+                            <span style={{fontWeight: 700, color: '#4a7c59', marginRight: 6}}>{it.time}</span>
+                            <span style={{fontSize: 12, color: '#3a2a1e'}}>{it.label}</span>
+                          </div>
+                        );
+                      }
+                      // 이동(기차/택시/보트/비행기) 항목 렌더링
+                      if (it._kind === 'transit') {
+                        return (
+                          <div key={it._key} className="dc-trip-attr" style={{padding: '6px 8px', borderLeft: '2px solid #7a9e8f', background: 'rgba(122,158,143,0.06)', borderRadius: 4, marginBottom: 4}}>
+                            <span style={{fontSize: 12, color: '#3a2a1e'}}>{it.label}</span>
+                          </div>
+                        );
+                      }
+                      // 명소 항목 렌더링 (기존 로직)
+                      const sched = it.sched;
                       const attractionId = sched.id;
                       const attr = findAttraction(attractionId);
                       if (!attr) return null;
