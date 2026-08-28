@@ -1702,7 +1702,7 @@ export const AARON_CONFIRMED_TRIP = {
     // 9/25 (금) 출국일
     {
       date: '2026-09-25',
-      attractionIds: [],
+      attractionIds: ['bellagio'],
       dayInfo: {
         title: '벨라조 (코모 호수) → 출국',
         reservations: [
