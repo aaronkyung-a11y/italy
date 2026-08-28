@@ -2621,7 +2621,7 @@ Ian에게 **미리** 말해두세요. 안에서 제지당하면 아이가 당황
     overview: {
       tagline: '5만 명의 함성, 1,200년의 침묵',
       duration: '1.5-2시간',
-      duration_min: 105,
+      duration_min: 75,
       mustKnow: [
         '사전 예약 권장 (티켓 + Arena Floor 추가권 별도)',
         'Arena Floor / Hypogeum 입장권은 따로 예약',

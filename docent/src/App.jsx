@@ -937,17 +937,17 @@ function TripView({ pop, push }) {
                       // 식당 항목 렌더링
                       if (it._kind === 'resv') {
                         return (
-                          <div key={it._key} className="dc-trip-attr" style={{padding: '6px 8px', borderLeft: '2px solid #4a7c59', background: 'rgba(74,124,89,0.06)', borderRadius: 4, marginBottom: 4}}>
-                            <span style={{fontWeight: 700, color: '#4a7c59', marginRight: 6}}>{it.time}</span>
-                            <span style={{fontSize: 12, color: '#3a2a1e'}}>{it.label}</span>
+                          <div key={it._key} className="dc-trip-attr" style={{padding: '8px 10px', borderLeft: '3px solid #6BbF8A', background: 'rgba(107,191,138,0.12)', borderRadius: 4, marginBottom: 4}}>
+                            <span style={{fontWeight: 700, color: '#8FE0AE', marginRight: 6}}>{it.time}</span>
+                            <span style={{fontSize: 12.5, color: 'var(--text)', lineHeight: 1.5}}>{it.label}</span>
                           </div>
                         );
                       }
                       // 이동(기차/택시/보트/비행기) 항목 렌더링
                       if (it._kind === 'transit') {
                         return (
-                          <div key={it._key} className="dc-trip-attr" style={{padding: '6px 8px', borderLeft: '2px solid #7a9e8f', background: 'rgba(122,158,143,0.06)', borderRadius: 4, marginBottom: 4}}>
-                            <span style={{fontSize: 12, color: '#3a2a1e'}}>{it.label}</span>
+                          <div key={it._key} className="dc-trip-attr" style={{padding: '8px 10px', borderLeft: '3px solid #8FB4C9', background: 'rgba(143,180,201,0.12)', borderRadius: 4, marginBottom: 4}}>
+                            <span style={{fontSize: 12.5, color: 'var(--text)', lineHeight: 1.5}}>{it.label}</span>
                           </div>
                         );
                       }
