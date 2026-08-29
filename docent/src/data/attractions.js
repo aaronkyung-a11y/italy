@@ -9680,7 +9680,7 @@ Brambilla는 〈19세기 + 18세기 복원자들이 칠한 모든 페인트를 �
     overview: {
       tagline: '600년 공사 + 3,400개 조각상 + 135개 첨탑 — 세계 최대 고딕',
       duration: '3~4시간 (옥상 포함)',
-      duration_min: 200,
+      duration_min: 90,
       mustKnow: [
         '본당 입장은 〈Duomo Pass〉 — 옥상·박물관·바티스테로 통합권 권장',
         '옥상(테라스) 엘리베이터 vs 계단 — 250계단 가능',

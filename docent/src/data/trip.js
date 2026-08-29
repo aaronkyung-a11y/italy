@@ -1752,6 +1752,12 @@ export const AARON_CONFIRMED_TRIP = {
       slotDate: '2026-09-20',
       notes: '3매 · 성인 €29×2 + 미성년 무료 · QR 코드 스마트폰',
     },
+    'duomo-milan': {
+      status: 'visit',
+      slotTime: '16:30',
+      slotDate: '2026-09-24',
+      notes: '옥상 일몰 · 스포르체스코(오후) 후 · 엘리베이터 권장(251계단) · 점심(13:00)→스포르체스코→옥상 순서',
+    },
     'cenacolo': {
       status: 'confirmed',
       confirmationCode: 'TLCENV001210547876',
@@ -1780,7 +1786,7 @@ export const AARON_CONFIRMED_TRIP = {
       notes: '🔴 개별티켓 없음 · 패스 3종 중 선택 — Giotto Pass 권장(성인 €20×2 + Ian €7 = €47) · 쿠폴라 원하면 Brunelleschi €30(슬롯 2~3주전 매진, 463계단) · tickets.duomo.firenze.it',
     },
     'palazzo-ducale': {
-      status: 'pending',
+      status: 'visit',
       slotTime: '08:00',
       slotDate: '2026-09-23',
       notes: '🔴 산마르코 광장 박물관 통합권으로만 입장 (2026 기준) · 성인 €35 + Ian(6~14세 할인) €15 = 약 €85 · Ian 무료 아님 · 코레르/마르치아나/고고학박물관 포함, MUVE 오디오가이드 무료',
