@@ -1658,20 +1658,20 @@ export const AARON_CONFIRMED_TRIP = {
     // 9/22 (화) 산타크로체 + 베네치아 이동 (아카데미아는 9/20으로 이동 완료)
     {
       date: '2026-09-22',
-      attractionIds: ['santacroce'],
+      attractionIds: ['santacroce', 'gondola'],
       dayInfo: {
         title: '산타크로체 + 베네치아 이동',
         transit: [
           { type: 'train', label: '🚄 14:20 피렌체 S.M.N → 16:34 베네치아 S.Lucia · Frecciarossa 9420 · 4호차 14D/15C/15D · PNR MYE9DN · €65' },
         ],
         hotel: '🏨 U-Visionary Venezia · 9/22~23 (1박) · 조식 포함',
-        note: '09:30 Santa Croce (미켈란젤로·갈릴레오 무덤, 여유) → 11:00 두오모 광장 마지막 산책 → 11:30 호텔 짐 → 점심 → 14:20 열차. David는 9/20에 관람 완료 · 오전 여유로 아이 부담↓ · Medici/Bargello는 이번 일정에서 제외(다음 방문)',
+        note: '09:30 Santa Croce (미켈란젤로·갈릴레오 무덤, 여유) → 11:00 두오모 광장 마지막 산책 → 11:30 호텔 짐 → 점심 → 14:20 열차 → 16:34 베네치아 도착 → U-Visionary 체크인 → 저녁 → 18:30 곤돌라(해질녘~야경, 첫날 저녁이 여유롭고 운하 조명이 예쁨). David는 9/20 관람 완료 · Medici/Bargello 제외',
       },
     },
     // 9/23 (수) 베네치아 → 밀라노
     {
       date: '2026-09-23',
-      attractionIds: ['san-marco', 'palazzo-ducale', 'gondola'],
+      attractionIds: ['san-marco', 'palazzo-ducale'],
       dayInfo: {
         title: '베네치아 (반나절) → 밀라노',
         reservations: [
@@ -1681,7 +1681,7 @@ export const AARON_CONFIRMED_TRIP = {
           { type: 'train', label: '🚄 16:48 베네치아 S.Lucia → 19:15 밀라노 Centrale · Frecciarossa 9748 · 4호차 5A/6A/6B · PNR NMC4W5 · €55' },
         ],
         hotel: '🏨 Heart Milan Apartments · Via Santa Tecla 3 (두오모 지구) · 9/23~25 (2박) · 코드 75494/2026 · 2BR/3욕실 · €1,688.84 · 이메일 체크인, 15:00~ · 도시세 €9.50/인/일(18세 미만 면제)',
-        note: '08:00 Palazzo Ducale 오픈런(첫 입장 가장 한산 — 파라디소 조용히 볼 유일한 기회, 최소 1.5h 필요) → San Marco 광장·바실리카 → 12:30 Corte Sconta 점심 → 곤돌라(Ian 최고 좋아함) → 15:30 산타루치아행 vaporetto → 16:48 열차. ⚠️ 두칼레는 산마르코 통합권만(성인 €35/Ian €15 — 무료 아님). Rialto는 도보 중 통과',
+        note: '08:00 Palazzo Ducale 오픈런(첫 입장 가장 한산 — 파라디소 조용히 볼 유일한 기회, 최소 1.5h 필요) → San Marco 광장·바실리카 → 12:30 Corte Sconta 점심 → 리알토 다리 산책 → 15:30 산타루치아행 vaporetto → 16:48 열차. 곤돌라는 전날(9/22) 저녁에 탐. ⚠️ 두칼레는 산마르코 통합권만(성인 €35/Ian €15 — 무료 아님). Rialto는 도보 중 통과',
       },
     },
     // 9/24 (목) 밀라노 (체나콜로 + 두오모, 가볍게)
@@ -1719,6 +1719,12 @@ export const AARON_CONFIRMED_TRIP = {
     },
   ],
   bookings: {
+    'gondola': {
+      status: 'visit',
+      slotTime: '18:30',
+      slotDate: '2026-09-22',
+      notes: '예약 불필요 · 베네치아 도착 첫날 저녁(해질녘~야경) · 산 마르코/리알토 근처 승선장 · 표준 30분 €90(주간)/€110(19:00 이후), 6인까지 동일 · 흥정 가능',
+    },
     'navona': {
       status: 'visit',
       slotTime: '18:00',
