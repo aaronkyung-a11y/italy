@@ -1625,7 +1625,7 @@ export const AARON_CONFIRMED_TRIP = {
         transit: [
           { type: 'train', label: '🚄 15:25 로마 Termini → 17:01 피렌체 S.M.N · Frecciarossa 9320 · 6호차 11A/12A/12B · PNR PBLCS5 · €60' },
         ],
-        hotel: '🏨 Hotel Minerva · 9/19~22 (3박) · Santa Maria Novella 광장',
+        hotel: '🏨 Grand Hotel Minerva · 9/19~22 (3박) · Santa Maria Novella 광장 · 🏊 6층 루프탑 온수풀(28도, 두오모 전망) 9:00~19:00 · 투숙객 전용 · 16세 미만 성인 동반 필수(Ian OK) · 수영복 지참',
         note: '08:30 도착(보안검색+보관소, 지각시 입장거부) → 09:00 보르게세 입장(2시간, 1층 베르니니 조각에 절반) → 11:00 정각 퇴장(재입장 불가) → Popolo 광장 → 점심 → 13:45 호텔 짐 → 14:00 Termini → 15:25 열차. ⚠️가방 21×15cm 초과는 전부 보관소, 음식·물 반입 금지. Ian 여권 지참(무료 나이 증명)',
       },
     },
@@ -1639,7 +1639,7 @@ export const AARON_CONFIRMED_TRIP = {
           { time: '10:00', label: '🎨 Uffizi · 3매 · PNR WAGG1CYE · 성인 €29×2 + 미성년(Ian) 무료' },
           { time: '15:00', label: '🎨 Accademia (David) · 3매 · 주문번호 23722663 · Cod.Cliente 4570765 · 성인(Intero) €20×2 + Ian(Gratuito) €0 · 총 €44' },
         ],
-        hotel: '🏨 Hotel Minerva (숙박 중)',
+        hotel: '🏨 Grand Hotel Minerva (숙박 중) · 🏊 루프탑 온수풀 9:00~19:00',
         note: 'Uffizi 10:00~12:30 → Oltrarno 점심·휴식 (여유롭게) → 14:30 Accademia 도착 → 15:00 입장 (David·미완성 노예들, 1~1.5h) → 저녁 두오모 광장 젤라토. 아카데미아 15:00 확정이라 우피치 후 점심·휴식 버퍼 넉넉 · Pitti는 다음 방문으로 이동',
       },
     },
@@ -1652,8 +1652,8 @@ export const AARON_CONFIRMED_TRIP = {
         reservations: [
           { time: '18:30', label: '🍝 저녁 Trattoria Dall\'Oste (Cucina Toscana, Borgo S. Lorenzo 31, 산 로렌초 시장 근처) · 3명 · TheFork 예약번호 1705328610 · 토스카나 요리 · 세트메뉴/할인 없음 · 식당서 재확인 요청 올 수 있음' },
         ],
-        hotel: '🏨 Hotel Minerva (숙박 중)',
-        note: '오전 늦게 시작 OK. 🔴 두오모는 개별티켓 없음 — 패스 3종 중 선택 필수(Ghiberti €15/Giotto €20/Brunelleschi €30, Ian 7~14세는 €5/€7/€12). Giotto Pass 권장(3인 €47): 종탑+세례당+박물관. 종탑(414계단, 쉬는층 O)이 쿠폴라(463계단)보다 아이에게 현실적이고 두오모 사진도 더 좋음. 본당은 무료지만 줄 2시간+ — 패스로 크립트 쪽 입구 이용. 10:00 두오모 → San Lorenzo 시장 점심 → 오후 Palazzo Vecchio → 18:30 Trattoria Dall\'Oste 저녁(산 로렌초 근처, 동선 일치) → 두오모 광장 젤라토. ⚠️ 세례당 모자이크 복원 중(할인 없음)',
+        hotel: '🏨 Grand Hotel Minerva (숙박 중) · 🏊 루프탑 온수풀 9:00~19:00',
+        note: '오전 늦게 시작 OK. 🔴 두오모는 개별티켓 없음 — 패스 3종 중 선택 필수(Ghiberti €15/Giotto €20/Brunelleschi €30, Ian 7~14세는 €5/€7/€12). Giotto Pass 권장(3인 €47): 종탑+세례당+박물관. 종탑(414계단, 쉬는층 O)이 쿠폴라(463계단)보다 아이에게 현실적이고 두오모 사진도 더 좋음. 본당은 무료지만 줄 2시간+ — 패스로 크립트 쪽 입구 이용. 10:00 두오모 → San Lorenzo 시장 점심 → 오후 Palazzo Vecchio → 🏊 호텔 루프탑 수영장 재충전(미술관 이틀 후 Ian 휴식 최적, 일몰 전망) → 18:30 Trattoria Dall\'Oste 저녁(산 로렌초 근처) → 두오모 광장 젤라토. ⚠️ 세례당 모자이크 복원 중(할인 없음) · 수영복 챙기기',
       },
     },
     // 9/22 (화) 산타크로체 + 베네치아 이동 (아카데미아는 9/20으로 이동 완료)
