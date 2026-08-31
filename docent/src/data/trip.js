@@ -1638,9 +1638,10 @@ export const AARON_CONFIRMED_TRIP = {
         reservations: [
           { time: '10:00', label: '🎨 Uffizi · 3매 · PNR WAGG1CYE · 성인 €29×2 + 미성년(Ian) 무료' },
           { time: '15:00', label: '🎨 Accademia (David) · 3매 · 주문번호 23722663 · Cod.Cliente 4570765 · 성인(Intero) €20×2 + Ian(Gratuito) €0 · 총 €44' },
+          { time: '19:00', label: '🍷 저녁 Osteria Belle Donne (Via delle Belle Donne 16R, 산타 마리아 노벨라 광장 근처=호텔 옆) · 3명 · Quandoo 예약 · 1945년 토스카나 노포 · 비스테카 알라 피오렌티나·트러플 파스타 · 와인 창문(buchetta del vino) · ⚠️일요일 휴무 정보 있음 — 방문 전 확인 권장' },
         ],
         hotel: '🏨 Grand Hotel Minerva (숙박 중) · 🏊 루프탑 온수풀 9:00~19:00',
-        note: 'Uffizi 10:00~12:30 → Oltrarno 점심·휴식 (여유롭게) → 14:30 Accademia 도착 → 15:00 입장 (David·미완성 노예들, 1~1.5h) → 저녁 두오모 광장 젤라토. 아카데미아 15:00 확정이라 우피치 후 점심·휴식 버퍼 넉넉 · Pitti는 다음 방문으로 이동',
+        note: 'Uffizi 10:00~12:30 → Oltrarno 점심·휴식 (여유롭게) → 14:30 Accademia 도착 → 15:00 입장 (David·미완성 노예들, 1~1.5h) → → 호텔 휴식(수영장 가능) → 19:00 Osteria Belle Donne 저녁(호텔과 같은 광장, 도보 2분) → 두오모 광장 젤라토. 아카데미아 15:00 확정이라 우피치 후 점심·휴식 버퍼 넉넉 · Pitti는 다음 방문으로 이동',
       },
     },
     // 9/21 (월) Duomo + 산 로렌초 (가볍게)
