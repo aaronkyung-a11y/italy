@@ -8207,7 +8207,7 @@ uffizi는 이탈리아어로 〈사무실들〉. 1559년 코시모 1세 데 메�
   {
     id: 'duomo',
     city: 'florence',
-    name: '두오모 (산타 마리아 델 피오레 + 세례당 + 종탑)',
+    name: '두오모 (산타 마리아 델 피오레)',
     nameLocal: 'Duomo · Santa Maria del Fiore',
     emoji: '⛪',
     coverHue: '#C9A961',
