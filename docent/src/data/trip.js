@@ -1663,11 +1663,14 @@ export const AARON_CONFIRMED_TRIP = {
       attractionIds: ['santacroce', 'gondola'],
       dayInfo: {
         title: '산타크로체 + 베네치아 이동',
+        reservations: [
+          { time: '12:00', label: '🍝 점심 Osteria Pastella (Via della Scala 17/R, 산타 마리아 노벨라 역·호텔 근처) · 3명 · myrestoo 예약 · 보증금 €30(인당 €10) · 치즈 휠에 불붙여 만드는 송로버섯 파스타(Ian 볼거리) · ⚠️13:30까지 이용 → 14:20 기차 여유, 짐 미리 챙기기' },
+        ],
         transit: [
           { type: 'train', label: '🚄 14:20 피렌체 S.M.N → 16:34 베네치아 S.Lucia · Frecciarossa 9420 · 4호차 14D/15C/15D · PNR MYE9DN · €65' },
         ],
         hotel: '🏨 U-Visionary Venezia · 9/22~23 (1박) · 조식 포함',
-        note: '09:30 Santa Croce → 11:30 호텔 짐 → 점심 → 14:20 열차 → 16:34 베네치아 도착 → U-Visionary 체크인(카나레조, 역 옆) → 18:00 곤돌라 30분(카나레조 뒷운하 미끄러지기, 호텔 근처 승선장) → 18:45~19:15 노을 산책: Fondamenta de la Misericordia / Fondamenta dei Ormesini 운하변(구글지도 검색시 방언표기 주의 · 호텔서 도보 7~10분 · 서쪽 트여 노을 정면 · 현지인 아페리티보/스프리츠 바 밀집) 또는 Fondamente Nove(석호 방향, 무라노 실루엣, 도보 12~15분) → 저녁. ⚠️곤돌라 안은 건물에 가려 노을 잘 안 보임 — 노을은 운하변 산책에서. 산마르코는 9/23',
+        note: '09:30 Santa Croce → 11:30 호텔 짐 → 12:00 Osteria Pastella 점심(역 근처, 13:30까지) → 14:20 열차 → 16:34 베네치아 도착 → U-Visionary 체크인(카나레조, 역 옆) → 18:00 곤돌라 30분(카나레조 뒷운하 미끄러지기, 호텔 근처 승선장) → 18:45~19:15 노을 산책: Fondamenta de la Misericordia / Fondamenta dei Ormesini 운하변(구글지도 검색시 방언표기 주의 · 호텔서 도보 7~10분 · 서쪽 트여 노을 정면 · 현지인 아페리티보/스프리츠 바 밀집) 또는 Fondamente Nove(석호 방향, 무라노 실루엣, 도보 12~15분) → 저녁. ⚠️곤돌라 안은 건물에 가려 노을 잘 안 보임 — 노을은 운하변 산책에서. 산마르코는 9/23',
       },
     },
     // 9/23 (수) 베네치아 → 밀라노
