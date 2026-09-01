@@ -1602,7 +1602,7 @@ export const AARON_CONFIRMED_TRIP = {
     // 9/18 (금) 로마 광장 + 바티칸
     {
       date: '2026-09-18',
-      attractionIds: ['spagna', 'castel', 'vatican'],
+      attractionIds: ['spagna', 'stpeter', 'castel', 'vatican'],
       dayInfo: {
         title: '스페인계단 + 산탄젤로 + 바티칸',
         reservations: [
@@ -1724,6 +1724,12 @@ export const AARON_CONFIRMED_TRIP = {
     },
   ],
   bookings: {
+    'stpeter': {
+      status: 'visit',
+      slotTime: '10:00',
+      slotDate: '2026-09-18',
+      notes: '무료·별도 입구(바티칸 박물관과 다름) · 오전이 줄 짧음 · 피에타·발다친·베드로의 좌 · 어깨·무릎 가리기',
+    },
     'gondola': {
       status: 'visit',
       slotTime: '18:00',
