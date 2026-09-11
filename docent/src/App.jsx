@@ -286,6 +286,7 @@ export default function App() {
   return (
     <div className="dc-app">
       {view.current.name === 'home' && <HomeView push={view.push} favorites={favorites} />}
+      {view.current.name === 'nearby' && <NearbyView push={view.push} pop={view.pop} />}
       {view.current.name === 'trip' && <TripView pop={view.pop} push={view.push} />}
       {view.current.name === 'city' && (
         <CityView cityId={view.current.cityId} push={view.push} pop={view.pop} />
@@ -1776,6 +1777,118 @@ function CoursePicker({ dayDate, inferredCity, assignedElsewhere, onApply, onClo
 // ─────────────────────────────────────────────────────────
 // Home — list of 5 attractions
 // ─────────────────────────────────────────────────────────
+// NearbyView — GPS 위치 기반 가까운 명소 정렬
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371000; // meters
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function fmtDist(m) {
+  if (m < 1000) return `${Math.round(m)}m`;
+  return `${(m / 1000).toFixed(1)}km`;
+}
+
+function NearbyView({ push, pop }) {
+  const [status, setStatus] = useState('idle'); // idle | locating | ok | denied | error | unsupported
+  const [pos, setPos] = useState(null);
+  const [sorted, setSorted] = useState([]);
+
+  const locate = useCallback(() => {
+    if (!('geolocation' in navigator)) { setStatus('unsupported'); return; }
+    setStatus('locating');
+    navigator.geolocation.getCurrentPosition(
+      (p) => {
+        const { latitude, longitude } = p.coords;
+        setPos({ lat: latitude, lng: longitude, acc: p.coords.accuracy });
+        const withCoord = ATTRACTIONS.filter((a) => a.lat && a.lng);
+        const ranked = withCoord
+          .map((a) => ({ a, dist: haversine(latitude, longitude, a.lat, a.lng) }))
+          .sort((x, y) => x.dist - y.dist);
+        setSorted(ranked);
+        setStatus('ok');
+      },
+      (err) => {
+        setStatus(err.code === 1 ? 'denied' : 'error');
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 }
+    );
+  }, []);
+
+  useEffect(() => { locate(); }, [locate]);
+
+  // 이탈리아 밖이면 안내 (대략적 경계)
+  const farFromItaly = pos && (pos.lat < 35 || pos.lat > 48 || pos.lng < 6 || pos.lng > 19);
+
+  return (
+    <div className="dc-nearby">
+      <header className="dc-sub-header">
+        <button className="dc-back" onClick={pop}><ChevronLeft size={18} /> 뒤로</button>
+        <h2 className="dc-sub-title">📍 내 근처 명소</h2>
+      </header>
+
+      {status === 'locating' && (
+        <div className="dc-nearby-msg">현재 위치를 확인하는 중…</div>
+      )}
+      {status === 'unsupported' && (
+        <div className="dc-nearby-msg">이 기기/브라우저는 위치 기능을 지원하지 않습니다.</div>
+      )}
+      {status === 'denied' && (
+        <div className="dc-nearby-msg">
+          위치 권한이 거부되었습니다.<br />
+          브라우저 설정에서 이 사이트의 위치 접근을 허용한 뒤 다시 시도하세요.
+          <button className="dc-nearby-retry" onClick={locate}>다시 시도</button>
+        </div>
+      )}
+      {status === 'error' && (
+        <div className="dc-nearby-msg">
+          위치를 가져오지 못했습니다.
+          <button className="dc-nearby-retry" onClick={locate}>다시 시도</button>
+        </div>
+      )}
+
+      {status === 'ok' && (
+        <>
+          {farFromItaly && (
+            <div className="dc-nearby-note">
+              ⓘ 현재 이탈리아에서 멀리 떨어져 있는 것 같습니다. 아래는 참고용 거리입니다.
+            </div>
+          )}
+          {pos && pos.acc > 100 && (
+            <div className="dc-nearby-note">
+              ⓘ 위치 정확도가 낮습니다(±{Math.round(pos.acc)}m). 실내에서는 부정확할 수 있습니다.
+            </div>
+          )}
+          <div className="dc-nearby-list">
+            {sorted.slice(0, 20).map(({ a, dist }) => (
+              <button
+                key={a.id}
+                className="dc-nearby-item"
+                onClick={() => push({ name: 'attraction', attractionId: a.id })}
+              >
+                <span className="dc-nearby-emoji">{a.emoji || '📍'}</span>
+                <span className="dc-nearby-body">
+                  <span className="dc-nearby-name">{a.name}</span>
+                  <span className="dc-nearby-city">{a.points ? `${a.points.length} 포인트` : ''}</span>
+                </span>
+                <span className="dc-nearby-dist">{fmtDist(dist)}</span>
+                <ChevronRight size={15} />
+              </button>
+            ))}
+          </div>
+          <button className="dc-nearby-retry" onClick={locate} style={{ margin: '12px auto', display: 'block' }}>
+            위치 새로고침
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
 function HomeView({ push, favorites }) {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const installer = useInstallPrompt();
@@ -1882,6 +1995,15 @@ function HomeView({ push, favorites }) {
         <div className="dc-trip-cta-body">
           <div className="dc-trip-cta-title">내 일정</div>
           <div className="dc-trip-cta-sub">출발/복귀 + 매일 명소 · 예약 사이트 + 캘린더 알림</div>
+        </div>
+        <ChevronRight size={16} className="dc-scan-cta-chev" />
+      </button>
+
+      <button className="dc-trip-cta" onClick={() => push({ name: 'nearby' })}>
+        <div className="dc-trip-cta-icon">📍</div>
+        <div className="dc-trip-cta-body">
+          <div className="dc-trip-cta-title">내 근처 명소</div>
+          <div className="dc-trip-cta-sub">현재 위치에서 가까운 명소 · 야외 유적·광장에서 유용</div>
         </div>
         <ChevronRight size={16} className="dc-scan-cta-chev" />
       </button>

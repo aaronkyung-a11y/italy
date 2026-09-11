@@ -4701,3 +4701,37 @@ img {
 .dc-trip-attr-time.overflow {
   color: #ffb066;
 }
+
+/* ── 내 근처 명소 (NearbyView) ── */
+.dc-nearby { padding: 0 14px 24px; }
+.dc-nearby-msg {
+  text-align: center; padding: 40px 20px; color: var(--text-soft);
+  font-size: 14px; line-height: 1.6;
+}
+.dc-nearby-note {
+  background: rgba(184,134,11,0.10); border-left: 3px solid var(--gold);
+  border-radius: 6px; padding: 8px 12px; margin: 10px 0;
+  font-size: 12px; color: var(--text-soft); line-height: 1.5;
+}
+.dc-nearby-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.dc-nearby-item {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; text-align: left; padding: 12px 14px;
+  background: var(--card, rgba(255,255,255,0.04));
+  border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
+  color: var(--text); cursor: pointer;
+}
+.dc-nearby-item:active { background: rgba(255,255,255,0.09); }
+.dc-nearby-emoji { font-size: 20px; flex-shrink: 0; }
+.dc-nearby-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.dc-nearby-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.dc-nearby-city { font-size: 11px; color: var(--text-faint); }
+.dc-nearby-dist {
+  font-size: 13px; font-weight: 700; color: var(--gold);
+  flex-shrink: 0; margin-left: auto;
+}
+.dc-nearby-retry {
+  background: var(--gold); color: #1a1a1a; border: none;
+  padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  cursor: pointer; margin-top: 12px;
+}

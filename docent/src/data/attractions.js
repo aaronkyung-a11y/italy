@@ -53,6 +53,8 @@ export const ATTRACTIONS = [
   {
     id: 'borghese',
     city: 'rome',
+    lat: 41.9142,
+    lng: 12.4922,
     name: '보르게세 미술관',
     nameLocal: 'Galleria Borghese',
     emoji: '🎨',
@@ -1070,6 +1072,8 @@ export const ATTRACTIONS = [
   {
     id: 'vatican',
     city: 'rome',
+    lat: 41.9065,
+    lng: 12.4536,
     name: '바티칸 박물관 & 시스티나 성당',
     nameLocal: 'Musei Vaticani & Cappella Sistina',
     emoji: '⛪',
@@ -2463,6 +2467,8 @@ Ian에게 **미리** 말해두세요. 안에서 제지당하면 아이가 당황
   {
     id: 'colosseum',
     city: 'rome',
+    lat: 41.8902,
+    lng: 12.4922,
     name: '콜로세움',
     nameLocal: 'Colosseo',
     emoji: '🏛️',
@@ -2841,6 +2847,8 @@ Ian에게 **미리** 말해두세요. 안에서 제지당하면 아이가 당황
   {
     id: 'pantheon',
     city: 'rome',
+    lat: 41.8986,
+    lng: 12.4769,
     name: '판테온',
     nameLocal: 'Pantheon',
     emoji: '🏛️',
@@ -3159,6 +3167,8 @@ Ian에게 **미리** 말해두세요. 안에서 제지당하면 아이가 당황
   {
     id: 'trevi',
     city: 'rome',
+    lat: 41.9009,
+    lng: 12.4833,
     name: '트레비 분수',
     nameLocal: 'Fontana di Trevi',
     emoji: '⛲',
@@ -3530,6 +3540,8 @@ Ian에게 **미리** 말해두세요. 안에서 제지당하면 아이가 당황
   {
     id: 'castel',
     city: 'rome',
+    lat: 41.9031,
+    lng: 12.4663,
     name: '산탄젤로 성',
     nameLocal: 'Castel Sant\'Angelo',
     emoji: '🏰',
@@ -3951,6 +3963,8 @@ Ian에게 **미리** 말해두세요. 안에서 제지당하면 아이가 당황
   {
     id: 'navona',
     city: 'rome',
+    lat: 41.8992,
+    lng: 12.4731,
     name: '나보나 광장',
     nameLocal: 'Piazza Navona',
     emoji: '⛲',
@@ -4294,6 +4308,8 @@ Ian에게 **미리** 말해두세요. 안에서 제지당하면 아이가 당황
   {
     id: 'spagna',
     city: 'rome',
+    lat: 41.9058,
+    lng: 12.4823,
     name: '스페인 광장',
     nameLocal: 'Piazza di Spagna',
     emoji: '🌹',
@@ -4647,6 +4663,8 @@ Ian에게 **미리** 말해두세요. 안에서 제지당하면 아이가 당황
   {
     id: 'foro',
     city: 'rome',
+    lat: 41.8925,
+    lng: 12.4853,
     name: '포로 로마노 + 팔라티노 언덕',
     nameLocal: 'Foro Romano e Palatino',
     emoji: '🏛️',
@@ -5110,6 +5128,8 @@ Ian에게 **미리** 말해두세요. 안에서 제지당하면 아이가 당황
   {
     id: 'vincoli',
     city: 'rome',
+    lat: 41.8939,
+    lng: 12.4936,
     name: '산 피에트로 인 빈콜리',
     nameLocal: 'San Pietro in Vincoli',
     emoji: '⛪',
@@ -5262,6 +5282,8 @@ Ian에게 **미리** 말해두세요. 안에서 제지당하면 아이가 당황
   {
     id: 'popolo',
     city: 'rome',
+    lat: 41.9109,
+    lng: 12.4763,
     name: '산타 마리아 델 포폴로',
     nameLocal: 'Santa Maria del Popolo',
     emoji: '⛪',
@@ -5575,6 +5597,8 @@ Ian에게 **미리** 말해두세요. 안에서 제지당하면 아이가 당황
   {
     id: 'capitolini',
     city: 'rome',
+    lat: 41.8931,
+    lng: 12.4828,
     name: '카피톨리노 박물관',
     nameLocal: 'Musei Capitolini',
     emoji: '🐺',
@@ -6010,6 +6034,8 @@ Ian에게 **미리** 말해두세요. 안에서 제지당하면 아이가 당황
   {
     id: 'accademia',
     city: 'florence',
+    lat: 43.7767,
+    lng: 11.2594,
     name: '아카데미아 미술관',
     nameLocal: 'Galleria dell\'Accademia',
     emoji: '🗿',
@@ -6652,6 +6678,8 @@ Ian에게 **미리** 말해두세요. 안에서 제지당하면 아이가 당황
   {
     id: 'uffizi',
     city: 'florence',
+    lat: 43.7678,
+    lng: 11.2559,
     name: '우피치 미술관',
     nameLocal: 'Galleria degli Uffizi',
     emoji: '🎨',
@@ -8056,6 +8084,8 @@ uffizi는 이탈리아어로 〈사무실들〉. 1559년 코시모 1세 데 메�
   {
     id: 'duomo',
     city: 'florence',
+    lat: 43.7731,
+    lng: 11.256,
     name: '두오모 (산타 마리아 델 피오레)',
     nameLocal: 'Duomo · Santa Maria del Fiore',
     emoji: '⛪',
@@ -8613,6 +8643,8 @@ uffizi는 이탈리아어로 〈사무실들〉. 1559년 코시모 1세 데 메�
   {
     id: 'vecchio',
     city: 'florence',
+    lat: 43.7695,
+    lng: 11.2558,
     name: '베키오 궁 + 시뇨리아 광장',
     nameLocal: 'Palazzo Vecchio & Piazza della Signoria',
     emoji: '🏛️',
@@ -9067,6 +9099,8 @@ uffizi는 이탈리아어로 〈사무실들〉. 1559년 코시모 1세 데 메�
   {
     id: 'cenacolo',
     city: 'milan',
+    lat: 45.4661,
+    lng: 9.1706,
     name: '최후의 만찬 (체나콜로 빈치아노)',
     nameLocal: 'Cenacolo Vinciano · Santa Maria delle Grazie',
     emoji: '🍷',
@@ -9543,6 +9577,8 @@ Brambilla는 〈19세기 + 18세기 복원자들이 칠한 모든 페인트를 �
   {
     id: 'duomo-milan',
     city: 'milan',
+    lat: 45.4642,
+    lng: 9.1919,
     name: '두오모 디 밀라노',
     nameLocal: 'Duomo di Milano',
     emoji: '⛪',
@@ -10025,6 +10061,8 @@ Brambilla는 〈19세기 + 18세기 복원자들이 칠한 모든 페인트를 �
   {
     id: 'sforzesco',
     city: 'milan',
+    lat: 45.4705,
+    lng: 9.1791,
     name: '스포르체스코 성',
     nameLocal: 'Castello Sforzesco',
     emoji: '🏰',
@@ -10431,6 +10469,8 @@ X-ray 분석으로 발견: 미켈란젤로는 이 한 대리석 블록에 〈4�
   {
     id: 'galleria-scala',
     city: 'milan',
+    lat: 45.4669,
+    lng: 9.1897,
     name: '갈레리아 + 라 스칼라',
     nameLocal: 'Galleria Vittorio Emanuele II & Teatro alla Scala',
     emoji: '🛍️',
@@ -10740,6 +10780,8 @@ X-ray 분석으로 발견: 미켈란젤로는 이 한 대리석 블록에 〈4�
   {
     id: 'brera',
     city: 'milan',
+    lat: 45.472,
+    lng: 9.188,
     name: '브레라 미술관',
     nameLocal: 'Pinacoteca di Brera',
     emoji: '🎨',
@@ -11141,6 +11183,8 @@ X-ray 분석으로 발견: 미켈란젤로는 이 한 대리석 블록에 〈4�
   {
     id: 'bargello',
     city: 'florence',
+    lat: 43.7702,
+    lng: 11.2589,
     name: '바르젤로 미술관',
     nameLocal: 'Museo Nazionale del Bargello',
     emoji: '🗿',
@@ -11479,6 +11523,8 @@ X-ray 분석으로 발견: 미켈란젤로는 이 한 대리석 블록에 〈4�
   {
     id: 'santacroce',
     city: 'florence',
+    lat: 43.7686,
+    lng: 11.2624,
     name: '산타 크로체 성당',
     nameLocal: 'Basilica di Santa Croce',
     emoji: '⛪',
@@ -11898,6 +11944,8 @@ X-ray 분석으로 발견: 미켈란젤로는 이 한 대리석 블록에 〈4�
   {
     id: 'medici-chapels',
     city: 'florence',
+    lat: 43.7751,
+    lng: 11.2537,
     name: '메디치 채플',
     nameLocal: 'Cappelle Medicee',
     emoji: '⚰️',
@@ -12064,6 +12112,8 @@ X-ray 분석으로 발견: 미켈란젤로는 이 한 대리석 블록에 〈4�
   {
     id: 'pitti-boboli',
     city: 'florence',
+    lat: 43.765,
+    lng: 11.25,
     name: '피티 팔라초 + 보볼리 정원',
     nameLocal: 'Palazzo Pitti & Giardino di Boboli',
     emoji: '🌳',
@@ -12245,6 +12295,8 @@ X-ray 분석으로 발견: 미켈란젤로는 이 한 대리석 블록에 〈4�
   {
     id: 'brancacci',
     city: 'florence',
+    lat: 43.768,
+    lng: 11.2432,
     name: '브란카치 예배당',
     nameLocal: 'Cappella Brancacci',
     emoji: '🎨',
@@ -12381,6 +12433,8 @@ X-ray 분석으로 발견: 미켈란젤로는 이 한 대리석 블록에 〈4�
   {
     id: 'ponte-vecchio',
     city: 'florence',
+    lat: 43.768,
+    lng: 11.2531,
     name: 'Ponte Vecchio',
     nameLocal: 'Ponte Vecchio',
     emoji: '🌉',
@@ -12465,6 +12519,8 @@ WWII 말기 독일군이 피렌체에서 후퇴하면서 모든 다리를 폭파
   {
     id: 'san-lorenzo-market',
     city: 'florence',
+    lat: 43.7767,
+    lng: 11.2536,
     name: '산 로렌초 마켓 + 메르카토 첸트랄레',
     nameLocal: 'Mercato di San Lorenzo · Mercato Centrale',
     emoji: '🥩',
@@ -12552,6 +12608,8 @@ WWII 말기 독일군이 피렌체에서 후퇴하면서 모든 다리를 폭파
   {
     id: 'oltrarno',
     city: 'florence',
+    lat: 43.766,
+    lng: 11.248,
     name: 'Oltrarno 산책',
     nameLocal: 'Oltrarno',
     emoji: '🚶',
@@ -12647,6 +12705,8 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
   {
     id: 'battistero',
     city: 'florence',
+    lat: 43.7731,
+    lng: 11.2551,
     name: '산 지오반니 세례당',
     nameLocal: 'Battistero di San Giovanni',
     emoji: '⛪',
@@ -12755,6 +12815,8 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
   {
     id: 'campanile',
     city: 'florence',
+    lat: 43.7726,
+    lng: 11.2556,
     name: '지오토 종탑',
     nameLocal: 'Campanile di Giotto',
     emoji: '🗼',
@@ -12842,6 +12904,8 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
   {
     id: 'opera-duomo',
     city: 'florence',
+    lat: 43.7737,
+    lng: 11.2568,
     name: 'Museo dell\'Opera del Duomo',
     nameLocal: 'Museo dell\'Opera di Santa Maria del Fiore',
     emoji: '🏛️',
@@ -12930,6 +12994,8 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
   {
     id: 'piazzale-san-miniato',
     city: 'florence',
+    lat: 43.7629,
+    lng: 11.265,
     name: '피아잘레 미켈란젤로 + San Miniato al Monte',
     nameLocal: 'Piazzale Michelangelo + San Miniato al Monte',
     emoji: '🌅',
@@ -13017,6 +13083,8 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
   {
     id: 'santa-maria-novella',
     city: 'florence',
+    lat: 43.7745,
+    lng: 11.2494,
     name: '산타 마리아 노벨라',
     nameLocal: 'Basilica di Santa Maria Novella',
     emoji: '⛪',
@@ -13104,6 +13172,8 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
   {
     id: 'museo-san-marco',
     city: 'florence',
+    lat: 43.7779,
+    lng: 11.2588,
     name: 'Museo di San Marco',
     nameLocal: 'Museo Nazionale di San Marco',
     emoji: '⛪',
@@ -13192,6 +13262,8 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
   {
     id: 'san-lorenzo',
     city: 'florence',
+    lat: 43.7748,
+    lng: 11.254,
     name: 'Basilica di San Lorenzo',
     nameLocal: 'Basilica di San Lorenzo',
     emoji: '⛪',
@@ -13280,6 +13352,8 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
   {
     id: 'orsanmichele',
     city: 'florence',
+    lat: 43.7708,
+    lng: 11.2551,
     name: 'Orsanmichele',
     nameLocal: 'Chiesa di Orsanmichele',
     emoji: '🗿',
@@ -13367,6 +13441,8 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
   {
     id: 'ognissanti',
     city: 'florence',
+    lat: 43.7723,
+    lng: 11.2456,
     name: 'Chiesa di Ognissanti',
     nameLocal: 'Chiesa di Ognissanti',
     emoji: '⛪',
@@ -13454,6 +13530,8 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
   {
     id: 'palazzo-medici-riccardi',
     city: 'florence',
+    lat: 43.7754,
+    lng: 11.256,
     name: 'Palazzo Medici Riccardi',
     nameLocal: 'Palazzo Medici Riccardi',
     emoji: '🏛️',
@@ -13521,6 +13599,8 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
   {
     id: 'casa-buonarroti',
     city: 'florence',
+    lat: 43.7702,
+    lng: 11.2635,
     name: 'Casa Buonarroti',
     nameLocal: 'Casa Buonarroti',
     emoji: '🎨',
@@ -13589,6 +13669,8 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
   {
     id: 'museo-galileo',
     city: 'florence',
+    lat: 43.7676,
+    lng: 11.2564,
     name: 'Museo Galileo',
     nameLocal: 'Museo Galileo',
     emoji: '🔭',
@@ -13657,6 +13739,8 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
   {
     id: 'palazzo-strozzi',
     city: 'florence',
+    lat: 43.7712,
+    lng: 11.2524,
     name: 'Palazzo Strozzi',
     nameLocal: 'Palazzo Strozzi',
     emoji: '🏛️',
@@ -13724,6 +13808,8 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
   {
     id: 'santa-trinita',
     city: 'florence',
+    lat: 43.7702,
+    lng: 11.2517,
     name: 'Chiesa di Santa Trinita',
     nameLocal: 'Basilica di Santa Trinita',
     emoji: '⛪',
@@ -13791,6 +13877,8 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
   {
     id: 'cenacolo-santapollonia',
     city: 'florence',
+    lat: 43.7787,
+    lng: 11.257,
     name: 'Cenacolo di Sant\'Apollonia',
     nameLocal: 'Cenacolo di Sant\'Apollonia',
     emoji: '🍞',
@@ -13862,6 +13950,8 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
   {
     id: 'san-marco',
     city: 'venice',
+    lat: 45.4345,
+    lng: 12.3397,
     name: '산마르코 광장 + 바실리카',
     nameLocal: 'Piazza San Marco + Basilica',
     emoji: '⛪',
@@ -14196,6 +14286,8 @@ Piazzale Michelangelo에서 도보 5분 위. 11세기 로마네스크 성당. 18
   {
     id: 'palazzo-ducale',
     city: 'venice',
+    lat: 45.4337,
+    lng: 12.3402,
     name: '두칼레 궁 + 한숨의 다리',
     nameLocal: 'Palazzo Ducale',
     emoji: '🏛️',
@@ -14507,6 +14599,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'rialto',
     city: 'venice',
+    lat: 45.438,
+    lng: 12.3358,
     name: '리알토 다리 + 시장',
     nameLocal: 'Ponte di Rialto + Mercato',
     emoji: '🌉',
@@ -14600,6 +14694,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'murano-burano',
     city: 'venice',
+    lat: 45.459,
+    lng: 12.354,
     name: '무라노 + 부라노 (섬)',
     nameLocal: 'Murano + Burano',
     emoji: '🏝️',
@@ -14694,6 +14790,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'gondola',
     city: 'venice',
+    lat: 45.434,
+    lng: 12.338,
     name: '곤돌라 경험',
     nameLocal: 'Gondola',
     emoji: '🛶',
@@ -14760,6 +14858,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'accademia-venezia',
     city: 'venice',
+    lat: 45.431,
+    lng: 12.328,
     name: '갤러리에 델 아카데미아',
     nameLocal: "Gallerie dell'Accademia",
     emoji: '🎨',
@@ -14853,6 +14953,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'peggy-guggenheim',
     city: 'venice',
+    lat: 45.4308,
+    lng: 12.3315,
     name: 'Peggy Guggenheim Collection',
     nameLocal: 'Collezione Peggy Guggenheim',
     emoji: '🎨',
@@ -14920,6 +15022,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'salute',
     city: 'venice',
+    lat: 45.4304,
+    lng: 12.3347,
     name: '산타 마리아 델라 살루테',
     nameLocal: 'Basilica di Santa Maria della Salute',
     emoji: '⛪',
@@ -14987,6 +15091,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'frari',
     city: 'venice',
+    lat: 45.4369,
+    lng: 12.3266,
     name: '프라리 대성당',
     nameLocal: 'Basilica di Santa Maria Gloriosa dei Frari',
     emoji: '⛪',
@@ -15054,6 +15160,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'san-rocco',
     city: 'venice',
+    lat: 45.4372,
+    lng: 12.3258,
     name: '스쿠올라 그란데 디 산 로코',
     nameLocal: 'Scuola Grande di San Rocco',
     emoji: '🎨',
@@ -15121,6 +15229,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'santa-maria-maggiore',
     city: 'rome',
+    lat: 41.8976,
+    lng: 12.4986,
     name: '산타 마리아 마조레',
     nameLocal: 'Basilica di Santa Maria Maggiore',
     emoji: '⛪',
@@ -15270,6 +15380,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'palazzo-barberini',
     city: 'rome',
+    lat: 41.9036,
+    lng: 12.4894,
     name: '팔라초 바르베리니 (국립미술관)',
     nameLocal: 'Palazzo Barberini — Galleria Nazionale di Arte Antica',
     emoji: '🎨',
@@ -15419,6 +15531,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'san-clemente',
     city: 'rome',
+    lat: 41.8894,
+    lng: 12.4975,
     name: '산 클레멘테 대성당',
     nameLocal: 'Basilica di San Clemente',
     emoji: '⛪',
@@ -15548,6 +15662,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'villa-farnesina',
     city: 'rome',
+    lat: 41.8935,
+    lng: 12.4667,
     name: '빌라 파르네시나',
     nameLocal: 'Villa Farnesina',
     emoji: '🎨',
@@ -15677,6 +15793,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'palazzo-massimo',
     city: 'rome',
+    lat: 41.9019,
+    lng: 12.4983,
     name: '팔라초 마시모 (국립 로마 박물관)',
     nameLocal: 'Museo Nazionale Romano — Palazzo Massimo',
     emoji: '🏛️',
@@ -15806,6 +15924,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'san-giovanni-laterano',
     city: 'rome',
+    lat: 41.8858,
+    lng: 12.5058,
     name: '산 지오반니 인 라테라노',
     nameLocal: 'Arcibasilica di San Giovanni in Laterano',
     emoji: '⛪',
@@ -15915,6 +16035,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'san-paolo-fuori',
     city: 'rome',
+    lat: 41.859,
+    lng: 12.477,
     name: '산 파올로 푸오리 레 무라',
     nameLocal: 'Basilica di San Paolo fuori le Mura',
     emoji: '⛪',
@@ -16024,6 +16146,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'san-luigi-francesi',
     city: 'rome',
+    lat: 41.8992,
+    lng: 12.4744,
     name: '산 루이지 데이 프란체시',
     nameLocal: 'Chiesa di San Luigi dei Francesi',
     emoji: '⛪',
@@ -16112,6 +16236,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'sant-agostino',
     city: 'rome',
+    lat: 41.9008,
+    lng: 12.4736,
     name: '산타고스티노',
     nameLocal: 'Basilica di Sant\'Agostino',
     emoji: '⛪',
@@ -16179,6 +16305,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'terme-diocleziano',
     city: 'rome',
+    lat: 41.9033,
+    lng: 12.4981,
     name: '디오클레치아노 목욕탕 + 산타 마리아 델리 안젤리',
     nameLocal: 'Terme di Diocleziano + Santa Maria degli Angeli e dei Martiri',
     emoji: '🏛️',
@@ -16267,6 +16395,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'baths-caracalla',
     city: 'rome',
+    lat: 41.879,
+    lng: 12.4924,
     name: '카라칼라 목욕탕',
     nameLocal: 'Terme di Caracalla',
     emoji: '🏛️',
@@ -16356,6 +16486,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'palazzo-doria-pamphilj',
     city: 'rome',
+    lat: 41.8975,
+    lng: 12.4808,
     name: '팔라초 도리아 팜필리',
     nameLocal: 'Palazzo Doria Pamphilj',
     emoji: '🏛️',
@@ -16444,6 +16576,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'chiesa-del-gesu',
     city: 'rome',
+    lat: 41.8958,
+    lng: 12.4794,
     name: '치에사 델 제수',
     nameLocal: 'Chiesa del Gesù',
     emoji: '⛪',
@@ -16532,6 +16666,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'cripta-cappuccini',
     city: 'rome',
+    lat: 41.9047,
+    lng: 12.4886,
     name: '카푸친 수도사 크립트',
     nameLocal: 'Cripta dei Cappuccini (Santa Maria della Concezione)',
     emoji: '💀',
@@ -16599,6 +16735,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'aventino',
     city: 'rome',
+    lat: 41.8845,
+    lng: 12.4797,
     name: '아벤티노 언덕',
     nameLocal: 'Aventino',
     emoji: '🌆',
@@ -16708,6 +16846,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'bellagio',
     city: 'como',
+    lat: 45.9868,
+    lng: 9.261,
     name: '벨라조 (코모 호수)',
     nameLocal: 'Bellagio, Lago di Como',
     emoji: '⛵',
@@ -16843,6 +16983,8 @@ Ian(10세)은 €15입니다. 다른 미술관들처럼 무료가 아닙니다. 
   {
     id: 'stpeter',
     city: 'rome',
+    lat: 41.9022,
+    lng: 12.4539,
     name: '성 베드로 대성당',
     nameLocal: 'Basilica di San Pietro',
     emoji: '⛪',
