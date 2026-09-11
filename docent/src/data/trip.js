@@ -1676,7 +1676,7 @@ export const AARON_CONFIRMED_TRIP = {
     // 9/23 (수) 베네치아 → 밀라노
     {
       date: '2026-09-23',
-      attractionIds: ['san-marco', 'palazzo-ducale'],
+      attractionIds: ['san-marco', 'rialto'],
       dayInfo: {
         title: '베네치아 (반나절) → 밀라노',
         reservations: [
@@ -1686,7 +1686,7 @@ export const AARON_CONFIRMED_TRIP = {
           { type: 'train', label: '🚄 16:48 베네치아 S.Lucia → 19:15 밀라노 Centrale · Frecciarossa 9748 · 4호차 5A/6A/6B · PNR NMC4W5 · €55' },
         ],
         hotel: '🏨 Heart Milan Apartments · Via Santa Tecla 3 (두오모 지구) · 9/23~25 (2박) · 코드 75494/2026 · 2BR/3욕실 · €1,688.84 · 이메일 체크인, 15:00~ · 도시세 €9.50/인/일(18세 미만 면제)',
-        note: '08:00 Palazzo Ducale 오픈런(첫 입장 가장 한산 — 파라디소 조용히 볼 유일한 기회, 최소 1.5h 필요) → San Marco 광장·바실리카 → 12:30 Corte Sconta 점심 → 리알토 다리 산책 → 15:30 산타루치아행 vaporetto → 16:48 열차. 곤돌라는 전날(9/22) 저녁에 탐. ⚠️ 두칼레는 산마르코 통합권만(성인 €35/Ian €15 — 무료 아님). Rialto는 도보 중 통과',
+        note: '09:00 산 마르코 대성당(파라도로·황금모자이크·청동마, 유료구역 별도) → 10:30 리알토 다리 + 리알토 시장(어시장·청과시장, 아침 활기) → 운하변 골목 산책 → 12:30 Corte Sconta 점심 → 오후 여유(카페·젤라토·마지막 곤돌라 or 산책) → 15:30 산타루치아행 vaporetto → 16:48 밀라노 기차. 두칼레 궁은 이번엔 생략 — 실내 관람 줄이고 베네치아 분위기 만끽(곤돌라는 9/22 저녁에 탐). 짐은 오전에 호텔서 픽업/보관',
       },
     },
     // 9/24 (목) 밀라노 (체나콜로 + 두오모, 가볍게)
@@ -1797,7 +1797,7 @@ export const AARON_CONFIRMED_TRIP = {
       notes: '🔴 개별티켓 없음 · 패스 3종 중 선택 — Giotto Pass 권장(성인 €20×2 + Ian €7 = €47) · 쿠폴라 원하면 Brunelleschi €30(슬롯 2~3주전 매진, 463계단) · tickets.duomo.firenze.it',
     },
     'palazzo-ducale': {
-      status: 'visit',
+      status: 'skip',
       slotTime: '08:00',
       slotDate: '2026-09-23',
       notes: '🔴 산마르코 광장 박물관 통합권으로만 입장 (2026 기준) · 성인 €35 + Ian(6~14세 할인) €15 = 약 €85 · Ian 무료 아님 · 코레르/마르치아나/고고학박물관 포함, MUVE 오디오가이드 무료',
