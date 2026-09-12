@@ -1785,26 +1785,35 @@ function CoursePicker({ dayDate, inferredCity, assignedElsewhere, onApply, onClo
 // Home — list of 5 attractions
 // ─────────────────────────────────────────────────────────
 // NearbyView — GPS 위치 기반 가까운 명소 정렬
-// 오늘 동선을 구글맵으로 열기 (호텔 출발 → 명소 순서 → 역/공항)
+// 오늘 동선을 구글맵으로 열기 (호텔 → 명소+식당 시간순 → 역/공항)
 function openDayMap(day, schedule, findAttraction) {
-  const pts = [];
-  // 출발: 호텔
-  if (day.dayInfo && day.dayInfo.startCoord) {
-    pts.push(day.dayInfo.startCoord);
-  }
-  // 명소들 (시간순 schedule 순서, 좌표 있는 것만)
+  const parseMin = (str) => {
+    const m = /([0-9]{1,2}):([0-9]{2})/.exec(str || '');
+    return m ? (parseInt(m[1], 10) * 60 + parseInt(m[2], 10)) : 9999;
+  };
+  // 명소(시간순) + 식당(reservations, 좌표 있는 것) 병합
+  const stops = [];
   for (const s of schedule) {
     const a = findAttraction(s.id);
-    if (a && a.lat && a.lng) pts.push([a.lat, a.lng]);
+    if (a && a.lat && a.lng) {
+      stops.push({ lat: a.lat, lng: a.lng, sortMin: (s.startMin != null ? s.startMin : parseMin(s.startStr)) });
+    }
   }
-  // 도착 거점: 역/공항 (이동일)
-  if (day.dayInfo && day.dayInfo.endCoord) {
-    pts.push(day.dayInfo.endCoord);
+  for (const r of (day.dayInfo?.reservations || [])) {
+    if (r.coord) {
+      stops.push({ lat: r.coord[0], lng: r.coord[1], sortMin: parseMin(r.time) });
+    }
   }
+  stops.sort((x, y) => x.sortMin - y.sortMin);
+
+  const pts = [];
+  if (day.dayInfo && day.dayInfo.startCoord) pts.push(day.dayInfo.startCoord);
+  for (const st of stops) pts.push([st.lat, st.lng]);
+  if (day.dayInfo && day.dayInfo.endCoord) pts.push(day.dayInfo.endCoord);
+
   if (pts.length < 2) {
-    const first = schedule.map(s => findAttraction(s.id)).find(a => a && a.lat && a.lng);
-    if (first) {
-      window.open(`https://www.google.com/maps/search/?api=1&query=${first.lat},${first.lng}`, '_blank');
+    if (stops.length) {
+      window.open(`https://www.google.com/maps/search/?api=1&query=${stops[0].lat},${stops[0].lng}`, '_blank');
     }
     return;
   }

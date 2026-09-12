@@ -1593,9 +1593,9 @@ export const AARON_CONFIRMED_TRIP = {
         startCoord: [41.8966, 12.4853],
         title: '판테온·트레비 + 고대 로마',
         reservations: [
-          { time: '13:00', label: '🍽️ 점심 Aroma (Palazzo Manfredi 옥상, 콜로세오 뷰) · 3명 · SMART MENU €180/명 · Smart casual(반바지·민소매·슬리퍼 불가) · 10세+ 가능 · +39 06 97615109' },
+          { time: '13:00', label: '🍽️ 점심 Aroma (Palazzo Manfredi 옥상, 콜로세오 뷰) · 3명 · SMART MENU €180/명 · Smart casual(반바지·민소매·슬리퍼 불가) · 10세+ 가능 · +39 06 97615109', coord: [41.8901781, 12.4955196] },
           { time: '16:30', label: '🏛️ Colosseum 입장 (75분권) · 3매 · 예약번호 OCO4606122 · Hobin/Yoojin(Intero €18) + Ian(Under 18 무료) · 콜로세오-포로-팔라티노 24H 통합권 · 15분 전 도착, 여권 지참, 백팩·큰가방 반입금지' },
-          { time: '19:00', label: '🍷 저녁 Roscioli (Via dei Giubbonari 21, 나보나 근처) · 3명 · 예약 BZ7XT2RX · Wine Cellar석 · 15분 늦으면 취소 · 당일 18:00까지 재확인 메일 필요 · 취소는 booking@salumeriaroscioli.com 메일만(전화·문자 불가), 미이행 시 인당 €20' },
+          { time: '19:00', label: '🍷 저녁 Roscioli (Via dei Giubbonari 21, 나보나 근처) · 3명 · 예약 BZ7XT2RX · Wine Cellar석 · 15분 늦으면 취소 · 당일 18:00까지 재확인 메일 필요 · 취소는 booking@salumeriaroscioli.com 메일만(전화·문자 불가), 미이행 시 인당 €20', coord: [41.894256, 12.4742417] },
         ],
         hotel: '🏨 H10 Palazzo Galla · Via IV Novembre 102 (트레비 근처, 숙박 중)',
         note: '오전 트레비 분수(호텔서 도보 7분, 이른 아침 덜 붐빔)→판테온(€5, Ian무료·예약권장, 도보 8분) → 13:00 Aroma 점심(콜로세오 옆) → 14:00 포로 로마노+팔라티노(도보 3분, 마지막입장 18:15) → 16:30 콜로세움(75분권) → 18:00 나보나 광장 산책(베르니니 분수) → 19:00 Roscioli 저녁(나보나서 도보 5분). 포로/팔라티노를 콜로세움 前에 두는 이유: 콜로세움 75분권이라 17:45 종료 후 재입장 촉박. 24H 통합권이라 순서 무관',
@@ -1645,7 +1645,7 @@ export const AARON_CONFIRMED_TRIP = {
         reservations: [
           { time: '10:00', label: '🎨 Uffizi · 3매 · PNR WAGG1CYE · 성인 €29×2 + 미성년(Ian) 무료' },
           { time: '15:00', label: '🎨 Accademia (David) · 3매 · 주문번호 23722663 · Cod.Cliente 4570765 · 성인(Intero) €20×2 + Ian(Gratuito) €0 · 총 €44' },
-          { time: '19:00', label: '🍷 저녁 Osteria Belle Donne (Via delle Belle Donne 16R, 산타 마리아 노벨라 광장 근처=호텔 옆) · 3명 · Quandoo 예약 · 1945년 토스카나 노포 · 비스테카 알라 피오렌티나·트러플 파스타 · 와인 창문(buchetta del vino) · ⚠️일요일 휴무 정보 있음 — 방문 전 확인 권장' },
+          { time: '19:00', label: '🍷 저녁 Osteria Belle Donne (Via delle Belle Donne 16R, 산타 마리아 노벨라 광장 근처=호텔 옆) · 3명 · Quandoo 예약 · 1945년 토스카나 노포 · 비스테카 알라 피오렌티나·트러플 파스타 · 와인 창문(buchetta del vino) · ⚠️일요일 휴무 정보 있음 — 방문 전 확인 권장', coord: [43.7721157, 11.2507037] },
         ],
         hotel: '🏨 Grand Hotel Minerva (숙박 중) · 🏊 루프탑 온수풀 9:00~19:00',
         note: 'Uffizi 10:00~12:30 → Oltrarno 점심·휴식 (여유롭게) → 14:30 Accademia 도착 → 15:00 입장 (David·미완성 노예들, 1~1.5h) → → 호텔 휴식(수영장 가능) → 19:00 Osteria Belle Donne 저녁(호텔과 같은 광장, 도보 2분) → 두오모 광장 젤라토. 아카데미아 15:00 확정이라 우피치 후 점심·휴식 버퍼 넉넉 · Pitti는 다음 방문으로 이동',
@@ -1659,7 +1659,7 @@ export const AARON_CONFIRMED_TRIP = {
         startCoord: [43.7745, 11.2494],
         title: 'Duomo + 시뇨리아 (여유 데이)',
         reservations: [
-          { time: '18:30', label: '🍝 저녁 Trattoria Dall\'Oste (Cucina Toscana, Borgo S. Lorenzo 31, 산 로렌초 시장 근처) · 3명 · TheFork 예약번호 1705328610 · 토스카나 요리 · 세트메뉴/할인 없음 · 식당서 재확인 요청 올 수 있음' },
+          { time: '18:30', label: '🍝 저녁 Trattoria Dall\'Oste (Cucina Toscana, Borgo S. Lorenzo 31, 산 로렌초 시장 근처) · 3명 · TheFork 예약번호 1705328610 · 토스카나 요리 · 세트메뉴/할인 없음 · 식당서 재확인 요청 올 수 있음', coord: [43.7741946, 11.2547378] },
         ],
         hotel: '🏨 Grand Hotel Minerva (숙박 중) · 🏊 루프탑 온수풀 9:00~19:00',
         note: '오전 늦게 시작 OK. 🔴 두오모는 개별티켓 없음 — 패스 3종 중 선택 필수(Ghiberti €15/Giotto €20/Brunelleschi €30, Ian 7~14세는 €5/€7/€12). Giotto Pass 권장(3인 €47): 종탑+세례당+박물관. 종탑(414계단, 쉬는층 O)이 쿠폴라(463계단)보다 아이에게 현실적이고 두오모 사진도 더 좋음. 본당은 무료지만 줄 2시간+ — 패스로 크립트 쪽 입구 이용. 10:00 두오모 → San Lorenzo 시장 점심 → 오후 Palazzo Vecchio → 🏊 호텔 루프탑 수영장 재충전(미술관 이틀 후 Ian 휴식 최적, 일몰 전망) → 18:30 Trattoria Dall\'Oste 저녁(산 로렌초 근처) → 두오모 광장 젤라토. ⚠️ 세례당 모자이크 복원 중(할인 없음) · 수영복 챙기기',
@@ -1675,7 +1675,7 @@ export const AARON_CONFIRMED_TRIP = {
         endLabel: '🚉 Firenze S.M.N 역',
         title: '산타크로체 + 베네치아 이동',
         reservations: [
-          { time: '12:00', label: '🍝 점심 Osteria Pastella (Via della Scala 17/R, 산타 마리아 노벨라 역·호텔 근처) · 3명 · myrestoo 예약 · 보증금 €30(인당 €10) · 치즈 휠에 불붙여 만드는 송로버섯 파스타(Ian 볼거리) · ⚠️13:30까지 이용 → 14:20 기차 여유, 짐 미리 챙기기' },
+          { time: '12:00', label: '🍝 점심 Osteria Pastella (Via della Scala 17/R, 산타 마리아 노벨라 역·호텔 근처) · 3명 · myrestoo 예약 · 보증금 €30(인당 €10) · 치즈 휠에 불붙여 만드는 송로버섯 파스타(Ian 볼거리) · ⚠️13:30까지 이용 → 14:20 기차 여유, 짐 미리 챙기기', coord: [43.7738868, 11.2477938] },
         ],
         transit: [
           { type: 'train', label: '🚄 14:20 피렌체 S.M.N → 16:34 베네치아 S.Lucia · Frecciarossa 9420 · 4호차 14D/15C/15D · PNR MYE9DN · €65' },
@@ -1694,7 +1694,7 @@ export const AARON_CONFIRMED_TRIP = {
         endLabel: '🚉 Venezia S.Lucia 역',
         title: '베네치아 (반나절) → 밀라노',
         reservations: [
-          { time: '12:30', label: '🦐 점심 Corte Sconta (Castello, 산마르코서 도보 12분 동쪽) · 3명 · 예약 JTXFN49A72R · 해산물 · 곤돌라·역 방향과 동선 일치' },
+          { time: '12:30', label: '🦐 점심 Corte Sconta (Castello, 산마르코서 도보 12분 동쪽) · 3명 · 예약 JTXFN49A72R · 해산물 · 곤돌라·역 방향과 동선 일치', coord: [45.4347585, 12.3479577] },
         ],
         transit: [
           { type: 'train', label: '🚄 16:48 베네치아 S.Lucia → 19:15 밀라노 Centrale · Frecciarossa 9748 · 4호차 5A/6A/6B · PNR NMC4W5 · €55' },
@@ -1712,8 +1712,8 @@ export const AARON_CONFIRMED_TRIP = {
         title: '밀라노 풀 데이 (체나콜로·스포르체스코·두오모)',
         reservations: [
           { time: '08:15', label: '🎨 Cenacolo (최후의 만찬) · 3매 · TLCENV001210547876-01/02/03 · 07:45 티켓오피스 도착' },
-          { time: '13:00', label: '🦞 점심 Trattoria del Pescatore (Via Atto Vannucci 5, Porta Romana) · 3명 · 1977년 해산물 노포 · 카탈라나 랍스터 유명 · 일요일 휴무(목요일 OK)' },
-          { time: '19:00', label: '🍝 저녁 Il Solferino (Via Castelfidardo 2, 브레라/Porta Garibaldi) · 3명 · 예약 23BB-1EDD-EED7-62E8 · Google/SevenRooms · 클래식·모던 토스카나+와인 · 못가면 미리 취소' },
+          { time: '13:00', label: '🦞 점심 Trattoria del Pescatore (Via Atto Vannucci 5, Porta Romana) · 3명 · 1977년 해산물 노포 · 카탈라나 랍스터 유명 · 일요일 휴무(목요일 OK)', coord: [45.4495097, 9.198364] },
+          { time: '19:00', label: '🍝 저녁 Il Solferino (Via Castelfidardo 2, 브레라/Porta Garibaldi) · 3명 · 예약 23BB-1EDD-EED7-62E8 · Google/SevenRooms · 클래식·모던 토스카나+와인 · 못가면 미리 취소', coord: [45.4780877, 9.1883237] },
         ],
         hotel: '🏨 Heart Milan Apartments (숙박 중)',
         note: '07:45 티켓오피스 → 08:15 Cenacolo(15분) → 08:45 산타 마리아 델레 그라치에 성당(바로 옆) → 오전 여유 → 13:00 del Pescatore 점심(Porta Romana, 남쪽) → 14:30 Sforzesco(안뜰서 Ian 뛰어놀기+론다니니 피에타) → 16:30 Duomo+옥상 일몰(엘리베이터 권장) → 18:30 숙소 근처 정리 → 19:00 Solferino 저녁(브레라). ⚠️점심(남)·저녁(북) 반대편이라 이동 감안 · 옥상은 오후 늦게 석양 노림',
@@ -1729,7 +1729,7 @@ export const AARON_CONFIRMED_TRIP = {
         endLabel: '✈️ Malpensa 공항 (MXP)',
         title: '벨라조 (코모 호수) → 출국',
         reservations: [
-          { time: '12:30', label: '🍽️ 점심 La Goletta (Via Roma 1, 벨라조 · Grand Hotel Villa Serbelloni) · 3명 · 호수 전망 테라스 · 정오~23시 논스톱 · TheFork 예약 · 야외(Esterno)석' },
+          { time: '12:30', label: '🍽️ 점심 La Goletta (Via Roma 1, 벨라조 · Grand Hotel Villa Serbelloni) · 3명 · 호수 전망 테라스 · 정오~23시 논스톱 · TheFork 예약 · 야외(Esterno)석', coord: [45.9882149, 9.2604781] },
         ],
         transit: [
           { type: 'car', label: '🚗 프라이빗 택시(기사 대절) 종일 · 09:30 밀라노 출발 → 벨라조 직행(약 1h20m) → 저녁 MXP 직행 · 캐리어 트렁크 적재(짐 보관 불필요)' },
