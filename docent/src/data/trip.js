@@ -1622,6 +1622,8 @@ export const AARON_CONFIRMED_TRIP = {
       attractionIds: ['borghese', 'popolo'],
       dayInfo: {
         startCoord: [41.8966, 12.4853],
+        endCoord: [41.9012873, 12.5015756],
+        endLabel: '🚉 Roma Termini 역',
         title: '보르게세 + 피렌체 이동',
         reservations: [
           { time: '09:00', label: '🏛️ Galleria Borghese · IN 09:00~OUT 11:00 (2시간 블록) · 3명 · 주문번호 1301914655 · Ian(만18세미만 무료, Seat 186) €0 + Hobin/Yoojin(Full Price, Seat 187·188) €16×2 · 예약비 €2×3 · 합계 €38 · ⚠️Ian 무료는 여권으로 나이 증명 필요' },
@@ -1669,6 +1671,8 @@ export const AARON_CONFIRMED_TRIP = {
       attractionIds: ['santacroce', 'gondola'],
       dayInfo: {
         startCoord: [43.7745, 11.2494],
+        endCoord: [43.7766715, 11.2479159],
+        endLabel: '🚉 Firenze S.M.N 역',
         title: '산타크로체 + 베네치아 이동',
         reservations: [
           { time: '12:00', label: '🍝 점심 Osteria Pastella (Via della Scala 17/R, 산타 마리아 노벨라 역·호텔 근처) · 3명 · myrestoo 예약 · 보증금 €30(인당 €10) · 치즈 휠에 불붙여 만드는 송로버섯 파스타(Ian 볼거리) · ⚠️13:30까지 이용 → 14:20 기차 여유, 짐 미리 챙기기' },
@@ -1686,6 +1690,8 @@ export const AARON_CONFIRMED_TRIP = {
       attractionIds: ['san-marco', 'rialto'],
       dayInfo: {
         startCoord: [45.4419, 12.3235],
+        endCoord: [45.4410697, 12.3210436],
+        endLabel: '🚉 Venezia S.Lucia 역',
         title: '베네치아 (반나절) → 밀라노',
         reservations: [
           { time: '12:30', label: '🦐 점심 Corte Sconta (Castello, 산마르코서 도보 12분 동쪽) · 3명 · 예약 JTXFN49A72R · 해산물 · 곤돌라·역 방향과 동선 일치' },
@@ -1719,6 +1725,8 @@ export const AARON_CONFIRMED_TRIP = {
       attractionIds: ['bellagio'],
       dayInfo: {
         startCoord: [45.4642, 9.1919],
+        endCoord: [45.6227139, 8.7282345],
+        endLabel: '✈️ Malpensa 공항 (MXP)',
         title: '벨라조 (코모 호수) → 출국',
         reservations: [
           { time: '12:30', label: '🍽️ 점심 La Goletta (Via Roma 1, 벨라조 · Grand Hotel Villa Serbelloni) · 3명 · 호수 전망 테라스 · 정오~23시 논스톱 · TheFork 예약 · 야외(Esterno)석' },
