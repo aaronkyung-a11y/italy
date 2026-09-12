@@ -896,6 +896,13 @@ function TripView({ pop, push }) {
                         <span className="dc-trip-day-timeline-time">
                           🕐 {dayStart} ~ {dayEnd}
                         </span>
+                        <button
+                          className="dc-trip-day-map-btn"
+                          onClick={() => openDayMap(day, schedule, findAttraction)}
+                          title="오늘 동선을 구글맵으로 보기"
+                        >
+                          🗺 오늘 지도
+                        </button>
                         {hasFixed && (
                           <span className="dc-trip-day-timeline-locked" title="예약 확정된 슬롯">
                             🔒 {schedule.filter(s => s.fixed).length}개 고정
@@ -1778,6 +1785,35 @@ function CoursePicker({ dayDate, inferredCity, assignedElsewhere, onApply, onClo
 // Home — list of 5 attractions
 // ─────────────────────────────────────────────────────────
 // NearbyView — GPS 위치 기반 가까운 명소 정렬
+// 오늘 동선을 구글맵으로 열기 (호텔 출발 → 명소 순서 → 경유지)
+function openDayMap(day, schedule, findAttraction) {
+  const pts = [];
+  // 출발: 호텔
+  if (day.dayInfo && day.dayInfo.startCoord) {
+    pts.push(day.dayInfo.startCoord);
+  }
+  // 명소들 (시간순 schedule 순서, 좌표 있는 것만)
+  for (const s of schedule) {
+    const a = findAttraction(s.id);
+    if (a && a.lat && a.lng) pts.push([a.lat, a.lng]);
+  }
+  if (pts.length < 2) {
+    // 명소가 부족하면 첫 명소만이라도 검색
+    const first = schedule.map(s => findAttraction(s.id)).find(a => a && a.lat && a.lng);
+    if (first) {
+      window.open(`https://www.google.com/maps/search/?api=1&query=${first.lat},${first.lng}`, '_blank');
+    }
+    return;
+  }
+  // 구글맵 dir URL: origin / destination / waypoints
+  const origin = `${pts[0][0]},${pts[0][1]}`;
+  const destination = `${pts[pts.length - 1][0]},${pts[pts.length - 1][1]}`;
+  const waypoints = pts.slice(1, -1).map(p => `${p[0]},${p[1]}`).join('|');
+  let url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=walking`;
+  if (waypoints) url += `&waypoints=${encodeURIComponent(waypoints)}`;
+  window.open(url, '_blank');
+}
+
 function haversine(lat1, lng1, lat2, lng2) {
   const R = 6371000; // meters
   const toRad = (d) => (d * Math.PI) / 180;
