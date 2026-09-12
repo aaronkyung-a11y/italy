@@ -1587,7 +1587,7 @@ export const AARON_CONFIRMED_TRIP = {
     // 9/17 (목) 고대 로마
     {
       date: '2026-09-17',
-      attractionIds: ['pantheon', 'trevi', 'foro', 'colosseum', 'navona'],
+      attractionIds: ['trevi', 'pantheon', 'foro', 'colosseum', 'navona'],
       dayInfo: {
         title: '판테온·트레비 + 고대 로마',
         reservations: [
@@ -1596,7 +1596,7 @@ export const AARON_CONFIRMED_TRIP = {
           { time: '19:00', label: '🍷 저녁 Roscioli (Via dei Giubbonari 21, 나보나 근처) · 3명 · 예약 BZ7XT2RX · Wine Cellar석 · 15분 늦으면 취소 · 당일 18:00까지 재확인 메일 필요 · 취소는 booking@salumeriaroscioli.com 메일만(전화·문자 불가), 미이행 시 인당 €20' },
         ],
         hotel: '🏨 H10 Palazzo Galla · Via IV Novembre 102 (트레비 근처, 숙박 중)',
-        note: '오전 판테온(€5, Ian무료·예약권장)→트레비 분수(도보 8분) → 13:00 Aroma 점심(콜로세오 옆) → 14:00 포로 로마노+팔라티노(도보 3분, 마지막입장 18:15) → 16:30 콜로세움(75분권) → 18:00 나보나 광장 산책(베르니니 분수) → 19:00 Roscioli 저녁(나보나서 도보 5분). 포로/팔라티노를 콜로세움 前에 두는 이유: 콜로세움 75분권이라 17:45 종료 후 재입장 촉박. 24H 통합권이라 순서 무관',
+        note: '오전 트레비 분수(호텔서 도보 7분, 이른 아침 덜 붐빔)→판테온(€5, Ian무료·예약권장, 도보 8분) → 13:00 Aroma 점심(콜로세오 옆) → 14:00 포로 로마노+팔라티노(도보 3분, 마지막입장 18:15) → 16:30 콜로세움(75분권) → 18:00 나보나 광장 산책(베르니니 분수) → 19:00 Roscioli 저녁(나보나서 도보 5분). 포로/팔라티노를 콜로세움 前에 두는 이유: 콜로세움 75분권이라 17:45 종료 후 재입장 촉박. 24H 통합권이라 순서 무관',
       },
     },
     // 9/18 (금) 로마 광장 + 바티칸
