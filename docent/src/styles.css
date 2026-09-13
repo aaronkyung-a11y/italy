@@ -4747,3 +4747,10 @@ img {
   white-space: nowrap;
 }
 .dc-trip-day-map-btn:active { background: rgba(66,133,244,0.28); }
+
+/* 검색: 명소 카드 강조 */
+.dc-search-item-attr-card {
+  border-left-width: 4px !important;
+  background: rgba(184,134,11,0.06);
+}
+.dc-search-item-attr-card .dc-search-item-name { font-weight: 700; }

@@ -7520,6 +7520,13 @@ function SearchView({ pop, push }) {
 
   // Filter
   const q = query.trim().toLowerCase();
+  // 명소(큰 카테고리) 매칭 — 최우선 표시
+  const attrResults = q
+    ? ATTRACTIONS.filter((a) => {
+        const hay = `${a.name} ${a.nameLocal || ''}`.toLowerCase();
+        return hay.includes(q);
+      })
+    : [];
   const results = q
     ? allPoints.filter((p) => {
         const haystack = `${p.name} ${p.nameLocal || ''} ${p.artist || ''} ${p.attractionName}`.toLowerCase();
@@ -7559,7 +7566,7 @@ function SearchView({ pop, push }) {
         </div>
       )}
 
-      {q && results.length === 0 && (
+      {q && results.length === 0 && attrResults.length === 0 && (
         <div className="dc-search-empty">
           <Search size={28} />
           <div className="dc-search-empty-title">"{query}"에 대한 결과 없음</div>
@@ -7567,30 +7574,56 @@ function SearchView({ pop, push }) {
         </div>
       )}
 
-      {q && results.length > 0 && (
+      {q && (attrResults.length > 0 || results.length > 0) && (
         <>
-          <div className="dc-search-count">{results.length}점 발견</div>
-          <div className="dc-search-results">
-            {results.map((p) => (
-              <button
-                key={`${p.attractionId}-${p.id}`}
-                className="dc-search-item"
-                style={{ '--accent': p.attractionAccent }}
-                onClick={() => push({ name: 'point', attractionId: p.attractionId, pointId: p.id })}
-              >
-                <img src={p.image} alt={p.name} loading="lazy" />
-                <div className="dc-search-item-body">
-                  <div className="dc-search-item-name">{p.name}</div>
-                  {p.artist && <div className="dc-search-item-artist">{p.artist}</div>}
-                  <div className="dc-search-item-attr">
-                    <span>{p.attractionEmoji}</span>
-                    <span>{p.attractionName}</span>
-                  </div>
-                </div>
-                <ChevronRight size={14} className="dc-search-item-chev" />
-              </button>
-            ))}
-          </div>
+          {attrResults.length > 0 && (
+            <>
+              <div className="dc-search-count">명소 {attrResults.length}곳</div>
+              <div className="dc-search-results">
+                {attrResults.map((a) => (
+                  <button
+                    key={`attr-${a.id}`}
+                    className="dc-search-item dc-search-item-attr-card"
+                    style={{ '--accent': a.coverHue }}
+                    onClick={() => push({ name: 'attraction', attractionId: a.id })}
+                  >
+                    <img src={a.image} alt={a.name} loading="lazy" />
+                    <div className="dc-search-item-body">
+                      <div className="dc-search-item-name">{a.emoji} {a.name}</div>
+                      <div className="dc-search-item-artist">명소 · {a.points.length} 포인트</div>
+                    </div>
+                    <ChevronRight size={14} className="dc-search-item-chev" />
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+          {results.length > 0 && (
+            <>
+              <div className="dc-search-count">작품 {results.length}점</div>
+              <div className="dc-search-results">
+                {results.map((p) => (
+                  <button
+                    key={`${p.attractionId}-${p.id}`}
+                    className="dc-search-item"
+                    style={{ '--accent': p.attractionAccent }}
+                    onClick={() => push({ name: 'point', attractionId: p.attractionId, pointId: p.id })}
+                  >
+                    <img src={p.image} alt={p.name} loading="lazy" />
+                    <div className="dc-search-item-body">
+                      <div className="dc-search-item-name">{p.name}</div>
+                      {p.artist && <div className="dc-search-item-artist">{p.artist}</div>}
+                      <div className="dc-search-item-attr">
+                        <span>{p.attractionEmoji}</span>
+                        <span>{p.attractionName}</span>
+                      </div>
+                    </div>
+                    <ChevronRight size={14} className="dc-search-item-chev" />
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </>
       )}
     </div>
