@@ -7587,7 +7587,7 @@ function SearchView({ pop, push }) {
                     style={{ '--accent': a.coverHue }}
                     onClick={() => push({ name: 'attraction', attractionId: a.id })}
                   >
-                    <img src={a.image} alt={a.name} loading="lazy" />
+                    <img src={a.image || a.points?.[0]?.image} alt={a.name} loading="lazy" />
                     <div className="dc-search-item-body">
                       <div className="dc-search-item-name">{a.emoji} {a.name}</div>
                       <div className="dc-search-item-artist">명소 · {a.points.length} 포인트</div>
