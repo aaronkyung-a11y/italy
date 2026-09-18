@@ -202,6 +202,7 @@ function useAudio() {
   const [progress, setProgress] = useState(0);  // 0-1
   const [duration, setDuration] = useState(0);  // seconds
   const audioRef = useRef(null);
+  const ttsRef = useRef(false); // 브라우저 TTS 사용 중 여부
 
   useEffect(() => () => stop(), []);
 
@@ -210,12 +211,47 @@ function useAudio() {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
+    // 브라우저 TTS도 중지
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    ttsRef.current = false;
     setPlaying(null);
     setProgress(0);
     setDuration(0);
   }
 
-  function play(pointId, audioUrl) {
+  // MP3가 없을 때 브라우저 내장 음성으로 읽어주기 (폴백)
+  function speakFallback(pointId, text) {
+    if (!text || typeof window === 'undefined' || !window.speechSynthesis) {
+      setPlaying(null);
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'ko-KR';
+    u.rate = 1.0;
+    u.pitch = 1.0;
+    // 한국어 음성 우선 선택
+    const voices = window.speechSynthesis.getVoices();
+    const ko = voices.find((v) => v.lang === 'ko-KR' || v.lang.startsWith('ko'));
+    if (ko) u.voice = ko;
+    u.onend = () => {
+      ttsRef.current = false;
+      setPlaying(null);
+      setProgress(0);
+    };
+    u.onerror = () => {
+      ttsRef.current = false;
+      setPlaying(null);
+    };
+    ttsRef.current = true;
+    setPlaying(pointId);
+    setDuration(0); // TTS는 길이를 미리 알 수 없음
+    window.speechSynthesis.speak(u);
+  }
+
+  function play(pointId, audioUrl, ttsText) {
     stop();
     const audio = new Audio(audioUrl);
     audio.preload = 'auto';
@@ -232,24 +268,24 @@ function useAudio() {
       setPlaying(null);
       setProgress(0);
     });
-    audio.addEventListener('error', (e) => {
-      console.error('Audio playback error:', e);
-      setPlaying(null);
+    audio.addEventListener('error', () => {
+      // MP3 없음/로드 실패 → 브라우저 TTS로 폴백
+      speakFallback(pointId, ttsText);
     });
 
-    audio.play().catch((err) => {
-      console.error('Play rejected:', err);
-      setPlaying(null);
+    audio.play().catch(() => {
+      // 재생 거부(파일 없음 등) → 폴백
+      speakFallback(pointId, ttsText);
     });
   }
 
-  function toggle(pointId, audioUrl) {
+  function toggle(pointId, audioUrl, ttsText) {
     if (playing === pointId) stop();
-    else play(pointId, audioUrl);
+    else play(pointId, audioUrl, ttsText);
   }
 
   function seek(t) {
-    if (audioRef.current) audioRef.current.currentTime = t;
+    if (audioRef.current && !ttsRef.current) audioRef.current.currentTime = t;
   }
 
   return { playing, progress, duration, play, stop, toggle, seek };
@@ -6851,7 +6887,7 @@ function PointView({ attractionId, pointId, pop, audio, favorites }) {
       <div className={`dc-audio-player ${isPlaying ? 'on' : ''}`}>
         <button
           className="dc-audio-play"
-          onClick={() => audio.toggle(pointId, audioUrl)}
+          onClick={() => audio.toggle(pointId, audioUrl, point.ttsScript)}
           aria-label={isPlaying ? '일시정지' : '재생'}
         >
           {isPlaying ? <Pause size={22} /> : <Play size={22} />}
