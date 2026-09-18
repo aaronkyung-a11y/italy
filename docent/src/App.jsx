@@ -227,36 +227,73 @@ function useAudio() {
       setPlaying(null);
       return;
     }
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'ko-KR';
-    u.rate = 1.0;
-    u.pitch = 1.0;
-    // 한국어 음성 우선 선택
-    const voices = window.speechSynthesis.getVoices();
-    const ko = voices.find((v) => v.lang === 'ko-KR' || v.lang.startsWith('ko'));
-    if (ko) u.voice = ko;
-    u.onend = () => {
-      ttsRef.current = false;
-      setPlaying(null);
-      setProgress(0);
+    const synth = window.speechSynthesis;
+    synth.cancel();
+
+    const doSpeak = () => {
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'ko-KR';
+      u.rate = 1.0;
+      u.pitch = 1.0;
+      const voices = synth.getVoices() || [];
+      const ko = voices.find((v) => v.lang === 'ko-KR') || voices.find((v) => (v.lang || '').startsWith('ko'));
+      if (ko) u.voice = ko;
+      u.onend = () => {
+        ttsRef.current = false;
+        setPlaying(null);
+        setProgress(0);
+      };
+      u.onerror = () => {
+        ttsRef.current = false;
+        setPlaying(null);
+      };
+      ttsRef.current = true;
+      setPlaying(pointId);
+      setDuration(0);
+      synth.speak(u);
     };
-    u.onerror = () => {
-      ttsRef.current = false;
-      setPlaying(null);
-    };
-    ttsRef.current = true;
-    setPlaying(pointId);
-    setDuration(0); // TTS는 길이를 미리 알 수 없음
-    window.speechSynthesis.speak(u);
+
+    // 일부 브라우저는 voices가 비동기로 로드된다
+    const voices = synth.getVoices();
+    if (!voices || voices.length === 0) {
+      let fired = false;
+      const onVoices = () => {
+        if (fired) return;
+        fired = true;
+        synth.onvoiceschanged = null;
+        doSpeak();
+      };
+      synth.onvoiceschanged = onVoices;
+      setTimeout(onVoices, 350); // 이벤트가 안 와도 진행
+    } else {
+      doSpeak();
+    }
   }
 
-  function play(pointId, audioUrl, ttsText) {
+  async function play(pointId, audioUrl, ttsText) {
     stop();
+    setPlaying(pointId);
+
+    // MP3가 실제로 존재하는지 먼저 확인 (Vercel SPA 폴백이 200+HTML을 주므로
+    // content-type으로 판별해야 한다)
+    let hasMp3 = false;
+    try {
+      const res = await fetch(audioUrl, { method: 'GET', headers: { Range: 'bytes=0-1' } });
+      const ct = (res.headers.get('content-type') || '').toLowerCase();
+      const cd = (res.headers.get('content-disposition') || '').toLowerCase();
+      hasMp3 = res.ok && (ct.includes('audio') || ct.includes('mpeg') || cd.includes('.mp3'));
+    } catch (e) {
+      hasMp3 = false;
+    }
+
+    if (!hasMp3) {
+      speakFallback(pointId, ttsText);
+      return;
+    }
+
     const audio = new Audio(audioUrl);
     audio.preload = 'auto';
     audioRef.current = audio;
-    setPlaying(pointId);
 
     audio.addEventListener('loadedmetadata', () => {
       setDuration(audio.duration);
@@ -269,12 +306,10 @@ function useAudio() {
       setProgress(0);
     });
     audio.addEventListener('error', () => {
-      // MP3 없음/로드 실패 → 브라우저 TTS로 폴백
       speakFallback(pointId, ttsText);
     });
 
     audio.play().catch(() => {
-      // 재생 거부(파일 없음 등) → 폴백
       speakFallback(pointId, ttsText);
     });
   }
