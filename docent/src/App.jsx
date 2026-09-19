@@ -1,5 +1,5 @@
 // v0.40 redeploy trigger
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import {
   ChevronRight, ChevronLeft, ArrowLeft, Play, Pause, Volume2, VolumeX,
   Clock, Info, MapPin, Star, Headphones, BookOpen, Eye, Sparkles, Quote,
@@ -274,14 +274,26 @@ function useAudio() {
     stop();
     setPlaying(pointId);
 
-    // MP3가 실제로 존재하는지 먼저 확인 (Vercel SPA 폴백이 200+HTML을 주므로
-    // content-type으로 판별해야 한다)
+    // MP3가 실제로 존재하는지 먼저 확인
+    // 1) 캐시(오프라인 저장분) → 2) 네트워크 (Vercel SPA 폴백이 200+HTML을 주므로 content-type으로 판별)
     let hasMp3 = false;
+    let playUrl = audioUrl;
     try {
-      const res = await fetch(audioUrl, { method: 'GET', headers: { Range: 'bytes=0-1' } });
-      const ct = (res.headers.get('content-type') || '').toLowerCase();
-      const cd = (res.headers.get('content-disposition') || '').toLowerCase();
-      hasMp3 = res.ok && (ct.includes('audio') || ct.includes('mpeg') || cd.includes('.mp3'));
+      if (typeof caches !== 'undefined') {
+        const c = await caches.open('docent-audio');
+        const hit = await c.match(audioUrl);
+        if (hit) {
+          const blob = await hit.blob();
+          playUrl = URL.createObjectURL(blob);
+          hasMp3 = true;
+        }
+      }
+      if (!hasMp3 && navigator.onLine) {
+        const res = await fetch(audioUrl, { method: 'GET', headers: { Range: 'bytes=0-1' } });
+        const ct = (res.headers.get('content-type') || '').toLowerCase();
+        const cd = (res.headers.get('content-disposition') || '').toLowerCase();
+        hasMp3 = res.ok && (ct.includes('audio') || ct.includes('mpeg') || cd.includes('.mp3'));
+      }
     } catch (e) {
       hasMp3 = false;
     }
@@ -291,7 +303,7 @@ function useAudio() {
       return;
     }
 
-    const audio = new Audio(audioUrl);
+    const audio = new Audio(playUrl);
     audio.preload = 'auto';
     audioRef.current = audio;
 
@@ -974,6 +986,7 @@ function TripView({ pop, push }) {
                         >
                           🗺 오늘 지도
                         </button>
+                        <OfflineButton day={day} schedule={schedule} findAttraction={findAttraction} />
                         {hasFixed && (
                           <span className="dc-trip-day-timeline-locked" title="예약 확정된 슬롯">
                             🔒 {schedule.filter(s => s.fixed).length}개 고정
@@ -1856,6 +1869,124 @@ function CoursePicker({ dayDate, inferredCity, assignedElsewhere, onApply, onClo
 // Home — list of 5 attractions
 // ─────────────────────────────────────────────────────────
 // NearbyView — GPS 위치 기반 가까운 명소 정렬
+// ── 오프라인 준비: 그날 명소의 MP3 + 이미지를 미리 캐시에 저장 ──
+function collectDayAssets(day, schedule, findAttraction) {
+  const urls = new Set();
+  const ids = new Set([...(day.attractionIds || []), ...schedule.map(s => s.id)]);
+  for (const id of ids) {
+    const a = findAttraction(id);
+    if (!a) continue;
+    if (a.image) urls.add(a.image);
+    for (const p of (a.points || [])) {
+      if (p.image) urls.add(p.image);
+      if (p.ttsScript) urls.add(`/audio/${a.id}/${p.id}.mp3`);
+    }
+  }
+  return [...urls];
+}
+
+async function cacheAssets(urls, onProgress) {
+  const audioCache = await caches.open('docent-audio');
+  const imgCache = await caches.open('docent-images');
+  let done = 0, ok = 0, fail = 0;
+  const total = urls.length;
+  // 동시 4개씩
+  const queue = [...urls];
+  async function worker() {
+    while (queue.length) {
+      const u = queue.shift();
+      const cache = u.endsWith('.mp3') ? audioCache : imgCache;
+      try {
+        const hit = await cache.match(u);
+        if (!hit) {
+          const res = await fetch(u, { cache: 'no-cache' });
+          const ct = (res.headers.get('content-type') || '').toLowerCase();
+          // SPA fallback(HTML) 은 저장하지 않음
+          if (res.ok && !ct.includes('text/html')) {
+            await cache.put(u, res.clone());
+            ok++;
+          } else {
+            fail++;
+          }
+        } else {
+          ok++;
+        }
+      } catch (e) {
+        fail++;
+      }
+      done++;
+      onProgress && onProgress({ done, total, ok, fail });
+    }
+  }
+  await Promise.all([worker(), worker(), worker(), worker()]);
+  return { total, ok, fail };
+}
+
+async function checkCached(urls) {
+  if (typeof caches === 'undefined') return 0;
+  const audioCache = await caches.open('docent-audio');
+  const imgCache = await caches.open('docent-images');
+  let n = 0;
+  for (const u of urls) {
+    const cache = u.endsWith('.mp3') ? audioCache : imgCache;
+    if (await cache.match(u)) n++;
+  }
+  return n;
+}
+
+function OfflineButton({ day, schedule, findAttraction }) {
+  const [state, setState] = useState('idle'); // idle | checking | ready | downloading | done | error
+  const [prog, setProg] = useState({ done: 0, total: 0 });
+  const [cached, setCached] = useState(null);
+  const urls = useMemo(() => collectDayAssets(day, schedule, findAttraction), [day, schedule, findAttraction]);
+
+  useEffect(() => {
+    let alive = true;
+    if (typeof caches === 'undefined') return;
+    checkCached(urls).then(n => { if (alive) setCached(n); });
+    return () => { alive = false; };
+  }, [urls, state]);
+
+  const supported = typeof caches !== 'undefined';
+  const allCached = cached !== null && urls.length > 0 && cached >= urls.length;
+
+  async function start() {
+    if (!supported) { alert('이 브라우저는 오프라인 저장을 지원하지 않습니다.'); return; }
+    if (!navigator.onLine) { alert('지금은 오프라인입니다. 네트워크가 있을 때 다시 눌러주세요.'); return; }
+    setState('downloading');
+    setProg({ done: 0, total: urls.length });
+    try {
+      const r = await cacheAssets(urls, p => setProg(p));
+      setState(r.fail ? 'error' : 'done');
+      setTimeout(() => setState('idle'), 2500);
+    } catch (e) {
+      setState('error');
+      setTimeout(() => setState('idle'), 2500);
+    }
+  }
+
+  if (!supported || urls.length === 0) return null;
+
+  let label;
+  if (state === 'downloading') label = `📥 ${prog.done}/${prog.total}`;
+  else if (state === 'done') label = '✅ 저장됨';
+  else if (state === 'error') label = '⚠️ 일부 실패';
+  else if (allCached) label = '✅ 오프라인 OK';
+  else if (cached !== null && cached > 0) label = `📥 오프라인 (${cached}/${urls.length})`;
+  else label = '📥 오프라인 준비';
+
+  return (
+    <button
+      className={`dc-trip-day-map-btn dc-offline-btn ${allCached ? 'is-ready' : ''}`}
+      onClick={start}
+      disabled={state === 'downloading'}
+      title="이 날 명소의 음성·이미지를 폰에 미리 저장 (네트워크 없이도 재생)"
+    >
+      {label}
+    </button>
+  );
+}
+
 // 오늘 동선을 구글맵으로 열기 (호텔 → 명소+식당 시간순 → 역/공항)
 function openDayMap(day, schedule, findAttraction) {
   const parseMin = (str) => {

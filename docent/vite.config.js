@@ -25,7 +25,8 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,mp3,svg,png,woff2,ico}'],
+        // mp3/이미지는 precache 제외 (앱 셸만) — 오프라인은 런타임 캐시 + 수동 다운로드로
+        globPatterns: ['**/*.{js,css,html,svg,woff2,ico}', 'icon-*.png'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [
           {
@@ -38,11 +39,22 @@ export default defineConfig({
             },
           },
           {
+            // 오디오: 전체(439개)보다 넉넉히
             urlPattern: /\/audio\/.*\.mp3$/,
             handler: 'CacheFirst',
             options: {
               cacheName: 'docent-audio',
-              expiration: { maxEntries: 50 },
+              expiration: { maxEntries: 600, maxAgeSeconds: 90 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            // 작품 이미지: 오프라인 썸네일용
+            urlPattern: /\/images\/wiki\/.*\.(jpg|jpeg|png|webp)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'docent-images',
+              expiration: { maxEntries: 600, maxAgeSeconds: 90 * 24 * 60 * 60 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },

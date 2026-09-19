@@ -4765,3 +4765,15 @@ img {
   color: #E88585;
   font-weight: 600;
 }
+
+/* 오프라인 준비 버튼 */
+.dc-offline-btn {
+  background: rgba(107,191,138,0.12);
+  border-color: rgba(107,191,138,0.4);
+  color: #8FE0AE;
+}
+.dc-offline-btn.is-ready {
+  background: rgba(107,191,138,0.22);
+  border-color: rgba(107,191,138,0.7);
+}
+.dc-offline-btn:disabled { opacity: 0.7; cursor: wait; }
