@@ -416,6 +416,12 @@ function TripView({ pop, push }) {
   const [trip, setTripState] = useState(() => loadTrip());
   const [showPicker, setShowPicker] = useState(null); // null or { dayIdx }
   const [showCourses, setShowCourses] = useState(null); // null or { dayIdx }
+  // 지난 날짜 접기: 사용자가 수동으로 펼친/접은 날짜 기록 (date → true=펼침, false=접힘)
+  const [dayOpen, setDayOpen] = useState({});
+  const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
+  const isPastDay = (date) => date < todayStr;
+  const isDayOpen = (date) => (date in dayOpen) ? dayOpen[date] : !isPastDay(date);
+  const toggleDay = (date) => setDayOpen(prev => ({ ...prev, [date]: !isDayOpen(date) }));
   const [expandedAttraction, setExpandedAttraction] = useState(null); // attractionId
   const [expandedTransit, setExpandedTransit] = useState(null); // dayIdx
   const [showSetup, setShowSetup] = useState(!trip);
@@ -908,9 +914,18 @@ function TripView({ pop, push }) {
               )}
 
               {/* 일별 카드 */}
-              <div className="dc-trip-day">
-                <div className="dc-trip-day-header">
-                  <div className="dc-trip-day-date">{formatDate(day.date)}</div>
+              <div className={`dc-trip-day ${isPastDay(day.date) ? 'is-past' : ''} ${isDayOpen(day.date) ? '' : 'is-collapsed'}`}>
+                <div
+                  className="dc-trip-day-header dc-trip-day-header-toggle"
+                  onClick={() => toggleDay(day.date)}
+                  role="button"
+                  aria-expanded={isDayOpen(day.date)}
+                >
+                  <div className="dc-trip-day-date">
+                    <span className="dc-trip-day-chev">{isDayOpen(day.date) ? '▾' : '▸'}</span>
+                    {formatDate(day.date)}
+                    {isPastDay(day.date) && <span className="dc-trip-day-past-tag">지난 일정</span>}
+                  </div>
                   <div className="dc-trip-day-meta">
                     {(() => {
                       const dayA = analysis?.dayAnalyses[dayIdx];
@@ -933,6 +948,7 @@ function TripView({ pop, push }) {
                   </div>
                 </div>
 
+                {isDayOpen(day.date) && (<>
                 {/* dayInfo — 확정된 항공/열차/호텔/예약 정보 (AARON_CONFIRMED_TRIP에서 로드된 데이터) */}
                 {day.dayInfo && (
                   <div style={{
@@ -1164,6 +1180,7 @@ function TripView({ pop, push }) {
                     )}
                   </div>
                 </div>
+                </>)}
               </div>
             </div>
           );

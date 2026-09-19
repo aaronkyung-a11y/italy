@@ -4777,3 +4777,19 @@ img {
   border-color: rgba(107,191,138,0.7);
 }
 .dc-offline-btn:disabled { opacity: 0.7; cursor: wait; }
+
+/* 날짜 카드 접기/펼치기 */
+.dc-trip-day-header-toggle { cursor: pointer; user-select: none; }
+.dc-trip-day-header-toggle:active { opacity: 0.8; }
+.dc-trip-day-chev {
+  display: inline-block; width: 14px; margin-right: 4px;
+  color: var(--gold); font-size: 13px;
+}
+.dc-trip-day-past-tag {
+  margin-left: 8px; font-size: 10px; font-weight: 600;
+  padding: 2px 7px; border-radius: 8px;
+  background: rgba(255,255,255,0.08); color: var(--text-faint);
+  vertical-align: middle;
+}
+.dc-trip-day.is-past.is-collapsed { opacity: 0.6; }
+.dc-trip-day.is-past.is-collapsed .dc-trip-day-header { padding-bottom: 10px; }
